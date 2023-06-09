@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es5" /* Target latest ECMAScript version */,
+    "module": "commonjs" /* Use CommonJS module for Node.js compatibility */,
+    "declaration": true /* Generates corresponding '.d.ts' file */,
+    "outDir": "./dist" /* Redirect output structure to the directory */,
+    "strict": true /* Enable all strict type-checking options */,
+    "esModuleInterop": true, /* Enables CommonJS and AMD module imports */
+  },
+  "include": ["src/**/*"] /* Include source files */,
+  "exclude": ["node_modules"] /* Exclude unnecessary files */
+}
