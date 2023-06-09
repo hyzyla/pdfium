@@ -196,22 +196,3 @@ export class PDFiumDocument {
     this.module.asm.free(this.documentPointer);
   }
 }
-
-// (async () => {
-//   const library = await PDFiumLibrary.init();
-//   // clean up output directory
-//   prepareOutputDirectory();
-
-//   const buff = await readFile("test2.pdf");
-
-//   const document = await library.loadDocument(buff);
-//   const numOfPages = document.getPageCount();
-//   for (let i = 0; i < numOfPages; i++) {
-//     console.log(`${i + 1} - rendering...`);
-//     const image = await document.renderPage(i);
-
-//     fs.writeFileSync(`output/${i + 1}.png`, image.data);
-//   }
-//   document.destroy();
-//   library.destroy();
-// })();
