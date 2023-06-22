@@ -43,3 +43,9 @@ async main() {
 }
 main();
 ```
+
+## Deploy
+
+1. Bump version in `package.json`
+2. Create a new release in GitHub
+3. Check status of the [GitHub Actions](https://github.com/hyzyla/pdfium/actions)
