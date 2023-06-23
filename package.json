@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc && cp -r src/vendor dist",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "check-updates": "node ./scripts/check-updates.js"
   },
   "repository": {
     "type": "git",
