@@ -43,14 +43,21 @@ async function checkForUpdates() {
       responseType: "stream",
     });
 
-    // Create archive folder
-    await fs.mkdir("src/vendor/archive", { recursive: false });
-
     // Unzip archive
     await pipeline(
       response.data,
       zlib.createGunzip(),
-      tar.extract({ cwd: "src/vendor/archive" })
+      tar.extract({ cwd: "src/vendor" })
+    );
+
+    // Copy files
+    await fs.copyFile(
+      "src/vendor/release/node/pdfium.js",
+      "src/vendor/pdfium.js"
+    );
+    await fs.copyFile(
+      "src/vendor/release/node/pdfium.wasm",
+      "src/vendor/pdfium.wasm"
     );
 
     execSync(`npx prettier --write src/vendor`);
@@ -76,7 +83,7 @@ async function checkForUpdates() {
     await fs.writeFile("LAST_RELEASE", latestRelease.tag_name);
   } finally {
     // Remove archive folder
-    await fs.rm("src/vendor/archive", { recursive: true });
+    await fs.rm("src/vendor/release", { recursive: true });
   }
 }
 
