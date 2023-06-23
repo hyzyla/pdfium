@@ -1,9 +1,13 @@
 const { Octokit } = require("@octokit/rest");
 const { execSync } = require("child_process");
-const fs = require("fs");
+const fs = require("fs").promises;
 const axios = require("axios");
-const unzipper = require("unzipper");
+const zlib = require("zlib");
+const tar = require("tar");
+const stream = require("stream");
+const { promisify } = require("util");
 // const prettier = require("prettier");
+const pipeline = promisify(stream.pipeline);
 
 const octokit = new Octokit({
   auth: process.env.GH_TOKEN,
@@ -16,9 +20,11 @@ async function checkForUpdates() {
     repo: "pdfium-lib",
   });
 
-  const lastCheckedRelease = fs
-    .readFileSync("src/vendor/LAST_RELEASE.txt", "utf-8")
-    .trim();
+  const lastCheckedReleaseFile = await fs.readFile(
+    "src/vendor/LAST_RELEASE.txt",
+    "utf-8"
+  );
+  const lastCheckedRelease = lastCheckedReleaseFile.trim();
 
   if (latestRelease.tag_name === lastCheckedRelease) {
     console.log("No updates found");
@@ -26,16 +32,26 @@ async function checkForUpdates() {
   }
 
   try {
-    const response = await axios.get(latestRelease.zipball_url, {
+    // Download wasm asset
+    const wasmAssetUrl = latestRelease.assets.find(
+      (asset) => asset.name === "wasm.tgz"
+    ).browser_download_url;
+
+    const response = await axios({
+      url: wasmAssetUrl,
+      method: "GET",
       responseType: "stream",
     });
 
-    fs.mkdirSync("src/vendor/archive", { recursive: false });
+    // Create archive folder
+    await fs.mkdir("src/vendor/archive", { recursive: false });
 
     // Unzip archive
-    await response.data
-      .pipe(unzipper.Extract({ path: "src/vendor/archive" }))
-      .promise();
+    await pipeline(
+      response.data,
+      zlib.createGunzip(),
+      tar.extract({ cwd: "src/vendor/archive" })
+    );
 
     execSync(`npx prettier --write src/vendor`);
 
@@ -57,10 +73,10 @@ async function checkForUpdates() {
       base: "main",
     });
 
-    fs.writeFileSync("LAST_RELEASE", latestRelease.tag_name);
+    await fs.writeFile("LAST_RELEASE", latestRelease.tag_name);
   } finally {
     // Remove archive folder
-    fs.rmdirSync("src/vendor/archive", { recursive: true });
+    await fs.rm("src/vendor/archive", { recursive: true });
   }
 }
 

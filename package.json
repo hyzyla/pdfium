@@ -19,12 +19,14 @@
     "dist/**/*"
   ],
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "sharp": "^0.32.1"
   },
   "devDependencies": {
     "@octokit/rest": "^19.0.13",
     "@types/node": "^20.2.5",
     "axios": "^1.4.0",
+    "tar": "^6.1.15",
     "ts-node": "^10.9.1",
     "unzipper": "^0.10.14"
   },
