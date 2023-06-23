@@ -10,7 +10,6 @@ const octokit = new Octokit({
 });
 
 async function checkForUpdates() {
-  debugger;
   // Get latest release
   const { data: latestRelease } = await octokit.repos.getLatestRelease({
     owner: "paulocoutinhox",
@@ -31,7 +30,11 @@ async function checkForUpdates() {
     });
 
     fs.mkdirSync("src/vendor/archive", { recursive: false });
-    response.data.pipe(unzipper.Extract({ path: "src/vendor/archive" }));
+
+    // Unzip archive
+    await response.data
+      .pipe(unzipper.Extract({ path: "src/vendor/archive" }))
+      .promise();
 
     execSync(`npx prettier --write src/vendor`);
 
