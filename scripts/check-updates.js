@@ -21,12 +21,17 @@ async function checkForUpdates() {
     .readFileSync("src/vendor/LAST_RELEASE.txt", "utf-8")
     .trim();
 
-  if (latestRelease.tag_name !== lastCheckedRelease) {
+  if (latestRelease.tag_name === lastCheckedRelease) {
+    console.log("No updates found");
+    return;
+  }
+  try {
     const response = await axios.get(latestRelease.zipball_url, {
       responseType: "stream",
     });
 
-    response.data.pipe(unzipper.Extract({ path: "src/vendor" }));
+    fs.mkdirSync("src/vendor/archive", { recursive: false });
+    response.data.pipe(unzipper.Extract({ path: "src/vendor/archive" }));
 
     execSync(`npx prettier --write src/vendor`);
 
@@ -49,6 +54,8 @@ async function checkForUpdates() {
     });
 
     fs.writeFileSync("LAST_RELEASE", latestRelease.tag_name);
+  } finally {
+    fs.unlinkSync("src/vendor/archive");
   }
 }
 
