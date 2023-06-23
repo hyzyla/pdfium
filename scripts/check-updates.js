@@ -55,7 +55,8 @@ async function checkForUpdates() {
 
     fs.writeFileSync("LAST_RELEASE", latestRelease.tag_name);
   } finally {
-    fs.unlinkSync("src/vendor/archive");
+    // Remove archive folder
+    fs.rmdirSync("src/vendor/archive", { recursive: true });
   }
 }
 
