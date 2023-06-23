@@ -6592,7 +6592,6 @@ var PDFiumModule = (() => {
     return PDFiumModule.ready;
   };
 })();
-
 if (typeof exports === "object" && typeof module === "object")
   module.exports = PDFiumModule;
 else if (typeof define === "function" && define["amd"])
