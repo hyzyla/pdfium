@@ -1,0 +1,3 @@
+docopt
+black
+pygemstones>=0.0.13

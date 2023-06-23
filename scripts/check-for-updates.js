@@ -10,6 +10,7 @@ const octokit = new Octokit({
 });
 
 async function checkForUpdates() {
+  // Get latest release
   const { data: latestRelease } = await octokit.repos.getLatestRelease({
     owner: "paulocoutinhox",
     repo: "pdfium-lib",
