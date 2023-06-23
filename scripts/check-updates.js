@@ -24,6 +24,7 @@ async function checkForUpdates() {
     console.log("No updates found");
     return;
   }
+
   try {
     const response = await axios.get(latestRelease.zipball_url, {
       responseType: "stream",
