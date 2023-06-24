@@ -24,7 +24,7 @@ async function checkForUpdates() {
     repo: "pdfium-lib",
   });
   const lastReleaseTag = tag_name;
-  logger.info("Got latest release", latestRelease);
+  console.info("Got latest release", latestRelease);
 
   const lastCheckedReleaseFile = await fs.readFile(
     "src/vendor/LAST_RELEASE.txt",
