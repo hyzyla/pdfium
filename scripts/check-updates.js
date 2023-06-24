@@ -9,8 +9,10 @@ const { promisify } = require("util");
 // const prettier = require("prettier");
 const pipeline = promisify(stream.pipeline);
 
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
 const octokit = new Octokit({
-  auth: process.env.GH_TOKEN,
+  auth: GITHUB_TOKEN,
 });
 
 async function checkForUpdates() {
@@ -19,15 +21,18 @@ async function checkForUpdates() {
     owner: "paulocoutinhox",
     repo: "pdfium-lib",
   });
+  const lastReleaseTag = lastReleaseTag.tag_name;
+  logger.info("Got latest release", latestRelease);
 
   const lastCheckedReleaseFile = await fs.readFile(
     "src/vendor/LAST_RELEASE.txt",
     "utf-8"
   );
-  const lastCheckedRelease = lastCheckedReleaseFile.trim();
+  const lastCheckedReleaseTag = lastCheckedReleaseFile.trim();
+  console.log("Last checked release", lastCheckedReleaseTag);
 
-  if (latestRelease.tag_name === lastCheckedRelease) {
-    console.log("No updates found");
+  if (lastReleaseTag === lastCheckedReleaseTag) {
+    console.log("No new release found", lastReleaseTag, lastCheckedReleaseTag);
     return;
   }
 
@@ -36,12 +41,14 @@ async function checkForUpdates() {
     const wasmAssetUrl = latestRelease.assets.find(
       (asset) => asset.name === "wasm.tgz"
     ).browser_download_url;
+    console.log("Downloading wasm asset", wasmAssetUrl);
 
     const response = await axios({
       url: wasmAssetUrl,
       method: "GET",
       responseType: "stream",
     });
+    console.log("Downloaded wasm asset", response.status);
 
     // Unzip archive
     await pipeline(
@@ -49,6 +56,7 @@ async function checkForUpdates() {
       zlib.createGunzip(),
       tar.extract({ cwd: "src/vendor" })
     );
+    console.log("Unzipped wasm asset to src/vendor folder");
 
     // Copy files
     await fs.copyFile(
@@ -59,28 +67,33 @@ async function checkForUpdates() {
       "src/vendor/release/node/pdfium.wasm",
       "src/vendor/pdfium.wasm"
     );
+    console.log("Copied files to src/vendor folder");
 
     execSync(`npx prettier --write src/vendor`);
+    console.log("Formatted files");
+
+    await fs.writeFile("LAST_RELEASE", lastReleaseTag);
 
     execSync(
       `git config --global user.email "github-actions[bot]@users.noreply.github.com" && git config --global user.name "github-actions[bot]"`
     );
     execSync(
-      `git add . && git commit -m "Update to ${latestRelease.tag_name}"`
+      `git remote set-url --push origin https://hyzyla:${GITHUB_TOKEN}@github.com/hyzyla/pdfium`
     );
+    execSync(`git add . && git commit -m "Update to ${lastReleaseTag}"`);
     execSync(
-      `git push origin "refs/heads/main:refs/heads/update-to-${latestRelease.tag_name}"`
+      `git push origin "refs/heads/main:refs/heads/update-to-${lastReleaseTag}"`
     );
+    console.log("Created commit and pushed to GitHub");
 
     await octokit.pulls.create({
       owner: "hyzyla",
       repo: "pdfium",
-      title: `Update to ${latestRelease.tag_name}`,
-      head: `update-to-${latestRelease.tag_name}`,
+      title: `Update to ${lastReleaseTag}`,
+      head: `update-to-${lastReleaseTag}`,
       base: "main",
     });
-
-    await fs.writeFile("LAST_RELEASE", latestRelease.tag_name);
+    console.log("Created pull request");
   } finally {
     // Remove archive folder
     await fs.rm("src/vendor/release", { recursive: true });
