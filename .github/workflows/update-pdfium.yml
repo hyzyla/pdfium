@@ -26,4 +26,5 @@ jobs:
       - name: Check for updates and create PR
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: npm run check-updates

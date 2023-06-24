@@ -17,11 +17,13 @@ const octokit = new Octokit({
 
 async function checkForUpdates() {
   // Get latest release
-  const { data: latestRelease } = await octokit.repos.getLatestRelease({
+  const {
+    data: { tag_name },
+  } = await octokit.repos.getLatestRelease({
     owner: "paulocoutinhox",
     repo: "pdfium-lib",
   });
-  const lastReleaseTag = lastReleaseTag.tag_name;
+  const lastReleaseTag = tag_name;
   logger.info("Got latest release", latestRelease);
 
   const lastCheckedReleaseFile = await fs.readFile(
