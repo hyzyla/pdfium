@@ -1,14 +1,15 @@
-const { Octokit } = require("@octokit/rest");
-const { execSync } = require("child_process");
-const fs = require("fs").promises;
-const axios = require("axios");
-const zlib = require("zlib");
-const tar = require("tar");
-const stream = require("stream");
-const { promisify } = require("util");
-// const prettier = require("prettier");
-const pipeline = promisify(stream.pipeline);
+import { Octokit } from "@octokit/rest";
+import { execSync } from "child_process";
+import { promises as fs } from "fs";
+import axios from "axios";
+import { createGunzip } from "zlib";
+import { extract } from "tar";
+import { pipeline as _pipeline } from "stream";
+import { promisify } from "util";
 
+const pipeline = promisify(_pipeline);
+
+// eslint-disable-next-line no-undef
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 const octokit = new Octokit({
@@ -17,14 +18,12 @@ const octokit = new Octokit({
 
 async function checkForUpdates() {
   // Get latest release
-  const {
-    data: { tag_name },
-  } = await octokit.repos.getLatestRelease({
+  const lastRelease = await octokit.repos.getLatestRelease({
     owner: "paulocoutinhox",
     repo: "pdfium-lib",
   });
-  const lastReleaseTag = tag_name;
-  console.info("Got latest release", latestRelease);
+  const lastReleaseTag = lastRelease.data.tag_name;
+  console.info("Got latest release", lastReleaseTag);
 
   const lastCheckedReleaseFile = await fs.readFile(
     "src/vendor/LAST_RELEASE.txt",
@@ -40,7 +39,7 @@ async function checkForUpdates() {
 
   try {
     // Download wasm asset
-    const wasmAssetUrl = latestRelease.assets.find(
+    const wasmAssetUrl = lastRelease.assets.find(
       (asset) => asset.name === "wasm.tgz"
     ).browser_download_url;
     console.log("Downloading wasm asset", wasmAssetUrl);
@@ -55,8 +54,8 @@ async function checkForUpdates() {
     // Unzip archive
     await pipeline(
       response.data,
-      zlib.createGunzip(),
-      tar.extract({ cwd: "src/vendor" })
+      createGunzip(),
+      extract({ cwd: "src/vendor" })
     );
     console.log("Unzipped wasm asset to src/vendor folder");
 

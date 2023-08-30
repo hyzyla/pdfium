@@ -25,7 +25,10 @@
   "devDependencies": {
     "@octokit/rest": "^19.0.13",
     "@types/node": "^20.2.5",
+    "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "@typescript-eslint/parser": "^6.5.0",
     "axios": "^1.4.0",
+    "eslint": "^8.48.0",
     "tar": "^6.1.15",
     "ts-node": "^10.9.1",
     "unzipper": "^0.10.14"
