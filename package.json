@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc && cp -r src/vendor dist",
     "clean": "rm -rf dist",
-    "check-updates": "node ./scripts/check-updates.js"
+    "check-updates": "node ./scripts/check-updates.mjs"
   },
   "repository": {
     "type": "git",
