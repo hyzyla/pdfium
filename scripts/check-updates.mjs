@@ -18,19 +18,20 @@ const octokit = new Octokit({
 
 async function checkForUpdates() {
   // Get latest release
-  const lastRelease = await octokit.repos.getLatestRelease({
+  const { data: lastRelease } = await octokit.repos.getLatestRelease({
     owner: "paulocoutinhox",
     repo: "pdfium-lib",
   });
-  const lastReleaseTag = lastRelease.data.tag_name;
-  console.info("Got latest release", lastReleaseTag);
+  const lastReleaseTag = lastRelease.tag_name;
+
+  console.info(`Got latest release: "${lastReleaseTag}"`);
 
   const lastCheckedReleaseFile = await fs.readFile(
     "src/vendor/LAST_RELEASE.txt",
     "utf-8"
   );
   const lastCheckedReleaseTag = lastCheckedReleaseFile.trim();
-  console.log("Last checked release", lastCheckedReleaseTag);
+  console.log(`Last checked release: "${lastCheckedReleaseTag}"`);
 
   if (lastReleaseTag === lastCheckedReleaseTag) {
     console.log("No new release found", lastReleaseTag, lastCheckedReleaseTag);
@@ -42,14 +43,14 @@ async function checkForUpdates() {
     const wasmAssetUrl = lastRelease.assets.find(
       (asset) => asset.name === "wasm.tgz"
     ).browser_download_url;
-    console.log("Downloading wasm asset", wasmAssetUrl);
+    console.log(`Downloading wasm asset: ${wasmAssetUrl}`);
 
     const response = await axios({
       url: wasmAssetUrl,
       method: "GET",
       responseType: "stream",
     });
-    console.log("Downloaded wasm asset", response.status);
+    console.log(`Downloaded wasm asset: ${response.status}`);
 
     // Unzip archive
     await pipeline(
@@ -97,7 +98,10 @@ async function checkForUpdates() {
     console.log("Created pull request");
   } finally {
     // Remove archive folder
-    await fs.rm("src/vendor/release", { recursive: true });
+    await fs.rm("src/vendor/release", {
+      recursive: true,
+      force: true,
+    });
   }
 }
 
