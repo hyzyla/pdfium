@@ -42,7 +42,17 @@ async function checkForUpdates() {
   execSync(`git config --global user.name 'Yevhenii Hyzyla'`);
   execSync(`git config --global user.email 'hyzyla@gmail.com'`);
   execSync(`git switch -c ${branchName}`);
-  execSync(`git rebase main`);
+
+  // check if branch exists
+  const { data: branch } = await octokit.repos.getBranch({
+    owner: "hyzyla",
+    repo: "pdfium",
+    branch: branchName,
+  });
+  if (branch) {
+    console.log(`Branch ${branchName} already exists`);
+    return;
+  }
 
   try {
     // Download wasm asset
