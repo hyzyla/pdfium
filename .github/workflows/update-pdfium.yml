@@ -18,9 +18,9 @@ jobs:
 
       # Set up Node.js
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: 18
 
       # Install dependencies
       - name: Install dependencies
