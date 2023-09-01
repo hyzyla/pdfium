@@ -13,7 +13,7 @@ declare type PDFium = {
     height: number,
     format: number,
     ptr: number,
-    stride: number
+    stride: number,
   ) => any;
   _FPDFBitmap_FillRect: (
     bitmap: any,
@@ -21,7 +21,7 @@ declare type PDFium = {
     top: number,
     width: number,
     height: number,
-    color: number
+    color: number,
   ) => void;
   _FPDF_RenderPageBitmap: (
     bitmap: any,
@@ -31,7 +31,7 @@ declare type PDFium = {
     size_x: number,
     size_y: number,
     rotate: number,
-    flags: number
+    flags: number,
   ) => void;
   _FPDFBitmap_Destroy: (bitmap: any) => void;
   asm: {
