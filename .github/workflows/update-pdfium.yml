@@ -32,8 +32,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run check-updates
 
-      - uses: actions/checkout@v3
-      - name: Commit report
+      - name: Commit and push changes
         run: |
           git config --global user.name 'Your Name'
           git config --global user.email 'your-username@users.noreply.github.com'

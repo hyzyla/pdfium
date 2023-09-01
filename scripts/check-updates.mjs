@@ -74,7 +74,7 @@ async function checkForUpdates() {
     execSync(`npx prettier --write src/vendor`);
     console.log("Formatted files");
 
-    await fs.writeFile("LAST_RELEASE", lastReleaseTag);
+    await fs.writeFile("src/vendor/LAST_RELEASE.txt", lastReleaseTag);
   } finally {
     // Remove archive folder
     await fs.rm("src/vendor/release", {
