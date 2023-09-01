@@ -38,6 +38,12 @@ async function checkForUpdates() {
     return;
   }
 
+  const branchName = `update-to-${lastReleaseTag}`;
+  execSync(`git config --global user.name 'Yevhenii Hyzyla'`);
+  execSync(`git config --global user.email 'hyzyla@gmail.com'`);
+  execSync(`git switch -c ${branchName}`);
+  execSync(`git rebase main`);
+
   try {
     // Download wasm asset
     const wasmAssetUrl = lastRelease.assets.find(
@@ -76,10 +82,6 @@ async function checkForUpdates() {
 
     await fs.writeFile("src/vendor/LAST_RELEASE.txt", lastReleaseTag);
 
-    const branchName = `update-to-${lastReleaseTag}`;
-    execSync(`git config --global user.name 'Yevhenii Hyzyla'`);
-    execSync(`git config --global user.email 'hyzyla@gmail.com'`);
-    execSync(`git switch -c ${branchName}`);
     execSync(`git commit -am "Update PDFium"`);
     execSync(`git push origin ${branchName}`);
 
