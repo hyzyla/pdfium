@@ -58,10 +58,7 @@ async function checkForUpdates() {
       return;
     }
   } catch (e) {
-    if (e.status === 404) {
-      console.log(`Branch ${branchName} does not exist`);
-    }
-    throw e;
+    if (e.status !== 404) throw e;
   }
 
   try {
