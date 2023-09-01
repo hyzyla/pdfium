@@ -34,8 +34,8 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --global user.name 'Your Name'
-          git config --global user.email 'your-username@users.noreply.github.com'
+          git config --global user.name 'Yevhenii Hyzyla'
+          git config --global user.email 'hyzyla@gmail.com'
           git switch -c update-pdfium
           git commit -am "Update PDFium"
           git push origin update-pdfium
