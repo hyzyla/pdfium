@@ -3,7 +3,7 @@ import { execSync } from "child_process";
 import { promises as fs } from "fs";
 import axios from "axios";
 import { createGunzip } from "zlib";
-import { extract } from "tar";
+import { extract, t } from "tar";
 import { pipeline as _pipeline } from "stream";
 import { promisify } from "util";
 
@@ -44,14 +44,24 @@ async function checkForUpdates() {
   execSync(`git switch -c ${branchName}`);
 
   // check if branch exists
-  const { data: branch } = await octokit.repos.getBranch({
-    owner: "hyzyla",
-    repo: "pdfium",
-    branch: branchName,
-  });
-  if (branch) {
-    console.log(`Branch ${branchName} already exists`);
-    return;
+  try {
+    const { data: branch } = await octokit.repos.getBranch({
+      owner: "hyzyla",
+      repo: "pdfium",
+      branch: branchName,
+      request: {
+        validate: false,
+      },
+    });
+    if (branch) {
+      console.log(`Branch ${branchName} already exists`);
+      return;
+    }
+  } catch (e) {
+    if (e.status === 404) {
+      console.log(`Branch ${branchName} does not exist`);
+    }
+    throw e;
   }
 
   try {
