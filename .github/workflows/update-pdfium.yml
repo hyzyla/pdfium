@@ -30,4 +30,4 @@ jobs:
       - name: Check for updates and create PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run check-updates
+        run: node ./scripts/check-updates.mjs

@@ -1,11 +1,11 @@
-import { Octokit } from "@octokit/rest";
-import { execSync } from "child_process";
-import { promises as fs } from "fs";
-import axios from "axios";
-import { createGunzip } from "zlib";
-import { extract, t } from "tar";
-import { pipeline as _pipeline } from "stream";
-import { promisify } from "util";
+import { Octokit } from '@octokit/rest';
+import { execSync } from 'child_process';
+import { promises as fs } from 'fs';
+import axios from 'axios';
+import { createGunzip } from 'zlib';
+import { extract, t } from 'tar';
+import { pipeline as _pipeline } from 'stream';
+import { promisify } from 'util';
 
 const pipeline = promisify(_pipeline);
 
@@ -16,25 +16,46 @@ const octokit = new Octokit({
   auth: GITHUB_TOKEN,
 });
 
+const VERSION_FILE = 'src/vendor/LAST_RELEASE.txt';
+
+/**
+ * Check whether branch exists
+ */
+async function isBranchExists(branchName) {
+  try {
+    const { data: branch } = await octokit.repos.getBranch({
+      owner: 'hyzyla',
+      repo: 'pdfium',
+      branch: branchName,
+      request: {
+        validate: false,
+      },
+    });
+    if (branch) {
+      return true;
+    }
+  } catch (e) {
+    if (e.status !== 404) throw e;
+  }
+  return false;
+}
+
 async function checkForUpdates() {
   // Get latest release
   const { data: lastRelease } = await octokit.repos.getLatestRelease({
-    owner: "paulocoutinhox",
-    repo: "pdfium-lib",
+    owner: 'paulocoutinhox',
+    repo: 'pdfium-lib',
   });
   const lastReleaseTag = lastRelease.tag_name;
 
   console.info(`Got latest release: "${lastReleaseTag}"`);
 
-  const lastCheckedReleaseFile = await fs.readFile(
-    "src/vendor/LAST_RELEASE.txt",
-    "utf-8"
-  );
+  const lastCheckedReleaseFile = await fs.readFile(VERSION_FILE, 'utf-8');
   const lastCheckedReleaseTag = lastCheckedReleaseFile.trim();
   console.log(`Last checked release: "${lastCheckedReleaseTag}"`);
 
   if (lastReleaseTag === lastCheckedReleaseTag) {
-    console.log("No new release found", lastReleaseTag, lastCheckedReleaseTag);
+    console.log('No new release found', lastReleaseTag, lastCheckedReleaseTag);
     return;
   }
 
@@ -44,77 +65,53 @@ async function checkForUpdates() {
   execSync(`git switch -c ${branchName}`);
 
   // check if branch exists
-  try {
-    const { data: branch } = await octokit.repos.getBranch({
-      owner: "hyzyla",
-      repo: "pdfium",
-      branch: branchName,
-      request: {
-        validate: false,
-      },
-    });
-    if (branch) {
-      console.log(`Branch ${branchName} already exists`);
-      return;
-    }
-  } catch (e) {
-    if (e.status !== 404) throw e;
+  if (await isBranchExists(branchName)) {
+    console.log(`Branch ${branchName} already exists`);
+    return;
   }
 
   try {
     // Download wasm asset
-    const wasmAssetUrl = lastRelease.assets.find(
-      (asset) => asset.name === "wasm.tgz"
-    ).browser_download_url;
+    const wasmAssetUrl = lastRelease.assets.find((asset) => asset.name === 'wasm.tgz').browser_download_url;
     console.log(`Downloading wasm asset: ${wasmAssetUrl}`);
 
     const response = await axios({
       url: wasmAssetUrl,
-      method: "GET",
-      responseType: "stream",
+      method: 'GET',
+      responseType: 'stream',
     });
     console.log(`Downloaded wasm asset: ${response.status}`);
 
     // Unzip archive
-    await pipeline(
-      response.data,
-      createGunzip(),
-      extract({ cwd: "src/vendor" })
-    );
-    console.log("Unzipped wasm asset to src/vendor folder");
+    await pipeline(response.data, createGunzip(), extract({ cwd: 'src/vendor' }));
+    console.log('Unzipped wasm asset to src/vendor folder');
 
     // Copy files
-    await fs.copyFile(
-      "src/vendor/release/node/pdfium.js",
-      "src/vendor/pdfium.js"
-    );
-    await fs.copyFile(
-      "src/vendor/release/node/pdfium.wasm",
-      "src/vendor/pdfium.wasm"
-    );
-    console.log("Copied files to src/vendor folder");
+    await fs.copyFile('src/vendor/release/node/pdfium.js', 'src/vendor/pdfium.js');
+    await fs.copyFile('src/vendor/release/node/pdfium.wasm', 'src/vendor/pdfium.wasm');
+    console.log('Copied files to src/vendor folder');
 
     execSync(`npx prettier --write src/vendor`);
-    console.log("Formatted files");
+    console.log('Formatted files');
 
-    await fs.writeFile("src/vendor/LAST_RELEASE.txt", lastReleaseTag);
+    await fs.writeFile('src/vendor/LAST_RELEASE.txt', lastReleaseTag);
 
     execSync(`git commit -am "Update PDFium"`);
     execSync(`git push origin ${branchName}`);
 
     await octokit.pulls.create({
-      owner: "hyzyla",
-      repo: "pdfium",
+      owner: 'hyzyla',
+      repo: 'pdfium',
       title: `Update to ${lastReleaseTag}`,
       head: branchName,
-      base: "main",
+      base: 'main',
       body: `Update PDFium from ${lastCheckedReleaseTag} to ${lastReleaseTag} version
                https://github.com/paulocoutinhox/pdfium-lib/releases/tag/${lastReleaseTag}`,
     });
-    console.log("Created pull request");
+    console.log('Created pull request');
   } finally {
     // Remove archive folder
-    await fs.rm("src/vendor/release", {
+    await fs.rm('src/vendor/release', {
       recursive: true,
       force: true,
     });

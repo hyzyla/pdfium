@@ -8,21 +8,8 @@ declare type PDFium = {
   _FPDF_GetPageWidth: (page: any) => number;
   _FPDF_GetPageHeight: (page: any) => number;
   _FPDF_ClosePage: (page: any) => void;
-  _FPDFBitmap_CreateEx: (
-    width: number,
-    height: number,
-    format: number,
-    ptr: number,
-    stride: number,
-  ) => any;
-  _FPDFBitmap_FillRect: (
-    bitmap: any,
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-    color: number,
-  ) => void;
+  _FPDFBitmap_CreateEx: (width: number, height: number, format: number, ptr: number, stride: number) => any;
+  _FPDFBitmap_FillRect: (bitmap: any, left: number, top: number, width: number, height: number, color: number) => void;
   _FPDF_RenderPageBitmap: (
     bitmap: any,
     page: any,
@@ -31,7 +18,7 @@ declare type PDFium = {
     size_x: number,
     size_y: number,
     rotate: number,
-    flags: number,
+    flags: number
   ) => void;
   _FPDFBitmap_Destroy: (bitmap: any) => void;
   asm: {

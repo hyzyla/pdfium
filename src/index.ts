@@ -1,6 +1,6 @@
-import sharp from "sharp";
+import sharp from 'sharp';
 
-import pdfium from "./vendor/pdfium";
+import pdfium from './vendor/pdfium';
 
 const BYTES_PER_PIXEL = 4;
 
@@ -91,7 +91,7 @@ export class PDFiumLibrary {
     this.module = module;
   }
 
-  async loadDocument(buff: Buffer, password: string = "") {
+  async loadDocument(buff: Buffer, password: string = '') {
     const size = buff.length;
 
     const ptr = this.module.asm.malloc(size);
@@ -148,13 +148,7 @@ export class PDFiumDocument {
     const ptr = this.module.asm.malloc(buffSize);
     this.module.HEAPU8.fill(0, ptr, ptr + buffSize);
 
-    const bitmap = this.module._FPDFBitmap_CreateEx(
-      width,
-      height,
-      FPDFBitmap.BGRA,
-      ptr,
-      width * BYTES_PER_PIXEL
-    );
+    const bitmap = this.module._FPDFBitmap_CreateEx(width, height, FPDFBitmap.BGRA, ptr, width * BYTES_PER_PIXEL);
     this.module._FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0xffffffff);
     this.module._FPDF_RenderPageBitmap(
       bitmap,

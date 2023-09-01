@@ -7,7 +7,8 @@
   "scripts": {
     "build": "rm -rf dist && tsc && cp -r src/vendor dist",
     "clean": "rm -rf dist",
-    "check-updates": "node ./scripts/check-updates.mjs"
+    "lint": "eslint ./src",
+    "format": "prettier ./src --write"
   },
   "repository": {
     "type": "git",
@@ -29,11 +30,43 @@
     "@typescript-eslint/parser": "^6.5.0",
     "axios": "^1.4.0",
     "eslint": "^8.48.0",
+    "prettier": "^3.0.3",
     "tar": "^6.1.15",
     "ts-node": "^10.9.1",
     "unzipper": "^0.10.14"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "========== Tools ==========": "",
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "overrides": [],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {},
+    "ignorePatterns": [
+      "src/vendor/**/*"
+    ]
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 120
   }
 }
