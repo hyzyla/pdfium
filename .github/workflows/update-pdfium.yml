@@ -1,12 +1,11 @@
 name: Check for new PDFium releases
 
-# on:
-#   schedule:
-#     # This will run at 00:00 every Saturday
-#     - cron: '0 0 * * 6'
+on:
+  workflow_dispatch:
+  schedule:
+    # This will run at 10:00 every Saturday
+    - cron: '0 10 * * 6'
 
-# on: workflow_dispatch
-on: [push]
 
 jobs:
   check-for-updates:
