@@ -38,4 +38,5 @@ jobs:
           git config --global user.email 'your-username@users.noreply.github.com'
           git switch -c update-pdfium
           git commit -am "Update PDFium"
-          git push
+          git push origin update-pdfium
+
