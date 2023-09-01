@@ -108,8 +108,8 @@ async function checkForUpdates() {
       title: `Update to ${lastReleaseTag}`,
       head: branchName,
       base: "main",
-      body: ```Update PDFium from ${lastCheckedReleaseTag} to ${lastReleaseTag} version
-               https://github.com/paulocoutinhox/pdfium-lib/releases/tag/${lastReleaseTag}```,
+      body: `Update PDFium from ${lastCheckedReleaseTag} to ${lastReleaseTag} version
+               https://github.com/paulocoutinhox/pdfium-lib/releases/tag/${lastReleaseTag}`,
     });
     console.log("Created pull request");
   } finally {
