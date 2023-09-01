@@ -1,4 +1,4 @@
-declare type PDFium = {
+export declare type PDFium = {
   _FPDF_InitLibraryWithConfig: (config: any) => void;
   _FPDF_LoadMemDocument: (ptr: number, size: number, password: string) => any;
   _FPDF_GetLastError: () => number;
@@ -21,6 +21,7 @@ declare type PDFium = {
     flags: number
   ) => void;
   _FPDFBitmap_Destroy: (bitmap: any) => void;
+  _FPDF_CloseDocument(document: any): void;
   asm: {
     malloc: (size: number) => number;
     free: (ptr: number) => void;
@@ -28,6 +29,6 @@ declare type PDFium = {
   HEAPU8: Uint8Array;
 };
 
-declare function loadPdfium(): Promise<PDFium>;
+export declare function loadPdfium(): Promise<PDFium>;
 
 export default loadPdfium;

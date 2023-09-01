@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 
-import pdfium from './vendor/pdfium';
+import vendor from './vendor/pdfium';
+import type * as t from './vendor/pdfium';
 
 const BYTES_PER_PIXEL = 4;
 
@@ -73,9 +74,9 @@ export type PDFiumPageRender = {
 };
 
 export class PDFiumLibrary {
-  module: any;
+  module: t.PDFium;
   static async init() {
-    const module = await pdfium();
+    const module = await vendor();
     module._FPDF_InitLibraryWithConfig({
       version: 2,
       m_pIsolate: null,
@@ -87,7 +88,7 @@ export class PDFiumLibrary {
     return new PDFiumLibrary(module);
   }
 
-  constructor(module: any) {
+  constructor(module: t.PDFium) {
     this.module = module;
   }
 
@@ -112,10 +113,10 @@ export class PDFiumLibrary {
 }
 
 export class PDFiumDocument {
-  module: any;
-  documentPointer: any;
+  module: t.PDFium;
+  documentPointer: number;
   documentHandle: any;
-  constructor(module: any, documentPointer: any, documentHandle: any) {
+  constructor(module: t.PDFium, documentPointer: number, documentHandle: any) {
     this.module = module;
     this.documentPointer = documentPointer;
     this.documentHandle = documentHandle;
