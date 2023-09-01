@@ -75,27 +75,6 @@ async function checkForUpdates() {
     console.log("Formatted files");
 
     await fs.writeFile("LAST_RELEASE", lastReleaseTag);
-
-    execSync(
-      `git config --global user.email "github-actions[bot]@users.noreply.github.com" && git config --global user.name "github-actions[bot]"`
-    );
-    execSync(
-      `git remote set-url --push origin https://hyzyla:${GITHUB_TOKEN}@github.com/hyzyla/pdfium`
-    );
-    execSync(`git add . && git commit -m "Update to ${lastReleaseTag}"`);
-    execSync(
-      `git push origin "refs/heads/main:refs/heads/update-to-${lastReleaseTag}"`
-    );
-    console.log("Created commit and pushed to GitHub");
-
-    await octokit.pulls.create({
-      owner: "hyzyla",
-      repo: "pdfium",
-      title: `Update to ${lastReleaseTag}`,
-      head: `update-to-${lastReleaseTag}`,
-      base: "main",
-    });
-    console.log("Created pull request");
   } finally {
     // Remove archive folder
     await fs.rm("src/vendor/release", {
