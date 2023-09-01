@@ -447,13 +447,13 @@ var PDFiumModule = (() => {
             abort(
               "You are getting " +
                 prop +
-                " on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js"
+                " on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js",
             ),
           set: () =>
             abort(
               "You are setting " +
                 prop +
-                " on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js"
+                " on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js",
             ),
         });
       }
@@ -474,7 +474,7 @@ var PDFiumModule = (() => {
       !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
     if (Module["ENVIRONMENT"]) {
       throw new Error(
-        "Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -sENVIRONMENT=web or -sENVIRONMENT=node)"
+        "Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -sENVIRONMENT=web or -sENVIRONMENT=node)",
       );
     }
     var scriptDirectory = "";
@@ -500,7 +500,7 @@ var PDFiumModule = (() => {
         process.release.name !== "node"
       )
         throw new Error(
-          "not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)"
+          "not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)",
         );
       var fs = require("fs");
       var nodePath = require("path");
@@ -565,7 +565,7 @@ var PDFiumModule = (() => {
         typeof importScripts == "function"
       )
         throw new Error(
-          "not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)"
+          "not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)",
         );
       if (typeof read != "undefined") {
         read_ = function shell_read(f) {
@@ -616,14 +616,14 @@ var PDFiumModule = (() => {
       if (scriptDirectory.indexOf("blob:") !== 0) {
         scriptDirectory = scriptDirectory.substr(
           0,
-          scriptDirectory.replace(/[?#].*/, "").lastIndexOf("/") + 1
+          scriptDirectory.replace(/[?#].*/, "").lastIndexOf("/") + 1,
         );
       } else {
         scriptDirectory = "";
       }
       if (!(typeof window == "object" || typeof importScripts == "function"))
         throw new Error(
-          "not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)"
+          "not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)",
         );
       {
         read_ = (url) => {
@@ -673,39 +673,39 @@ var PDFiumModule = (() => {
     legacyModuleProp("quit", "quit_");
     assert(
       typeof Module["memoryInitializerPrefixURL"] == "undefined",
-      "Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead"
+      "Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead",
     );
     assert(
       typeof Module["pthreadMainPrefixURL"] == "undefined",
-      "Module.pthreadMainPrefixURL option was removed, use Module.locateFile instead"
+      "Module.pthreadMainPrefixURL option was removed, use Module.locateFile instead",
     );
     assert(
       typeof Module["cdInitializerPrefixURL"] == "undefined",
-      "Module.cdInitializerPrefixURL option was removed, use Module.locateFile instead"
+      "Module.cdInitializerPrefixURL option was removed, use Module.locateFile instead",
     );
     assert(
       typeof Module["filePackagePrefixURL"] == "undefined",
-      "Module.filePackagePrefixURL option was removed, use Module.locateFile instead"
+      "Module.filePackagePrefixURL option was removed, use Module.locateFile instead",
     );
     assert(
       typeof Module["read"] == "undefined",
-      "Module.read option was removed (modify read_ in JS)"
+      "Module.read option was removed (modify read_ in JS)",
     );
     assert(
       typeof Module["readAsync"] == "undefined",
-      "Module.readAsync option was removed (modify readAsync in JS)"
+      "Module.readAsync option was removed (modify readAsync in JS)",
     );
     assert(
       typeof Module["readBinary"] == "undefined",
-      "Module.readBinary option was removed (modify readBinary in JS)"
+      "Module.readBinary option was removed (modify readBinary in JS)",
     );
     assert(
       typeof Module["setWindowTitle"] == "undefined",
-      "Module.setWindowTitle option was removed (modify setWindowTitle in JS)"
+      "Module.setWindowTitle option was removed (modify setWindowTitle in JS)",
     );
     assert(
       typeof Module["TOTAL_MEMORY"] == "undefined",
-      "Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY"
+      "Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY",
     );
     legacyModuleProp("read", "read_");
     legacyModuleProp("readAsync", "readAsync");
@@ -713,7 +713,7 @@ var PDFiumModule = (() => {
     legacyModuleProp("setWindowTitle", "setWindowTitle");
     assert(
       !ENVIRONMENT_IS_SHELL,
-      "shell environment detected but not enabled at build time.  Add 'shell' to `-sENVIRONMENT` to enable."
+      "shell environment detected but not enabled at build time.  Add 'shell' to `-sENVIRONMENT` to enable.",
     );
     var wasmBinary;
     if (Module["wasmBinary"]) wasmBinary = Module["wasmBinary"];
@@ -760,7 +760,7 @@ var PDFiumModule = (() => {
             warnOnce(
               "Invalid UTF-8 leading byte " +
                 ptrToString(u0) +
-                " encountered when deserializing a UTF-8 string in wasm memory to a JS string!"
+                " encountered when deserializing a UTF-8 string in wasm memory to a JS string!",
             );
           u0 =
             ((u0 & 7) << 18) |
@@ -809,7 +809,7 @@ var PDFiumModule = (() => {
             warnOnce(
               "Invalid Unicode code point " +
                 ptrToString(u) +
-                " encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF)."
+                " encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).",
             );
           heap[outIdx++] = 240 | (u >> 18);
           heap[outIdx++] = 128 | ((u >> 12) & 63);
@@ -823,7 +823,7 @@ var PDFiumModule = (() => {
     function stringToUTF8(str, outPtr, maxBytesToWrite) {
       assert(
         typeof maxBytesToWrite == "number",
-        "stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!"
+        "stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!",
       );
       return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
     }
@@ -858,22 +858,22 @@ var PDFiumModule = (() => {
     }
     assert(
       !Module["STACK_SIZE"],
-      "STACK_SIZE can no longer be set at runtime.  Use -sSTACK_SIZE at link time"
+      "STACK_SIZE can no longer be set at runtime.  Use -sSTACK_SIZE at link time",
     );
     assert(
       typeof Int32Array != "undefined" &&
         typeof Float64Array !== "undefined" &&
         Int32Array.prototype.subarray != undefined &&
         Int32Array.prototype.set != undefined,
-      "JS engine does not provide full typed array support"
+      "JS engine does not provide full typed array support",
     );
     assert(
       !Module["wasmMemory"],
-      "Use of `wasmMemory` detected.  Use -sIMPORTED_MEMORY to define wasmMemory externally"
+      "Use of `wasmMemory` detected.  Use -sIMPORTED_MEMORY to define wasmMemory externally",
     );
     assert(
       !Module["INITIAL_MEMORY"],
-      "Detected runtime INITIAL_MEMORY setting.  Use -sIMPORTED_MEMORY to define wasmMemory dynamically"
+      "Detected runtime INITIAL_MEMORY setting.  Use -sIMPORTED_MEMORY to define wasmMemory dynamically",
     );
     var wasmTable;
     function writeStackCookie() {
@@ -901,12 +901,12 @@ var PDFiumModule = (() => {
             ", expected hex dwords 0x89BACDFE and 0x2135467, but received " +
             ptrToString(cookie2) +
             " " +
-            ptrToString(cookie1)
+            ptrToString(cookie1),
         );
       }
       if (HEAPU32[0] !== 1668509029) {
         abort(
-          "Runtime error: The application has corrupted its heap memory area (address zero)!"
+          "Runtime error: The application has corrupted its heap memory area (address zero)!",
         );
       }
     }
@@ -965,19 +965,19 @@ var PDFiumModule = (() => {
     }
     assert(
       Math.imul,
-      "This browser does not support Math.imul(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill"
+      "This browser does not support Math.imul(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill",
     );
     assert(
       Math.fround,
-      "This browser does not support Math.fround(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill"
+      "This browser does not support Math.fround(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill",
     );
     assert(
       Math.clz32,
-      "This browser does not support Math.clz32(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill"
+      "This browser does not support Math.clz32(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill",
     );
     assert(
       Math.trunc,
-      "This browser does not support Math.trunc(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill"
+      "This browser does not support Math.trunc(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill",
     );
     var runDependencies = 0;
     var runDependencyWatcher = null;
@@ -1078,12 +1078,12 @@ var PDFiumModule = (() => {
           runtimeInitialized,
           "native function `" +
             displayName +
-            "` called before runtime initialization"
+            "` called before runtime initialization",
         );
         if (!asm[name]) {
           assert(
             asm[name],
-            "exported native function `" + displayName + "` not found"
+            "exported native function `" + displayName + "` not found",
           );
         }
         return asm[name].apply(null, arguments);
@@ -1128,7 +1128,7 @@ var PDFiumModule = (() => {
                 function (response) {
                   resolve(new Uint8Array(response));
                 },
-                reject
+                reject,
               );
             });
           }
@@ -1152,7 +1152,7 @@ var PDFiumModule = (() => {
             err(
               "warning: Loading from a file URI (" +
                 wasmBinaryFile +
-                ") is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing"
+                ") is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing",
             );
           }
           abort(reason);
@@ -1167,16 +1167,16 @@ var PDFiumModule = (() => {
         !ENVIRONMENT_IS_NODE &&
         typeof fetch == "function"
       ) {
-        return fetch(binaryFile, { credentials: "same-origin" }).then(function (
-          response
-        ) {
-          var result = WebAssembly.instantiateStreaming(response, imports);
-          return result.then(callback, function (reason) {
-            err("wasm streaming compile failed: " + reason);
-            err("falling back to ArrayBuffer instantiation");
-            return instantiateArrayBuffer(binaryFile, imports, callback);
-          });
-        });
+        return fetch(binaryFile, { credentials: "same-origin" }).then(
+          function (response) {
+            var result = WebAssembly.instantiateStreaming(response, imports);
+            return result.then(callback, function (reason) {
+              err("wasm streaming compile failed: " + reason);
+              err("falling back to ArrayBuffer instantiation");
+              return instantiateArrayBuffer(binaryFile, imports, callback);
+            });
+          },
+        );
       } else {
         return instantiateArrayBuffer(binaryFile, imports, callback);
       }
@@ -1200,7 +1200,7 @@ var PDFiumModule = (() => {
       function receiveInstantiationResult(result) {
         assert(
           Module === trueModule,
-          "the Module object should not be replaced during async compilation - perhaps the order of HTML elements is wrong?"
+          "the Module object should not be replaced during async compilation - perhaps the order of HTML elements is wrong?",
         );
         trueModule = null;
         receiveInstance(result["instance"]);
@@ -1217,7 +1217,7 @@ var PDFiumModule = (() => {
         wasmBinary,
         wasmBinaryFile,
         info,
-        receiveInstantiationResult
+        receiveInstantiationResult,
       ).catch(readyPromiseReject);
       return {};
     }
@@ -1233,7 +1233,7 @@ var PDFiumModule = (() => {
                 prop +
                 " has been replaced with plain " +
                 newName +
-                " (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)"
+                " (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)",
             );
           },
         });
@@ -1246,7 +1246,7 @@ var PDFiumModule = (() => {
             prop +
             "` was supplied but `" +
             prop +
-            "` not included in INCOMING_MODULE_JS_API"
+            "` not included in INCOMING_MODULE_JS_API",
         );
       }
     }
@@ -1268,7 +1268,7 @@ var PDFiumModule = (() => {
           configurable: true,
           get: function () {
             warnOnce(
-              "`" + sym + "` is not longer defined by emscripten. " + msg
+              "`" + sym + "` is not longer defined by emscripten. " + msg,
             );
             return undefined;
           },
@@ -1406,7 +1406,7 @@ var PDFiumModule = (() => {
             filename ? UTF8ToString(filename) : "unknown filename",
             line,
             func ? UTF8ToString(func) : "unknown function",
-          ]
+          ],
       );
     }
     function setErrNo(value) {
@@ -1446,7 +1446,7 @@ var PDFiumModule = (() => {
           trailingSlash = path.substr(-1) === "/";
         path = PATH.normalizeArray(
           path.split("/").filter((p) => !!p),
-          !isAbsolute
+          !isAbsolute,
         ).join("/");
         if (!path && !isAbsolute) {
           path = ".";
@@ -1502,7 +1502,7 @@ var PDFiumModule = (() => {
       }
       return () =>
         abort(
-          "no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: function(array) { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };"
+          "no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: function(array) { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };",
         );
     }
     var PATH_FS = {
@@ -1521,7 +1521,7 @@ var PDFiumModule = (() => {
         }
         resolvedPath = PATH.normalizeArray(
           resolvedPath.split("/").filter((p) => !!p),
-          !resolvedAbsolute
+          !resolvedAbsolute,
         ).join("/");
         return (resolvedAbsolute ? "/" : "") + resolvedPath || ".";
       },
@@ -1565,7 +1565,7 @@ var PDFiumModule = (() => {
         stringy,
         u8array,
         0,
-        u8array.length
+        u8array.length,
       );
       if (dontAddNull) u8array.length = numBytesWritten;
       return u8array;
@@ -1814,7 +1814,7 @@ var PDFiumModule = (() => {
           newCapacity,
           (prevCapacity *
             (prevCapacity < CAPACITY_DOUBLING_MAX ? 2 : 1.125)) >>>
-            0
+            0,
         );
         if (prevCapacity != 0) newCapacity = Math.max(newCapacity, 256);
         var oldContents = node.contents;
@@ -1832,7 +1832,7 @@ var PDFiumModule = (() => {
           node.contents = new Uint8Array(newSize);
           if (oldContents) {
             node.contents.set(
-              oldContents.subarray(0, Math.min(newSize, node.usedBytes))
+              oldContents.subarray(0, Math.min(newSize, node.usedBytes)),
             );
           }
           node.usedBytes = newSize;
@@ -1960,7 +1960,7 @@ var PDFiumModule = (() => {
             if (canOwn) {
               assert(
                 position === 0,
-                "canOwn must imply no weird position inside the file"
+                "canOwn must imply no weird position inside the file",
               );
               node.contents = buffer.subarray(offset, offset + length);
               node.usedBytes = length;
@@ -1972,7 +1972,7 @@ var PDFiumModule = (() => {
             } else if (position + length <= node.usedBytes) {
               node.contents.set(
                 buffer.subarray(offset, offset + length),
-                position
+                position,
               );
               return length;
             }
@@ -1981,7 +1981,7 @@ var PDFiumModule = (() => {
           if (node.contents.subarray && buffer.subarray) {
             node.contents.set(
               buffer.subarray(offset, offset + length),
-              position
+              position,
             );
           } else {
             for (var i = 0; i < length; i++) {
@@ -2009,7 +2009,7 @@ var PDFiumModule = (() => {
           MEMFS.expandFileStorage(stream.node, offset + length);
           stream.node.usedBytes = Math.max(
             stream.node.usedBytes,
-            offset + length
+            offset + length,
           );
         },
         mmap: function (stream, length, position, prot, flags) {
@@ -2030,7 +2030,7 @@ var PDFiumModule = (() => {
                 contents = Array.prototype.slice.call(
                   contents,
                   position,
-                  position + length
+                  position + length,
                 );
               }
             }
@@ -2056,7 +2056,7 @@ var PDFiumModule = (() => {
         (arrayBuffer) => {
           assert(
             arrayBuffer,
-            'Loading data file "' + url + '" failed (no arrayBuffer).'
+            'Loading data file "' + url + '" failed (no arrayBuffer).',
           );
           onload(new Uint8Array(arrayBuffer));
           if (dep) removeRunDependency(dep);
@@ -2067,7 +2067,7 @@ var PDFiumModule = (() => {
           } else {
             throw 'Loading data file "' + url + '" failed.';
           }
-        }
+        },
       );
       if (dep) addRunDependency(dep);
     }
@@ -2523,7 +2523,7 @@ var PDFiumModule = (() => {
           err(
             "warning: " +
               FS.syncFSRequests +
-              " FS.syncfs operations in flight at once, probably just doing extra work"
+              " FS.syncfs operations in flight at once, probably just doing extra work",
           );
         }
         var mounts = FS.getMounts(FS.root.mount);
@@ -2808,7 +2808,7 @@ var PDFiumModule = (() => {
         }
         return PATH_FS.resolve(
           FS.getPath(link.parent),
-          link.node_ops.readlink(link)
+          link.node_ops.readlink(link),
         );
       },
       stat: (path, dontFollow) => {
@@ -3047,7 +3047,7 @@ var PDFiumModule = (() => {
           buffer,
           offset,
           length,
-          position
+          position,
         );
         if (!seeking) stream.position += bytesRead;
         return bytesRead;
@@ -3083,7 +3083,7 @@ var PDFiumModule = (() => {
           offset,
           length,
           position,
-          canOwn
+          canOwn,
         );
         if (!seeking) stream.position += bytesWritten;
         return bytesWritten;
@@ -3131,7 +3131,7 @@ var PDFiumModule = (() => {
           buffer,
           offset,
           length,
-          mmapFlags
+          mmapFlags,
         );
       },
       munmap: (stream) => 0,
@@ -3238,7 +3238,7 @@ var PDFiumModule = (() => {
             },
           },
           {},
-          "/proc/self/fd"
+          "/proc/self/fd",
         );
       },
       createStandardStreams: () => {
@@ -3263,11 +3263,11 @@ var PDFiumModule = (() => {
         assert(stdin.fd === 0, "invalid handle for stdin (" + stdin.fd + ")");
         assert(
           stdout.fd === 1,
-          "invalid handle for stdout (" + stdout.fd + ")"
+          "invalid handle for stdout (" + stdout.fd + ")",
         );
         assert(
           stderr.fd === 2,
-          "invalid handle for stderr (" + stderr.fd + ")"
+          "invalid handle for stderr (" + stderr.fd + ")",
         );
       },
       ensureErrnoError: () => {
@@ -3313,7 +3313,7 @@ var PDFiumModule = (() => {
       init: (input, output, error) => {
         assert(
           !FS.init.initialized,
-          "FS.init was previously called. If you want to initialize later with custom parameters, remove any earlier calls (note that one is automatically added to the generated code)"
+          "FS.init was previously called. If you want to initialize later with custom parameters, remove any earlier calls (note that one is automatically added to the generated code)",
         );
         FS.init.initialized = true;
         FS.ensureErrnoError();
@@ -3396,7 +3396,7 @@ var PDFiumModule = (() => {
       createFile: (parent, name, properties, canRead, canWrite) => {
         var path = PATH.join2(
           typeof parent == "string" ? parent : FS.getPath(parent),
-          name
+          name,
         );
         var mode = FS.getMode(canRead, canWrite);
         return FS.create(path, mode);
@@ -3427,7 +3427,7 @@ var PDFiumModule = (() => {
       createDevice: (parent, name, input, output) => {
         var path = PATH.join2(
           typeof parent == "string" ? parent : FS.getPath(parent),
-          name
+          name,
         );
         var mode = FS.getMode(!!input, !!output);
         if (!FS.createDevice.major) FS.createDevice.major = 64;
@@ -3483,7 +3483,7 @@ var PDFiumModule = (() => {
           return true;
         if (typeof XMLHttpRequest != "undefined") {
           throw new Error(
-            "Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread."
+            "Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread.",
           );
         } else if (read_) {
           try {
@@ -3522,7 +3522,7 @@ var PDFiumModule = (() => {
               !((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304)
             )
               throw new Error(
-                "Couldn't load " + url + ". Status: " + xhr.status
+                "Couldn't load " + url + ". Status: " + xhr.status,
               );
             var datalength = Number(xhr.getResponseHeader("Content-length"));
             var header;
@@ -3541,11 +3541,11 @@ var PDFiumModule = (() => {
                     from +
                     ", " +
                     to +
-                    ") or no bytes requested!"
+                    ") or no bytes requested!",
                 );
               if (to > datalength - 1)
                 throw new Error(
-                  "only " + datalength + " bytes available! programmer error!"
+                  "only " + datalength + " bytes available! programmer error!",
                 );
               var xhr = new XMLHttpRequest();
               xhr.open("GET", url, false);
@@ -3560,7 +3560,7 @@ var PDFiumModule = (() => {
                 !((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304)
               )
                 throw new Error(
-                  "Couldn't load " + url + ". Status: " + xhr.status
+                  "Couldn't load " + url + ". Status: " + xhr.status,
                 );
               if (xhr.response !== undefined) {
                 return new Uint8Array(xhr.response || []);
@@ -3584,7 +3584,7 @@ var PDFiumModule = (() => {
               datalength = this.getter(0).length;
               chunkSize = datalength;
               out(
-                "LazyFiles on gzip forces download of the whole file when length is accessed"
+                "LazyFiles on gzip forces download of the whole file when length is accessed",
               );
             }
             this._length = datalength;
@@ -3682,7 +3682,7 @@ var PDFiumModule = (() => {
         onerror,
         dontCreateFile,
         canOwn,
-        preFinish
+        preFinish,
       ) => {
         var fullname = name
           ? PATH_FS.resolve(PATH.join2(parent, name))
@@ -3698,7 +3698,7 @@ var PDFiumModule = (() => {
                 byteArray,
                 canRead,
                 canWrite,
-                canOwn
+                canOwn,
               );
             }
             if (onload) onload();
@@ -3760,7 +3760,7 @@ var PDFiumModule = (() => {
           paths.forEach((path) => {
             var putRequest = files.put(
               FS.analyzePath(path).object.contents,
-              path
+              path,
             );
             putRequest.onsuccess = () => {
               ok++;
@@ -3811,7 +3811,7 @@ var PDFiumModule = (() => {
                 getRequest.result,
                 true,
                 true,
-                true
+                true,
               );
               ok++;
               if (ok + fail == total) finish();
@@ -3839,12 +3839,12 @@ var PDFiumModule = (() => {
       },
       mmapAlloc: () => {
         abort(
-          "FS.mmapAlloc has been replaced by the top level function mmapAlloc"
+          "FS.mmapAlloc has been replaced by the top level function mmapAlloc",
         );
       },
       standardizePath: () => {
         abort(
-          "FS.standardizePath has been removed; use PATH.normalize instead"
+          "FS.standardizePath has been removed; use PATH.normalize instead",
         );
       },
     };
@@ -3898,7 +3898,7 @@ var PDFiumModule = (() => {
                   0) >>>
                 0
               : ~~+Math.ceil(
-                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                 ) >>> 0
             : 0),
         ]),
@@ -3918,7 +3918,7 @@ var PDFiumModule = (() => {
                   0) >>>
                 0
               : ~~+Math.ceil(
-                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                 ) >>> 0
             : 0),
         ]),
@@ -3934,7 +3934,7 @@ var PDFiumModule = (() => {
                   0) >>>
                 0
               : ~~+Math.ceil(
-                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                 ) >>> 0
             : 0),
         ]),
@@ -3950,7 +3950,7 @@ var PDFiumModule = (() => {
                   0) >>>
                 0
               : ~~+Math.ceil(
-                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                 ) >>> 0
             : 0),
         ]),
@@ -3966,7 +3966,7 @@ var PDFiumModule = (() => {
                   0) >>>
                 0
               : ~~+Math.ceil(
-                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                 ) >>> 0
             : 0),
         ]),
@@ -4118,7 +4118,7 @@ var PDFiumModule = (() => {
                     0) >>>
                   0
                 : ~~+Math.ceil(
-                    (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                    (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                   ) >>> 0
               : 0),
           ]),
@@ -4133,7 +4133,7 @@ var PDFiumModule = (() => {
                     0) >>>
                   0
                 : ~~+Math.ceil(
-                    (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                    (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                   ) >>> 0
               : 0),
           ]),
@@ -4384,7 +4384,7 @@ var PDFiumModule = (() => {
             " bytes to " +
             size +
             " bytes, but got error: " +
-            e
+            e,
         );
       }
     }
@@ -4399,7 +4399,7 @@ var PDFiumModule = (() => {
             requestedSize +
             " bytes, but the limit is " +
             maxHeapSize +
-            " bytes!"
+            " bytes!",
         );
         return false;
       }
@@ -4409,11 +4409,11 @@ var PDFiumModule = (() => {
         var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown);
         overGrownHeapSize = Math.min(
           overGrownHeapSize,
-          requestedSize + 100663296
+          requestedSize + 100663296,
         );
         var newSize = Math.min(
           maxHeapSize,
-          alignUp(Math.max(requestedSize, overGrownHeapSize), 65536)
+          alignUp(Math.max(requestedSize, overGrownHeapSize), 65536),
         );
         var replacement = emscripten_realloc_buffer(newSize);
         if (replacement) {
@@ -4425,7 +4425,7 @@ var PDFiumModule = (() => {
           oldSize +
           " bytes to " +
           newSize +
-          " bytes, not enough memory!"
+          " bytes, not enough memory!",
       );
       return false;
     }
@@ -4542,7 +4542,7 @@ var PDFiumModule = (() => {
                   0) >>>
                 0
               : ~~+Math.ceil(
-                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296
+                  (tempDouble - +(~~tempDouble >>> 0)) / 4294967296,
                 ) >>> 0
             : 0),
         ]),
@@ -4628,7 +4628,7 @@ var PDFiumModule = (() => {
     function writeArrayToMemory(array, buffer) {
       assert(
         array.length >= 0,
-        "writeArrayToMemory array must have a length (should be an array or typed array)"
+        "writeArrayToMemory array must have a length (should be an array or typed array)",
       );
       HEAP8.set(array, buffer);
     }
@@ -4681,7 +4681,7 @@ var PDFiumModule = (() => {
       for (var rule in EXPANSION_RULES_1) {
         pattern = pattern.replace(
           new RegExp(rule, "g"),
-          EXPANSION_RULES_1[rule]
+          EXPANSION_RULES_1[rule],
         );
       }
       var WEEKDAYS = [
@@ -4750,7 +4750,7 @@ var PDFiumModule = (() => {
       function getWeekBasedYear(date) {
         var thisDate = __addDays(
           new Date(date.tm_year + 1900, 0, 1),
-          date.tm_yday
+          date.tm_yday,
         );
         var janFourthThisYear = new Date(thisDate.getFullYear(), 0, 4);
         var janFourthNextYear = new Date(thisDate.getFullYear() + 1, 0, 4);
@@ -4809,9 +4809,9 @@ var PDFiumModule = (() => {
                 __isLeapYear(date.tm_year + 1900)
                   ? __MONTH_DAYS_LEAP
                   : __MONTH_DAYS_REGULAR,
-                date.tm_mon - 1
+                date.tm_mon - 1,
               ),
-            3
+            3,
           );
         },
         "%m": function (date) {
@@ -4844,7 +4844,7 @@ var PDFiumModule = (() => {
         },
         "%V": function (date) {
           var val = Math.floor(
-            (date.tm_yday + 7 - ((date.tm_wday + 6) % 7)) / 7
+            (date.tm_yday + 7 - ((date.tm_wday + 6) % 7)) / 7,
           );
           if ((date.tm_wday + 371 - date.tm_yday - 2) % 7 <= 2) {
             val++;
@@ -4897,7 +4897,7 @@ var PDFiumModule = (() => {
         if (pattern.includes(rule)) {
           pattern = pattern.replace(
             new RegExp(rule, "g"),
-            EXPANSION_RULES_2[rule](date)
+            EXPANSION_RULES_2[rule](date),
           );
         }
       }
@@ -4922,7 +4922,7 @@ var PDFiumModule = (() => {
       }
       assert(
         wasmTable.get(funcPtr) == func,
-        "JavaScript-side Wasm function table mirror is out of date!"
+        "JavaScript-side Wasm function table mirror is out of date!",
       );
       return func;
     }
@@ -4930,7 +4930,7 @@ var PDFiumModule = (() => {
       var func = Module["_" + ident];
       assert(
         func,
-        "Cannot call unknown function " + ident + ", make sure it is exported"
+        "Cannot call unknown function " + ident + ", make sure it is exported",
       );
       return func;
     }
@@ -6147,7 +6147,7 @@ var PDFiumModule = (() => {
     var ___errno_location = createExportWrapper("__errno_location");
     var _fflush = (Module["_fflush"] = createExportWrapper("fflush"));
     var _emscripten_builtin_memalign = createExportWrapper(
-      "emscripten_builtin_memalign"
+      "emscripten_builtin_memalign",
     );
     var _setThrew = createExportWrapper("setThrew");
     var _emscripten_stack_init = function () {
@@ -6563,7 +6563,7 @@ var PDFiumModule = (() => {
         if (Module["onRuntimeInitialized"]) Module["onRuntimeInitialized"]();
         assert(
           !Module["_main"],
-          'compiled without a main, but one is present. if you added it from JS, use Module["onRuntimeInitialized"]'
+          'compiled without a main, but one is present. if you added it from JS, use Module["onRuntimeInitialized"]',
         );
         postRun();
       }
