@@ -75,6 +75,22 @@ async function checkForUpdates() {
     console.log("Formatted files");
 
     await fs.writeFile("src/vendor/LAST_RELEASE.txt", lastReleaseTag);
+
+    const branchName = `update-to-${lastReleaseTag}`;
+    execSync(`git config --global user.name 'Yevhenii Hyzyla'`);
+    execSync(`git config --global user.email 'hyzyla@gmail.com'`);
+    execSync(`git switch -c ${branchName}`);
+    execSync(`git commit -am "Update PDFium"`);
+    execSync(`git push origin ${branchName}`);
+
+    await octokit.pulls.create({
+      owner: "hyzyla",
+      repo: "pdfium",
+      title: `Update to ${lastReleaseTag}`,
+      head: branchName,
+      base: "main",
+    });
+    console.log("Created pull request");
   } finally {
     // Remove archive folder
     await fs.rm("src/vendor/release", {
