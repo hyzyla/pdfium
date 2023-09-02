@@ -77,7 +77,7 @@ export class PDFiumDocument {
     switch (options.render) {
       case 'sharp':
         return await renderBySharp(options);
-      case 'raw':
+      case 'bitmap':
         return options.data;
       default:
         return await options.render(options);
@@ -91,7 +91,7 @@ export class PDFiumDocument {
       render: PDFiumPageRenderFunction;
     } = {
       scale: 1,
-      render: 'raw',
+      render: 'bitmap',
     }
   ): Promise<PDFiumPageRender> {
     const page = this.module._FPDF_LoadPage(this.documentHandle, i);

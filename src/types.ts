@@ -6,7 +6,7 @@ export type PDFiumPageRenderOptions = {
 
 export type PDFiumPageRenderCallback = (options: PDFiumPageRenderOptions) => Promise<Buffer>;
 
-export type PDFiumPageRenderFunction = 'sharp' | 'raw' | PDFiumPageRenderCallback;
+export type PDFiumPageRenderFunction = 'sharp' | 'bitmap' | PDFiumPageRenderCallback;
 
 export type PDFiumPageSize = {
   width: number;
