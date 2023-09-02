@@ -25,18 +25,18 @@ yarn add @hyzyla/pdfium
 
 ```ts
 import { PDFiumLibrary } from "@hyzyla/pdfium";
-import fs from "fs";
+import { promises as fs } from 'fs';
 
 async main() {
   const library = await PDFiumLibrary.init();
-  const buff = await readFile("test2.pdf");
+  const buff = await fs.readFile('test2.pdf');
 
   const document = await library.loadDocument(buff);
   const numOfPages = document.getPageCount();
   for (let i = 0; i < numOfPages; i++) {
     console.log(`${i + 1} - rendering...`);
     const image = await document.renderPage(i);
-    fs.writeFileSync(`output/${i + 1}.png`, image.data);
+    await fs.writeFile(`output/${i + 1}.png`, image.data);
   }
   document.destroy();
   library.destroy();

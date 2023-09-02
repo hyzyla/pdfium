@@ -12,21 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # Checkout the repository
-      - name: Checkout
+      - name: Checkout the repository
         uses: actions/checkout@v3
 
-      # Set up Node.js
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: npm clean-install
 
-      # Check for updates and create PR
       - name: Check for updates and create PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
