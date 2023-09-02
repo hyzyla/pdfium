@@ -1,4 +1,4 @@
-name: Run tests
+name: Run checks
 on: push
 
 jobs:
@@ -16,7 +16,12 @@ jobs:
 
       - name: Install dependencies
         run: npm clean-install
+          
+      - name: Run linter
+        run: npm run lint
+      
+      - name: Run prettier
+        run: npm run format -- --check
 
       - name: Run tests
         run: npm test 
-    
