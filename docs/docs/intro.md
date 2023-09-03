@@ -21,3 +21,5 @@ sidebar_position: 1
 
 Main use case for this library is to render PDF files to images, but if you need to do something else with PDF files that is supported by PDFium, but not included in this library, feel free to open an issue or a pull request on
 [GitHub](https://github.com/hyzyla/pdfium).
+
+Examples how to render PDF files to images can be found on 👉 ["Render PDF to image"](/docs/render-pdf.md) page.

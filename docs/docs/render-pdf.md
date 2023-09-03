@@ -6,7 +6,7 @@ sidebar_position: 1
 
 ## Load PDFiumLibrary
 
-First of all, you need to create an instance of PDFiumLibrary. You can do this once for the whole application and reuse the library instance.
+First of all, you need to create an instance of PDFiumLibrary. You can do this once for the whole application and reuse the library instance during the application lifetime.
 
 ```typescript
 import { PDFiumLibrary } from '@hyzyla/pdfium';
@@ -45,10 +45,17 @@ const image = await document.renderPage(0, {
 Result is an object with the following properties:
 
 - `data` - image data as a buffer
-- `width` - image width in DPI (after scaling)
-- `height` - image height in DPI (after scaling)
-- `originalWidth` - original page width in DPI (before scaling)
-- `originalHeight` - original page height in DPI (before scaling)
+- `width` - image width in points (after scaling)
+- `height` - image height in points (after scaling)
+- `originalWidth` - original page width in points (before scaling)
+- `originalHeight` - original page height in points (before scaling)
+
+:::info
+
+DPI is dots per inch, it's a measure of image resolution and commonly used for printing
+
+Points are a typographic unit of measure, 1 point is equal to 1/72 of an inch
+:::
 
 #### render: `sharp`
 
@@ -56,6 +63,9 @@ It's recommended to use `sharp` for rendering to PNG. `sharp` is an optional dep
 
 ```bash
 npm install sharp
+# Or if you use yarn or pnpm:
+# yarn add sharp
+# pnpm install sharp
 ```
 
 Example:

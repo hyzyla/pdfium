@@ -93,4 +93,25 @@ describe('PDFium', () => {
       expect(result.data).toMatchImageSnapshot();
     });
   });
+
+  test('should call a custom render function', async () => {
+    await loadDocument('test_1.pdf', async (document) => {
+      const result = await document.renderPage(0, {
+        scale: 1,
+        render: async (options) => {
+          expect(options.data).toBeInstanceOf(Buffer);
+          expect(options.height).toBe(A1_SIZE.height);
+          expect(options.width).toBe(A1_SIZE.width);
+          return Buffer.from('test');
+        },
+      });
+      expect(result).toEqual({
+        data: Buffer.from('test'),
+        height: A1_SIZE.height,
+        width: A1_SIZE.width,
+        originalHeight: A1_SIZE.height,
+        originalWidth: A1_SIZE.width,
+      });
+    });
+  });
 });
