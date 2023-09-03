@@ -19,16 +19,10 @@ Node.js wrapper for the PDFium library:
 
 ## Installation
 
-With npm
-
 ```sh
+# yarn add @hyzyla/pdfium
+# pnpm install @hyzyla/pdfium
 npm install @hyzyla/pdfium
-```
-
-or with yarn
-
-```sh
-yarn add @hyzyla/pdfium
 ```
 
 ## Usage
@@ -38,19 +32,37 @@ import { PDFiumLibrary } from "@hyzyla/pdfium";
 import { promises as fs } from 'fs';
 
 async main() {
-  const library = await PDFiumLibrary.init();
-  const buff = await fs.readFile('test2.pdf');
+  const buff = await fs.readFile('test2.pdf')
 
+  // Initialize the library, you can do this once for the whole application
+  // and reuse the library instance.
+  const library = await PDFiumLibrary.init();;
+
+  // Load the document from the buffer
+  // You can also pass "password" as the second argument if the document is encrypted.
   const document = await library.loadDocument(buff);
 
+  // Iterate over the pages, render them to PNG images and
+  // save to the output folder
   for (const page of document.pages()) {
     console.log(`${i + 1} - rendering...`);
-    const image = await page.render();
+
+    // Render PDF page to PNG image
+    const image = await page({
+      scale: 3, // 3x scale (91 DPI is the default)
+      render: 'sharp', // use "sharp" for converting bitmap to PNG
+    });
+
+    // Save the PNG image to the output folder
     await fs.writeFile(`output/${i + 1}.png`, image.data);
   }
+
+  // Do not forget to destroy the document and the library
+  // when you are done.
   document.destroy();
   library.destroy();
 }
+
 main();
 ```
 

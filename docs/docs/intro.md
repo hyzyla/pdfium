@@ -23,3 +23,11 @@ Main use case for this library is to render PDF files to images, but if you need
 [GitHub](https://github.com/hyzyla/pdfium).
 
 Examples how to render PDF files to images can be found on 👉 ["Render PDF to image"](/docs/render-pdf.md) page.
+
+# Installation
+
+```sh
+# yarn add @hyzyla/pdfium
+# pnpm install @hyzyla/pdfium
+npm install @hyzyla/pdfium
+```
