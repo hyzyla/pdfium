@@ -30,13 +30,27 @@ document.destroy();
 
 ## Render PDF page
 
-To render a PDF page to an image, use `renderPage` method of the document instance. First argument is the page number (starting from 0). Second argument is an options object with the following properties:
+Before rendering a PDF page, you need to get it from the document. You can do this by calling `getPage` method of the document instance. First argument is the page number (starting from 0).
+
+```typescript
+const page = document.getPage(0);
+```
+
+or you can iterate over the pages using `pages` method of the document instance:
+
+```typescript
+for (const page of document.pages()) {
+  // ... do something with the page
+}
+```
+
+Then you can render the page to an image by calling `render` method of the page instance. It accepts an optional `RenderPageOptions` object with the following properties:
 
 - `scale` - scale factor for the image (default is 1, which means 91 DPI, 3 almost always is enough for good quality)
 - `render` - render engine to use, can be either `sharp`, `bitmap` (default is `bitmap`) or custom render function. If you need to render to PNG, it's recommended to use `sharp` render function.
 
 ```typescript
-const image = await document.renderPage(0, {
+const image = await page.render({
   scale: 3,
   render: 'sharp',
 });
@@ -62,16 +76,16 @@ Points are a typographic unit of measure, 1 point is equal to 1/72 of an inch
 It's recommended to use `sharp` for rendering to PNG. `sharp` is an optional dependency, so you need to install it manually, before using it:
 
 ```bash
-npm install sharp
-# Or if you use yarn or pnpm:
 # yarn add sharp
 # pnpm install sharp
+npm install sharp
+
 ```
 
 Example:
 
 ```typescript
-const image = await document.renderPage(0, {
+const image = await page.render({
   scale: 3,
   render: 'sharp',
 });
@@ -86,7 +100,7 @@ console.log(image.data); // PNG image data as a buffer
 Example:
 
 ```typescript
-const image = await document.renderPage(0, {
+const image = await page.render({
   scale: 3,
   render: 'bitmap',
 });
@@ -102,7 +116,7 @@ You can also pass a custom render function as the `render` option. It should be 
 import sharp from 'sharp';
 import { type PDFiumPageRenderOptions } from '@hyzyla/pdfium';
 
-const image = await document.renderPage(0, {
+const image = await page.render({
   scale: 3,
   render: async (options: PDFiumPageRenderOptions): Promise<Buffer> => {
     return await sharp(options.data, {
@@ -117,20 +131,6 @@ const image = await document.renderPage(0, {
   },
 });
 ```
-
-## Get & render PDF page
-
-You can also get a PDF page by its number and render it to an image in two steps:
-
-```typescript
-const page = document.getPage(0);
-const image = await page.render({
-  scale: 3,
-  render: 'sharp',
-});
-```
-
-This method recieves the same options as `renderPage` method of the document instance.
 
 ## Full example
 

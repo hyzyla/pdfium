@@ -50,37 +50,6 @@ describe('PDFium', () => {
         }
       });
     });
-
-    test('should get the size of a page', async () => {
-      await loadDocument('test_1.pdf', async (document) => {
-        const size = document.getPageSize(0);
-        expect(size).toEqual(A1_SIZE);
-      });
-    });
-
-    test('should get the size of a page precisely', async () => {
-      await loadDocument('test_1.pdf', async (document) => {
-        const size = document.getPageSize(0, true);
-        expect(size).toEqual({
-          width: 595.3200073242188,
-          height: 841.9200439453125,
-        });
-      });
-    });
-
-    test('should render a bitmap of a page', async () => {
-      await loadDocument('test_1.pdf', async (document) => {
-        const buff = await document.renderPage(0, {
-          scale: 1,
-          render: 'bitmap',
-        });
-        expect(buff.height).toBe(A1_SIZE.height);
-        expect(buff.width).toBe(A1_SIZE.width);
-        expect(buff.originalHeight).toBe(A1_SIZE.height);
-        expect(buff.originalWidth).toBe(A1_SIZE.width);
-        expect(buff.data.length).toBe(A1_SIZE.height * A1_SIZE.width * 4);
-      });
-    });
   });
 
   describe('PDFiumPage', () => {

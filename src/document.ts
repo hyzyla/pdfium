@@ -30,25 +30,6 @@ export class PDFiumDocument {
     return this.module._FPDF_GetPageCount(this.documentHandle);
   }
 
-  getPageSize(i: number, precisely: boolean = false): PDFiumPageSize {
-    const page = this.getPage(i);
-    return page.getSize(precisely);
-  }
-
-  async renderPage(
-    i: number,
-    options: {
-      scale: number;
-      render: PDFiumPageRenderFunction;
-    } = {
-      scale: 1,
-      render: 'bitmap',
-    }
-  ): Promise<PDFiumPageRender> {
-    const page = this.getPage(i);
-    return await page.render(options);
-  }
-
   destroy(): void {
     this.module._FPDF_CloseDocument(this.documentHandle);
     this.module.asm.free(this.documentPointer);
