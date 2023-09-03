@@ -1,6 +1,6 @@
 {
   "name": "@hyzyla/pdfium",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,11 +21,11 @@
     "dist/**/*"
   ],
   "dependencies": {
-    "@types/axios": "^0.14.0",
     "sharp": "^0.32.1"
   },
   "devDependencies": {
     "@octokit/rest": "^19.0.13",
+    "@types/axios": "^0.14.0",
     "@types/jest": "^29.5.4",
     "@types/jest-image-snapshot": "^6.2.0",
     "@types/node": "^20.2.5",
