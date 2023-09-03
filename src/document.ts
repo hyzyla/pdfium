@@ -1,7 +1,6 @@
 import type * as t from './vendor/pdfium';
 
 import { PDFiumPage } from './page';
-import { PDFiumPageRender, PDFiumPageRenderFunction, PDFiumPageSize } from './types';
 
 export class PDFiumDocument {
   private readonly module: t.PDFium;
