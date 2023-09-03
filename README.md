@@ -32,10 +32,10 @@ async main() {
   const buff = await fs.readFile('test2.pdf');
 
   const document = await library.loadDocument(buff);
-  const numOfPages = document.getPageCount();
-  for (let i = 0; i < numOfPages; i++) {
+
+  for (const page of document.pages()) {
     console.log(`${i + 1} - rendering...`);
-    const image = await document.renderPage(i);
+    const image = await page.render();
     await fs.writeFile(`output/${i + 1}.png`, image.data);
   }
   document.destroy();

@@ -5,7 +5,7 @@ import { FPDF_ERR } from './constants';
 import { PDFiumDocument } from './document';
 
 export class PDFiumLibrary {
-  module: t.PDFium;
+  private readonly module: t.PDFium;
   static async init() {
     const module = await vendor();
     module._FPDF_InitLibraryWithConfig({

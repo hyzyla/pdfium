@@ -118,6 +118,20 @@ const image = await document.renderPage(0, {
 });
 ```
 
+## Get & render PDF page
+
+You can also get a PDF page by its number and render it to an image in two steps:
+
+```typescript
+const page = document.getPage(0);
+const image = await page.render({
+  scale: 3,
+  render: 'sharp',
+});
+```
+
+This method recieves the same options as `renderPage` method of the document instance.
+
 ## Full example
 
 ```typescript
@@ -137,12 +151,11 @@ async main() {
 
   // Iterate over the pages, render them to PNG images and
   // save to the output folder
-  const numOfPages = document.getPageCount();
-  for (let i = 0; i < numOfPages; i++) {
+  for (const page of document.pages()) {
     console.log(`${i + 1} - rendering...`);
 
     // Render PDF page to PNG image
-    const image = await document.renderPage(i, {
+    const image = await page({
       scale: 3, // 3x scale (91 DPI is the default)
       render: 'sharp', // use "sharp" for converting bitmap to PNG
     });
