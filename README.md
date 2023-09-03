@@ -1,6 +1,6 @@
 # @hyzyla/pdfium
 
-📃 [Documentation](https://pdfium.vercel.app/)
+📃 [Documentation](https://pdfium.js.org/docs/intro)
 
 Node.js wrapper for the PDFium library:
 
