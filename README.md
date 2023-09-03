@@ -1,11 +1,21 @@
 # @hyzyla/pdfium
 
+[Documentation](https://pdfium.vercel.app/)
+
 Node.js wrapper for the PDFium library:
 
 - ⬇️ [pdfium](https://pdfium.googlesource.com/pdfium/) - source code of the PDFium library, developed by Google and used in Chrome.
 - ⬇️ [pdfium-lib](https://github.com/paulocoutinhox/pdfium-lib) - project to compile PDFium library to multiple platforms, including WebAssembly.
 - 📍 [@hyzyla/pdfium](https://github.com/hyzyla/pdfium) - (you are here)
   Node.js wrapper for the WebAssembly build of PDFium library.
+
+# Features
+
+@hyzyla/pdfium is a Node.js wrapper for the [PDFium](https://pdfium.googlesource.com/pdfium/) library:
+
+- ⬇️ [pdfium](https://pdfium.googlesource.com/pdfium/) - an open-source library for PDF manipulation and rendering, developed by Google and used in Google Chrome browser.
+- ⬇️ [pdfium-lib](https://github.com/paulocoutinhox/pdfium-lib) - project by [Paulo Coutinho](https://github.com/paulocoutinhox) to compile PDFium library to multiple platforms, including WebAssembly.
+- 📍 [@hyzyla/pdfium](https://github.com/hyzyla/pdfium) - (you are here) Node.js wrapper for the WebAssembly build of PDFium library.
 
 ## Installation
 
