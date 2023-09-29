@@ -10,12 +10,9 @@ Node.js wrapper for the PDFium library:
   Node.js wrapper for the WebAssembly build of PDFium library.
 
 # Features
-
-@hyzyla/pdfium is a Node.js wrapper for the [PDFium](https://pdfium.googlesource.com/pdfium/) library:
-
-- ⬇️ [pdfium](https://pdfium.googlesource.com/pdfium/) - an open-source library for PDF manipulation and rendering, developed by Google and used in Google Chrome browser.
-- ⬇️ [pdfium-lib](https://github.com/paulocoutinhox/pdfium-lib) - project by [Paulo Coutinho](https://github.com/paulocoutinhox) to compile PDFium library to multiple platforms, including WebAssembly.
-- 📍 [@hyzyla/pdfium](https://github.com/hyzyla/pdfium) - (you are here) Node.js wrapper for the WebAssembly build of PDFium library.
+-  📦 Zero dependencies - PDFium library is compiled to WebAssembly and bundled with the package.
+- 🚀 Fast - PDFium can be faster than PDF.js, because it's originally written in C++ and compiled to WebAssembly, while PDF.js is entirely written in JavaScript.
+- 🔒 Type-safe - TypeScript definitions are included.
 
 ## Installation
 
