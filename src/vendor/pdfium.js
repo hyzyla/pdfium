@@ -1,10 +1,10 @@
 var PDFiumModule = (() => {
   var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
   if (typeof __filename !== 'undefined') _scriptDir = _scriptDir || __filename;
-  return function (PDFiumModule = {}) {
-    var Module = typeof PDFiumModule != 'undefined' ? PDFiumModule : {};
+  return function (moduleArg = {}) {
+    var Module = moduleArg;
     var readyPromiseResolve, readyPromiseReject;
-    Module['ready'] = new Promise(function (resolve, reject) {
+    Module['ready'] = new Promise((resolve, reject) => {
       readyPromiseResolve = resolve;
       readyPromiseReject = reject;
     });
@@ -120,6 +120,7 @@ var PDFiumModule = (() => {
       '_FPDF_CreateNewDocument',
       '_FPDFPage_New',
       '_FPDFPage_Delete',
+      '_FPDF_MovePages',
       '_FPDFPage_GetRotation',
       '_FPDFPage_SetRotation',
       '_FPDFPage_InsertObject',
@@ -162,6 +163,7 @@ var PDFiumModule = (() => {
       '_FPDFImageObj_GetImageFilterCount',
       '_FPDFImageObj_GetImageFilter',
       '_FPDFImageObj_GetImageMetadata',
+      '_FPDFImageObj_GetImagePixelSize',
       '_FPDFPageObj_CreateNewPath',
       '_FPDFPageObj_CreateNewRect',
       '_FPDFPageObj_GetBounds',
@@ -309,6 +311,7 @@ var PDFiumModule = (() => {
       '_FPDF_StructElement_GetTitle',
       '_FPDF_StructElement_CountChildren',
       '_FPDF_StructElement_GetChildAtIndex',
+      '_FPDF_StructElement_GetChildMarkedContentID',
       '_FPDF_StructElement_GetParent',
       '_FPDF_StructElement_GetAttributeCount',
       '_FPDF_StructElement_GetAttributeAtIndex',
@@ -331,6 +334,7 @@ var PDFiumModule = (() => {
       '_FPDFText_CountChars',
       '_FPDFText_GetUnicode',
       '_FPDFText_IsGenerated',
+      '_FPDFText_IsHyphen',
       '_FPDFText_HasUnicodeMapError',
       '_FPDFText_GetFontSize',
       '_FPDFText_GetFontInfo',
@@ -383,8 +387,8 @@ var PDFiumModule = (() => {
       '_FPDF_CreateClipPath',
       '_FPDF_DestroyClipPath',
       '_FPDFPage_InsertClipPath',
-      '_FPDF_InitLibrary',
       '_FPDF_InitLibraryWithConfig',
+      '_FPDF_InitLibrary',
       '_FPDF_DestroyLibrary',
       '_FPDF_SetSandBoxPolicy',
       '_FPDF_LoadDocument',
@@ -396,6 +400,7 @@ var PDFiumModule = (() => {
       '_FPDF_DocumentHasValidCrossReferenceTable',
       '_FPDF_GetTrailerEnds',
       '_FPDF_GetDocPermissions',
+      '_FPDF_GetDocUserPermissions',
       '_FPDF_GetSecurityHandlerRevision',
       '_FPDF_GetPageCount',
       '_FPDF_LoadPage',
@@ -434,7 +439,9 @@ var PDFiumModule = (() => {
       '_FPDF_GetXFAPacketCount',
       '_FPDF_GetXFAPacketName',
       '_FPDF_GetXFAPacketContent',
+      '_memory',
       '_PDFium_Init',
+      '___indirect_function_table',
       '_fflush',
       'onRuntimeInitialized',
     ].forEach((prop) => {
@@ -478,20 +485,18 @@ var PDFiumModule = (() => {
       }
       return scriptDirectory + path;
     }
-    var read_, readAsync, readBinary, setWindowTitle;
-    function logExceptionOnExit(e) {
-      if (e instanceof ExitStatus) return;
-      let toLog = e;
-      if (e && typeof e == 'object' && e.stack) {
-        toLog = [e, e.stack];
-      }
-      err('exiting due to exception: ' + toLog);
-    }
+    var read_, readAsync, readBinary;
     if (ENVIRONMENT_IS_NODE) {
       if (typeof process == 'undefined' || !process.release || process.release.name !== 'node')
         throw new Error(
           'not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)'
         );
+      var nodeVersion = process.versions.node;
+      var numericVersion = nodeVersion.split('.').slice(0, 3);
+      numericVersion = numericVersion[0] * 1e4 + numericVersion[1] * 100 + numericVersion[2].split('-')[0] * 1;
+      if (numericVersion < 16e4) {
+        throw new Error('This emscripten-generated code requires node v16.0.0 (detected v' + nodeVersion + ')');
+      }
       var fs = require('fs');
       var nodePath = require('path');
       if (ENVIRONMENT_IS_WORKER) {
@@ -511,39 +516,22 @@ var PDFiumModule = (() => {
         assert(ret.buffer);
         return ret;
       };
-      readAsync = (filename, onload, onerror) => {
+      readAsync = (filename, onload, onerror, binary = true) => {
         filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
-        fs.readFile(filename, function (err, data) {
+        fs.readFile(filename, binary ? undefined : 'utf8', (err, data) => {
           if (err) onerror(err);
-          else onload(data.buffer);
+          else onload(binary ? data.buffer : data);
         });
       };
-      if (process.argv.length > 1) {
+      if (!Module['thisProgram'] && process.argv.length > 1) {
         thisProgram = process.argv[1].replace(/\\/g, '/');
       }
       arguments_ = process.argv.slice(2);
-      process.on('uncaughtException', function (ex) {
-        if (!(ex instanceof ExitStatus)) {
-          throw ex;
-        }
-      });
-      var nodeMajor = process.versions.node.split('.')[0];
-      if (nodeMajor < 15) {
-        process.on('unhandledRejection', function (reason) {
-          throw reason;
-        });
-      }
       quit_ = (status, toThrow) => {
-        if (keepRuntimeAlive()) {
-          process.exitCode = status;
-          throw toThrow;
-        }
-        logExceptionOnExit(toThrow);
-        process.exit(status);
+        process.exitCode = status;
+        throw toThrow;
       };
-      Module['inspect'] = function () {
-        return '[Emscripten Module object]';
-      };
+      Module['inspect'] = () => '[Emscripten Module object]';
     } else if (ENVIRONMENT_IS_SHELL) {
       if (
         (typeof process == 'object' && typeof require === 'function') ||
@@ -554,24 +542,24 @@ var PDFiumModule = (() => {
           'not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)'
         );
       if (typeof read != 'undefined') {
-        read_ = function shell_read(f) {
-          return read(f);
-        };
+        read_ = read;
       }
-      readBinary = function readBinary(f) {
-        let data;
+      readBinary = (f) => {
         if (typeof readbuffer == 'function') {
           return new Uint8Array(readbuffer(f));
         }
-        data = read(f, 'binary');
+        let data = read(f, 'binary');
         assert(typeof data == 'object');
         return data;
       };
-      readAsync = function readAsync(f, onload, onerror) {
-        setTimeout(() => onload(readBinary(f)), 0);
+      readAsync = (f, onload, onerror) => {
+        setTimeout(() => onload(readBinary(f)));
       };
       if (typeof clearTimeout == 'undefined') {
         globalThis.clearTimeout = (id) => {};
+      }
+      if (typeof setTimeout == 'undefined') {
+        globalThis.setTimeout = (f) => (typeof f == 'function' ? f() : abort());
       }
       if (typeof scriptArgs != 'undefined') {
         arguments_ = scriptArgs;
@@ -580,8 +568,17 @@ var PDFiumModule = (() => {
       }
       if (typeof quit == 'function') {
         quit_ = (status, toThrow) => {
-          logExceptionOnExit(toThrow);
-          quit(status);
+          setTimeout(() => {
+            if (!(toThrow instanceof ExitStatus)) {
+              let toLog = toThrow;
+              if (toThrow && typeof toThrow == 'object' && toThrow.stack) {
+                toLog = [toThrow, toThrow.stack];
+              }
+              err(`exiting due to exception: ${toLog}`);
+            }
+            quit(status);
+          });
+          throw toThrow;
         };
       }
       if (typeof print != 'undefined') {
@@ -638,12 +635,11 @@ var PDFiumModule = (() => {
           xhr.send(null);
         };
       }
-      setWindowTitle = (title) => (document.title = title);
     } else {
       throw new Error('environment detection error');
     }
     var out = Module['print'] || console.log.bind(console);
-    var err = Module['printErr'] || console.warn.bind(console);
+    var err = Module['printErr'] || console.error.bind(console);
     Object.assign(Module, moduleOverrides);
     moduleOverrides = null;
     checkIncomingModuleAPI();
@@ -677,9 +673,10 @@ var PDFiumModule = (() => {
     );
     assert(
       typeof Module['setWindowTitle'] == 'undefined',
-      'Module.setWindowTitle option was removed (modify setWindowTitle in JS)'
+      'Module.setWindowTitle option was removed (modify emscripten_set_window_title in JS)'
     );
     assert(typeof Module['TOTAL_MEMORY'] == 'undefined', 'Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY');
+    legacyModuleProp('asm', 'wasmExports');
     legacyModuleProp('read', 'read_');
     legacyModuleProp('readAsync', 'readAsync');
     legacyModuleProp('readBinary', 'readBinary');
@@ -691,8 +688,6 @@ var PDFiumModule = (() => {
     var wasmBinary;
     if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
     legacyModuleProp('wasmBinary', 'wasmBinary');
-    var noExitRuntime = Module['noExitRuntime'] || true;
-    legacyModuleProp('noExitRuntime', 'noExitRuntime');
     if (typeof WebAssembly != 'object') {
       abort('no native wasm support detected');
     }
@@ -704,122 +699,14 @@ var PDFiumModule = (() => {
         abort('Assertion failed' + (text ? ': ' + text : ''));
       }
     }
-    var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder('utf8') : undefined;
-    function UTF8ArrayToString(heapOrArray, idx, maxBytesToRead) {
-      var endIdx = idx + maxBytesToRead;
-      var endPtr = idx;
-      while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
-      if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
-        return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
-      }
-      var str = '';
-      while (idx < endPtr) {
-        var u0 = heapOrArray[idx++];
-        if (!(u0 & 128)) {
-          str += String.fromCharCode(u0);
-          continue;
-        }
-        var u1 = heapOrArray[idx++] & 63;
-        if ((u0 & 224) == 192) {
-          str += String.fromCharCode(((u0 & 31) << 6) | u1);
-          continue;
-        }
-        var u2 = heapOrArray[idx++] & 63;
-        if ((u0 & 240) == 224) {
-          u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
-        } else {
-          if ((u0 & 248) != 240)
-            warnOnce(
-              'Invalid UTF-8 leading byte ' +
-                ptrToString(u0) +
-                ' encountered when deserializing a UTF-8 string in wasm memory to a JS string!'
-            );
-          u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
-        }
-        if (u0 < 65536) {
-          str += String.fromCharCode(u0);
-        } else {
-          var ch = u0 - 65536;
-          str += String.fromCharCode(55296 | (ch >> 10), 56320 | (ch & 1023));
-        }
-      }
-      return str;
-    }
-    function UTF8ToString(ptr, maxBytesToRead) {
-      assert(typeof ptr == 'number');
-      return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
-    }
-    function stringToUTF8Array(str, heap, outIdx, maxBytesToWrite) {
-      if (!(maxBytesToWrite > 0)) return 0;
-      var startIdx = outIdx;
-      var endIdx = outIdx + maxBytesToWrite - 1;
-      for (var i = 0; i < str.length; ++i) {
-        var u = str.charCodeAt(i);
-        if (u >= 55296 && u <= 57343) {
-          var u1 = str.charCodeAt(++i);
-          u = (65536 + ((u & 1023) << 10)) | (u1 & 1023);
-        }
-        if (u <= 127) {
-          if (outIdx >= endIdx) break;
-          heap[outIdx++] = u;
-        } else if (u <= 2047) {
-          if (outIdx + 1 >= endIdx) break;
-          heap[outIdx++] = 192 | (u >> 6);
-          heap[outIdx++] = 128 | (u & 63);
-        } else if (u <= 65535) {
-          if (outIdx + 2 >= endIdx) break;
-          heap[outIdx++] = 224 | (u >> 12);
-          heap[outIdx++] = 128 | ((u >> 6) & 63);
-          heap[outIdx++] = 128 | (u & 63);
-        } else {
-          if (outIdx + 3 >= endIdx) break;
-          if (u > 1114111)
-            warnOnce(
-              'Invalid Unicode code point ' +
-                ptrToString(u) +
-                ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).'
-            );
-          heap[outIdx++] = 240 | (u >> 18);
-          heap[outIdx++] = 128 | ((u >> 12) & 63);
-          heap[outIdx++] = 128 | ((u >> 6) & 63);
-          heap[outIdx++] = 128 | (u & 63);
-        }
-      }
-      heap[outIdx] = 0;
-      return outIdx - startIdx;
-    }
-    function stringToUTF8(str, outPtr, maxBytesToWrite) {
-      assert(
-        typeof maxBytesToWrite == 'number',
-        'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!'
-      );
-      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
-    }
-    function lengthBytesUTF8(str) {
-      var len = 0;
-      for (var i = 0; i < str.length; ++i) {
-        var c = str.charCodeAt(i);
-        if (c <= 127) {
-          len++;
-        } else if (c <= 2047) {
-          len += 2;
-        } else if (c >= 55296 && c <= 57343) {
-          len += 4;
-          ++i;
-        } else {
-          len += 3;
-        }
-      }
-      return len;
-    }
     var HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAPF64;
     function updateMemoryViews() {
       var b = wasmMemory.buffer;
       Module['HEAP8'] = HEAP8 = new Int8Array(b);
       Module['HEAP16'] = HEAP16 = new Int16Array(b);
-      Module['HEAP32'] = HEAP32 = new Int32Array(b);
       Module['HEAPU8'] = HEAPU8 = new Uint8Array(b);
       Module['HEAPU16'] = HEAPU16 = new Uint16Array(b);
+      Module['HEAP32'] = HEAP32 = new Int32Array(b);
       Module['HEAPU32'] = HEAPU32 = new Uint32Array(b);
       Module['HEAPF32'] = HEAPF32 = new Float32Array(b);
       Module['HEAPF64'] = HEAPF64 = new Float64Array(b);
@@ -840,7 +727,6 @@ var PDFiumModule = (() => {
       !Module['INITIAL_MEMORY'],
       'Detected runtime INITIAL_MEMORY setting.  Use -sIMPORTED_MEMORY to define wasmMemory dynamically'
     );
-    var wasmTable;
     function writeStackCookie() {
       var max = _emscripten_stack_get_end();
       assert((max & 3) == 0);
@@ -849,7 +735,7 @@ var PDFiumModule = (() => {
       }
       HEAPU32[max >> 2] = 34821223;
       HEAPU32[(max + 4) >> 2] = 2310721022;
-      HEAPU32[0] = 1668509029;
+      HEAPU32[0 >> 2] = 1668509029;
     }
     function checkStackCookie() {
       if (ABORT) return;
@@ -861,15 +747,14 @@ var PDFiumModule = (() => {
       var cookie2 = HEAPU32[(max + 4) >> 2];
       if (cookie1 != 34821223 || cookie2 != 2310721022) {
         abort(
-          'Stack overflow! Stack cookie has been overwritten at ' +
-            ptrToString(max) +
-            ', expected hex dwords 0x89BACDFE and 0x2135467, but received ' +
-            ptrToString(cookie2) +
-            ' ' +
-            ptrToString(cookie1)
+          `Stack overflow! Stack cookie has been overwritten at ${ptrToString(
+            max
+          )}, expected hex dwords 0x89BACDFE and 0x2135467, but received ${ptrToString(cookie2)} ${ptrToString(
+            cookie1
+          )}`
         );
       }
-      if (HEAPU32[0] !== 1668509029) {
+      if (HEAPU32[0 >> 2] != 1668509029) {
         abort('Runtime error: The application has corrupted its heap memory area (address zero)!');
       }
     }
@@ -884,9 +769,6 @@ var PDFiumModule = (() => {
     var __ATINIT__ = [];
     var __ATPOSTRUN__ = [];
     var runtimeInitialized = false;
-    function keepRuntimeAlive() {
-      return noExitRuntime;
-    }
     function preRun() {
       if (Module['preRun']) {
         if (typeof Module['preRun'] == 'function') Module['preRun'] = [Module['preRun']];
@@ -960,7 +842,7 @@ var PDFiumModule = (() => {
         assert(!runDependencyTracking[id]);
         runDependencyTracking[id] = 1;
         if (runDependencyWatcher === null && typeof setInterval != 'undefined') {
-          runDependencyWatcher = setInterval(function () {
+          runDependencyWatcher = setInterval(() => {
             if (ABORT) {
               clearInterval(runDependencyWatcher);
               runDependencyWatcher = null;
@@ -972,7 +854,7 @@ var PDFiumModule = (() => {
                 shown = true;
                 err('still waiting on run dependencies:');
               }
-              err('dependency: ' + dep);
+              err(`dependency: ${dep}`);
             }
             if (shown) {
               err('(end of list)');
@@ -1019,24 +901,14 @@ var PDFiumModule = (() => {
       throw e;
     }
     var dataURIPrefix = 'data:application/octet-stream;base64,';
-    function isDataURI(filename) {
-      return filename.startsWith(dataURIPrefix);
-    }
-    function isFileURI(filename) {
-      return filename.startsWith('file://');
-    }
-    function createExportWrapper(name, fixedasm) {
+    var isDataURI = (filename) => filename.startsWith(dataURIPrefix);
+    var isFileURI = (filename) => filename.startsWith('file://');
+    function createExportWrapper(name) {
       return function () {
-        var displayName = name;
-        var asm = fixedasm;
-        if (!fixedasm) {
-          asm = Module['asm'];
-        }
-        assert(runtimeInitialized, 'native function `' + displayName + '` called before runtime initialization');
-        if (!asm[name]) {
-          assert(asm[name], 'exported native function `' + displayName + '` not found');
-        }
-        return asm[name].apply(null, arguments);
+        assert(runtimeInitialized, `native function \`${name}\` called before runtime initialization`);
+        var f = wasmExports[name];
+        assert(f, `exported native function \`${name}\` not found`);
+        return f.apply(null, arguments);
       };
     }
     var wasmBinaryFile;
@@ -1044,65 +916,43 @@ var PDFiumModule = (() => {
     if (!isDataURI(wasmBinaryFile)) {
       wasmBinaryFile = locateFile(wasmBinaryFile);
     }
-    function getBinary(file) {
-      try {
-        if (file == wasmBinaryFile && wasmBinary) {
-          return new Uint8Array(wasmBinary);
-        }
-        if (readBinary) {
-          return readBinary(file);
-        }
-        throw 'both async and sync fetching of the wasm failed';
-      } catch (err) {
-        abort(err);
+    function getBinarySync(file) {
+      if (file == wasmBinaryFile && wasmBinary) {
+        return new Uint8Array(wasmBinary);
       }
+      if (readBinary) {
+        return readBinary(file);
+      }
+      throw 'both async and sync fetching of the wasm failed';
     }
     function getBinaryPromise(binaryFile) {
       if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER)) {
         if (typeof fetch == 'function' && !isFileURI(binaryFile)) {
           return fetch(binaryFile, { credentials: 'same-origin' })
-            .then(function (response) {
+            .then((response) => {
               if (!response['ok']) {
                 throw "failed to load wasm binary file at '" + binaryFile + "'";
               }
               return response['arrayBuffer']();
             })
-            .catch(function () {
-              return getBinary(binaryFile);
-            });
-        } else {
-          if (readAsync) {
-            return new Promise(function (resolve, reject) {
-              readAsync(
-                binaryFile,
-                function (response) {
-                  resolve(new Uint8Array(response));
-                },
-                reject
-              );
-            });
-          }
+            .catch(() => getBinarySync(binaryFile));
+        } else if (readAsync) {
+          return new Promise((resolve, reject) => {
+            readAsync(binaryFile, (response) => resolve(new Uint8Array(response)), reject);
+          });
         }
       }
-      return Promise.resolve().then(function () {
-        return getBinary(binaryFile);
-      });
+      return Promise.resolve().then(() => getBinarySync(binaryFile));
     }
     function instantiateArrayBuffer(binaryFile, imports, receiver) {
       return getBinaryPromise(binaryFile)
-        .then(function (binary) {
-          return WebAssembly.instantiate(binary, imports);
-        })
-        .then(function (instance) {
-          return instance;
-        })
-        .then(receiver, function (reason) {
-          err('failed to asynchronously prepare wasm: ' + reason);
+        .then((binary) => WebAssembly.instantiate(binary, imports))
+        .then((instance) => instance)
+        .then(receiver, (reason) => {
+          err(`failed to asynchronously prepare wasm: ${reason}`);
           if (isFileURI(wasmBinaryFile)) {
             err(
-              'warning: Loading from a file URI (' +
-                wasmBinaryFile +
-                ') is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing'
+              `warning: Loading from a file URI (${wasmBinaryFile}) is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing`
             );
           }
           abort(reason);
@@ -1117,31 +967,30 @@ var PDFiumModule = (() => {
         !ENVIRONMENT_IS_NODE &&
         typeof fetch == 'function'
       ) {
-        return fetch(binaryFile, { credentials: 'same-origin' }).then(function (response) {
+        return fetch(binaryFile, { credentials: 'same-origin' }).then((response) => {
           var result = WebAssembly.instantiateStreaming(response, imports);
           return result.then(callback, function (reason) {
-            err('wasm streaming compile failed: ' + reason);
+            err(`wasm streaming compile failed: ${reason}`);
             err('falling back to ArrayBuffer instantiation');
             return instantiateArrayBuffer(binaryFile, imports, callback);
           });
         });
-      } else {
-        return instantiateArrayBuffer(binaryFile, imports, callback);
       }
+      return instantiateArrayBuffer(binaryFile, imports, callback);
     }
     function createWasm() {
       var info = { env: wasmImports, wasi_snapshot_preview1: wasmImports };
       function receiveInstance(instance, module) {
-        var exports = instance.exports;
-        Module['asm'] = exports;
-        wasmMemory = Module['asm']['memory'];
+        wasmExports = instance.exports;
+        Module['wasmExports'] = wasmExports;
+        wasmMemory = wasmExports['memory'];
         assert(wasmMemory, 'memory not found in wasm exports');
         updateMemoryViews();
-        wasmTable = Module['asm']['__indirect_function_table'];
+        wasmTable = wasmExports['__indirect_function_table'];
         assert(wasmTable, 'table not found in wasm exports');
-        addOnInit(Module['asm']['__wasm_call_ctors']);
+        addOnInit(wasmExports['__wasm_call_ctors']);
         removeRunDependency('wasm-instantiate');
-        return exports;
+        return wasmExports;
       }
       addRunDependency('wasm-instantiate');
       var trueModule = Module;
@@ -1157,7 +1006,7 @@ var PDFiumModule = (() => {
         try {
           return Module['instantiateWasm'](info, receiveInstance);
         } catch (e) {
-          err('Module.instantiateWasm callback failed with error: ' + e);
+          err(`Module.instantiateWasm callback failed with error: ${e}`);
           readyPromiseReject(e);
         }
       }
@@ -1166,25 +1015,22 @@ var PDFiumModule = (() => {
     }
     var tempDouble;
     var tempI64;
-    function legacyModuleProp(prop, newName) {
+    function legacyModuleProp(prop, newName, incomming = true) {
       if (!Object.getOwnPropertyDescriptor(Module, prop)) {
         Object.defineProperty(Module, prop, {
           configurable: true,
-          get: function () {
-            abort(
-              'Module.' +
-                prop +
-                ' has been replaced with plain ' +
-                newName +
-                ' (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)'
-            );
+          get() {
+            let extra = incomming
+              ? ' (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)'
+              : '';
+            abort(`\`Module.${prop}\` has been replaced by \`${newName}\`` + extra);
           },
         });
       }
     }
     function ignoredModuleProp(prop) {
       if (Object.getOwnPropertyDescriptor(Module, prop)) {
-        abort('`Module.' + prop + '` was supplied but `' + prop + '` not included in INCOMING_MODULE_JS_API');
+        abort(`\`Module.${prop}\` was supplied but \`${prop}\` not included in INCOMING_MODULE_JS_API`);
       }
     }
     function isExportedByForceFilesystem(name) {
@@ -1203,28 +1049,26 @@ var PDFiumModule = (() => {
       if (typeof globalThis !== 'undefined') {
         Object.defineProperty(globalThis, sym, {
           configurable: true,
-          get: function () {
-            warnOnce('`' + sym + '` is not longer defined by emscripten. ' + msg);
+          get() {
+            warnOnce(`\`${sym}\` is not longer defined by emscripten. ${msg}`);
             return undefined;
           },
         });
       }
     }
     missingGlobal('buffer', 'Please use HEAP8.buffer or wasmMemory.buffer');
+    missingGlobal('asm', 'Please use wasmExports instead');
     function missingLibrarySymbol(sym) {
       if (typeof globalThis !== 'undefined' && !Object.getOwnPropertyDescriptor(globalThis, sym)) {
         Object.defineProperty(globalThis, sym, {
           configurable: true,
-          get: function () {
-            var msg =
-              '`' +
-              sym +
-              '` is a library symbol and not included by default; add it to your library.js __deps or to DEFAULT_LIBRARY_FUNCS_TO_INCLUDE on the command line';
+          get() {
+            var msg = `\`${sym}\` is a library symbol and not included by default; add it to your library.js __deps or to DEFAULT_LIBRARY_FUNCS_TO_INCLUDE on the command line`;
             var librarySymbol = sym;
             if (!librarySymbol.startsWith('_')) {
               librarySymbol = '$' + sym;
             }
-            msg += ' (e.g. -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=' + librarySymbol + ')';
+            msg += ` (e.g. -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE='${librarySymbol}')`;
             if (isExportedByForceFilesystem(sym)) {
               msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
             }
@@ -1239,8 +1083,8 @@ var PDFiumModule = (() => {
       if (!Object.getOwnPropertyDescriptor(Module, sym)) {
         Object.defineProperty(Module, sym, {
           configurable: true,
-          get: function () {
-            var msg = "'" + sym + "' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)";
+          get() {
+            var msg = `'${sym}' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the Emscripten FAQ)`;
             if (isExportedByForceFilesystem(sym)) {
               msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
             }
@@ -1251,30 +1095,143 @@ var PDFiumModule = (() => {
     }
     function ExitStatus(status) {
       this.name = 'ExitStatus';
-      this.message = 'Program terminated with exit(' + status + ')';
+      this.message = `Program terminated with exit(${status})`;
       this.status = status;
     }
-    function callRuntimeCallbacks(callbacks) {
+    var callRuntimeCallbacks = (callbacks) => {
       while (callbacks.length > 0) {
         callbacks.shift()(Module);
       }
-    }
-    function withStackSave(f) {
+    };
+    var withStackSave = (f) => {
       var stack = stackSave();
       var ret = f();
       stackRestore(stack);
       return ret;
-    }
-    function demangle(func) {
+    };
+    var lengthBytesUTF8 = (str) => {
+      var len = 0;
+      for (var i = 0; i < str.length; ++i) {
+        var c = str.charCodeAt(i);
+        if (c <= 127) {
+          len++;
+        } else if (c <= 2047) {
+          len += 2;
+        } else if (c >= 55296 && c <= 57343) {
+          len += 4;
+          ++i;
+        } else {
+          len += 3;
+        }
+      }
+      return len;
+    };
+    var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
+      assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
+      if (!(maxBytesToWrite > 0)) return 0;
+      var startIdx = outIdx;
+      var endIdx = outIdx + maxBytesToWrite - 1;
+      for (var i = 0; i < str.length; ++i) {
+        var u = str.charCodeAt(i);
+        if (u >= 55296 && u <= 57343) {
+          var u1 = str.charCodeAt(++i);
+          u = (65536 + ((u & 1023) << 10)) | (u1 & 1023);
+        }
+        if (u <= 127) {
+          if (outIdx >= endIdx) break;
+          heap[outIdx++] = u;
+        } else if (u <= 2047) {
+          if (outIdx + 1 >= endIdx) break;
+          heap[outIdx++] = 192 | (u >> 6);
+          heap[outIdx++] = 128 | (u & 63);
+        } else if (u <= 65535) {
+          if (outIdx + 2 >= endIdx) break;
+          heap[outIdx++] = 224 | (u >> 12);
+          heap[outIdx++] = 128 | ((u >> 6) & 63);
+          heap[outIdx++] = 128 | (u & 63);
+        } else {
+          if (outIdx + 3 >= endIdx) break;
+          if (u > 1114111)
+            warnOnce(
+              'Invalid Unicode code point ' +
+                ptrToString(u) +
+                ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).'
+            );
+          heap[outIdx++] = 240 | (u >> 18);
+          heap[outIdx++] = 128 | ((u >> 12) & 63);
+          heap[outIdx++] = 128 | ((u >> 6) & 63);
+          heap[outIdx++] = 128 | (u & 63);
+        }
+      }
+      heap[outIdx] = 0;
+      return outIdx - startIdx;
+    };
+    var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(
+        typeof maxBytesToWrite == 'number',
+        'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!'
+      );
+      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
+    };
+    var stringToUTF8OnStack = (str) => {
+      var size = lengthBytesUTF8(str) + 1;
+      var ret = stackAlloc(size);
+      stringToUTF8(str, ret, size);
+      return ret;
+    };
+    var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder('utf8') : undefined;
+    var UTF8ArrayToString = (heapOrArray, idx, maxBytesToRead) => {
+      var endIdx = idx + maxBytesToRead;
+      var endPtr = idx;
+      while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
+      if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
+        return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
+      }
+      var str = '';
+      while (idx < endPtr) {
+        var u0 = heapOrArray[idx++];
+        if (!(u0 & 128)) {
+          str += String.fromCharCode(u0);
+          continue;
+        }
+        var u1 = heapOrArray[idx++] & 63;
+        if ((u0 & 224) == 192) {
+          str += String.fromCharCode(((u0 & 31) << 6) | u1);
+          continue;
+        }
+        var u2 = heapOrArray[idx++] & 63;
+        if ((u0 & 240) == 224) {
+          u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
+        } else {
+          if ((u0 & 248) != 240)
+            warnOnce(
+              'Invalid UTF-8 leading byte ' +
+                ptrToString(u0) +
+                ' encountered when deserializing a UTF-8 string in wasm memory to a JS string!'
+            );
+          u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
+        }
+        if (u0 < 65536) {
+          str += String.fromCharCode(u0);
+        } else {
+          var ch = u0 - 65536;
+          str += String.fromCharCode(55296 | (ch >> 10), 56320 | (ch & 1023));
+        }
+      }
+      return str;
+    };
+    var UTF8ToString = (ptr, maxBytesToRead) => {
+      assert(typeof ptr == 'number', `UTF8ToString expects a number (got ${typeof ptr})`);
+      return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
+    };
+    var demangle = (func) => {
       demangle.recursionGuard = (demangle.recursionGuard | 0) + 1;
       if (demangle.recursionGuard > 1) return func;
-      return withStackSave(function () {
+      return withStackSave(() => {
         try {
           var s = func;
           if (s.startsWith('__Z')) s = s.substr(1);
-          var len = lengthBytesUTF8(s) + 1;
-          var buf = stackAlloc(len);
-          stringToUTF8(s, buf, len);
+          var buf = stringToUTF8OnStack(s);
           var status = stackAlloc(4);
           var ret = ___cxa_demangle(buf, 0, 0, status);
           if (HEAP32[status >> 2] === 0 && ret) {
@@ -1287,11 +1244,13 @@ var PDFiumModule = (() => {
         }
         return func;
       });
-    }
-    function ptrToString(ptr) {
+    };
+    var noExitRuntime = Module['noExitRuntime'] || true;
+    var ptrToString = (ptr) => {
       assert(typeof ptr === 'number');
+      ptr >>>= 0;
       return '0x' + ptr.toString(16).padStart(8, '0');
-    }
+    };
     function jsStackTrace() {
       var error = new Error();
       if (!error.stack) {
@@ -1306,33 +1265,31 @@ var PDFiumModule = (() => {
       }
       return error.stack.toString();
     }
-    function demangleAll(text) {
+    var demangleAll = (text) => {
       var regex = /\b_Z[\w\d_]+/g;
       return text.replace(regex, function (x) {
         var y = demangle(x);
         return x === y ? x : y + ' [' + x + ']';
       });
-    }
-    function warnOnce(text) {
+    };
+    var warnOnce = (text) => {
       if (!warnOnce.shown) warnOnce.shown = {};
       if (!warnOnce.shown[text]) {
         warnOnce.shown[text] = 1;
         if (ENVIRONMENT_IS_NODE) text = 'warning: ' + text;
         err(text);
       }
-    }
-    function ___assert_fail(condition, filename, line, func) {
+    };
+    var ___assert_fail = (condition, filename, line, func) => {
       abort(
-        'Assertion failed: ' +
-          UTF8ToString(condition) +
-          ', at: ' +
+        `Assertion failed: ${UTF8ToString(condition)}, at: ` +
           [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']
       );
-    }
-    function setErrNo(value) {
+    };
+    var setErrNo = (value) => {
       HEAP32[___errno_location() >> 2] = value;
       return value;
-    }
+    };
     var PATH = {
       isAbs: (path) => path.charAt(0) === '/',
       splitPath: (filename) => {
@@ -1399,28 +1356,27 @@ var PDFiumModule = (() => {
         var paths = Array.prototype.slice.call(arguments);
         return PATH.normalize(paths.join('/'));
       },
-      join2: (l, r) => {
-        return PATH.normalize(l + '/' + r);
-      },
+      join2: (l, r) => PATH.normalize(l + '/' + r),
     };
-    function getRandomDevice() {
+    var initRandomFill = () => {
       if (typeof crypto == 'object' && typeof crypto['getRandomValues'] == 'function') {
-        var randomBuffer = new Uint8Array(1);
-        return () => {
-          crypto.getRandomValues(randomBuffer);
-          return randomBuffer[0];
-        };
+        return (view) => crypto.getRandomValues(view);
       } else if (ENVIRONMENT_IS_NODE) {
         try {
           var crypto_module = require('crypto');
-          return () => crypto_module['randomBytes'](1)[0];
+          var randomFillSync = crypto_module['randomFillSync'];
+          if (randomFillSync) {
+            return (view) => crypto_module['randomFillSync'](view);
+          }
+          var randomBytes = crypto_module['randomBytes'];
+          return (view) => (view.set(randomBytes(view.byteLength)), view);
         } catch (e) {}
       }
-      return () =>
-        abort(
-          'no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: function(array) { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };'
-        );
-    }
+      abort(
+        'no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: (array) => { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };'
+      );
+    };
+    var randomFill = (view) => (randomFill = initRandomFill())(view);
     var PATH_FS = {
       resolve: function () {
         var resolvedPath = '',
@@ -1474,6 +1430,7 @@ var PDFiumModule = (() => {
         return outputParts.join('/');
       },
     };
+    var FS_stdin_getChar_buffer = [];
     function intArrayFromString(stringy, dontAddNull, length) {
       var len = length > 0 ? length : lengthBytesUTF8(stringy) + 1;
       var u8array = new Array(len);
@@ -1481,16 +1438,53 @@ var PDFiumModule = (() => {
       if (dontAddNull) u8array.length = numBytesWritten;
       return u8array;
     }
+    var FS_stdin_getChar = () => {
+      if (!FS_stdin_getChar_buffer.length) {
+        var result = null;
+        if (ENVIRONMENT_IS_NODE) {
+          var BUFSIZE = 256;
+          var buf = Buffer.alloc(BUFSIZE);
+          var bytesRead = 0;
+          var fd = process.stdin.fd;
+          try {
+            bytesRead = fs.readSync(fd, buf);
+          } catch (e) {
+            if (e.toString().includes('EOF')) bytesRead = 0;
+            else throw e;
+          }
+          if (bytesRead > 0) {
+            result = buf.slice(0, bytesRead).toString('utf-8');
+          } else {
+            result = null;
+          }
+        } else if (typeof window != 'undefined' && typeof window.prompt == 'function') {
+          result = window.prompt('Input: ');
+          if (result !== null) {
+            result += '\n';
+          }
+        } else if (typeof readline == 'function') {
+          result = readline();
+          if (result !== null) {
+            result += '\n';
+          }
+        }
+        if (!result) {
+          return null;
+        }
+        FS_stdin_getChar_buffer = intArrayFromString(result, true);
+      }
+      return FS_stdin_getChar_buffer.shift();
+    };
     var TTY = {
       ttys: [],
-      init: function () {},
-      shutdown: function () {},
-      register: function (dev, ops) {
+      init() {},
+      shutdown() {},
+      register(dev, ops) {
         TTY.ttys[dev] = { input: [], output: [], ops: ops };
         FS.registerDevice(dev, TTY.stream_ops);
       },
       stream_ops: {
-        open: function (stream) {
+        open(stream) {
           var tty = TTY.ttys[stream.node.rdev];
           if (!tty) {
             throw new FS.ErrnoError(43);
@@ -1498,13 +1492,13 @@ var PDFiumModule = (() => {
           stream.tty = tty;
           stream.seekable = false;
         },
-        close: function (stream) {
+        close(stream) {
           stream.tty.ops.fsync(stream.tty);
         },
-        fsync: function (stream) {
+        fsync(stream) {
           stream.tty.ops.fsync(stream.tty);
         },
-        read: function (stream, buffer, offset, length, pos) {
+        read(stream, buffer, offset, length, pos) {
           if (!stream.tty || !stream.tty.ops.get_char) {
             throw new FS.ErrnoError(60);
           }
@@ -1528,7 +1522,7 @@ var PDFiumModule = (() => {
           }
           return bytesRead;
         },
-        write: function (stream, buffer, offset, length, pos) {
+        write(stream, buffer, offset, length, pos) {
           if (!stream.tty || !stream.tty.ops.put_char) {
             throw new FS.ErrnoError(60);
           }
@@ -1546,43 +1540,10 @@ var PDFiumModule = (() => {
         },
       },
       default_tty_ops: {
-        get_char: function (tty) {
-          if (!tty.input.length) {
-            var result = null;
-            if (ENVIRONMENT_IS_NODE) {
-              var BUFSIZE = 256;
-              var buf = Buffer.alloc(BUFSIZE);
-              var bytesRead = 0;
-              try {
-                bytesRead = fs.readSync(process.stdin.fd, buf, 0, BUFSIZE, -1);
-              } catch (e) {
-                if (e.toString().includes('EOF')) bytesRead = 0;
-                else throw e;
-              }
-              if (bytesRead > 0) {
-                result = buf.slice(0, bytesRead).toString('utf-8');
-              } else {
-                result = null;
-              }
-            } else if (typeof window != 'undefined' && typeof window.prompt == 'function') {
-              result = window.prompt('Input: ');
-              if (result !== null) {
-                result += '\n';
-              }
-            } else if (typeof readline == 'function') {
-              result = readline();
-              if (result !== null) {
-                result += '\n';
-              }
-            }
-            if (!result) {
-              return null;
-            }
-            tty.input = intArrayFromString(result, true);
-          }
-          return tty.input.shift();
+        get_char(tty) {
+          return FS_stdin_getChar();
         },
-        put_char: function (tty, val) {
+        put_char(tty, val) {
           if (val === null || val === 10) {
             out(UTF8ArrayToString(tty.output, 0));
             tty.output = [];
@@ -1590,15 +1551,32 @@ var PDFiumModule = (() => {
             if (val != 0) tty.output.push(val);
           }
         },
-        fsync: function (tty) {
+        fsync(tty) {
           if (tty.output && tty.output.length > 0) {
             out(UTF8ArrayToString(tty.output, 0));
             tty.output = [];
           }
         },
+        ioctl_tcgets(tty) {
+          return {
+            c_iflag: 25856,
+            c_oflag: 5,
+            c_cflag: 191,
+            c_lflag: 35387,
+            c_cc: [
+              3, 28, 127, 21, 4, 0, 1, 0, 17, 19, 26, 0, 18, 15, 23, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            ],
+          };
+        },
+        ioctl_tcsets(tty, optional_actions, data) {
+          return 0;
+        },
+        ioctl_tiocgwinsz(tty) {
+          return [24, 80];
+        },
       },
       default_tty1_ops: {
-        put_char: function (tty, val) {
+        put_char(tty, val) {
           if (val === null || val === 10) {
             err(UTF8ArrayToString(tty.output, 0));
             tty.output = [];
@@ -1606,7 +1584,7 @@ var PDFiumModule = (() => {
             if (val != 0) tty.output.push(val);
           }
         },
-        fsync: function (tty) {
+        fsync(tty) {
           if (tty.output && tty.output.length > 0) {
             err(UTF8ArrayToString(tty.output, 0));
             tty.output = [];
@@ -1614,26 +1592,15 @@ var PDFiumModule = (() => {
         },
       },
     };
-    function zeroMemory(address, size) {
-      HEAPU8.fill(0, address, address + size);
-      return address;
-    }
-    function alignMemory(size, alignment) {
-      assert(alignment, 'alignment argument is required');
-      return Math.ceil(size / alignment) * alignment;
-    }
-    function mmapAlloc(size) {
-      size = alignMemory(size, 65536);
-      var ptr = _emscripten_builtin_memalign(65536, size);
-      if (!ptr) return 0;
-      return zeroMemory(ptr, size);
-    }
+    var mmapAlloc = (size) => {
+      abort('internal error: mmapAlloc called but `emscripten_builtin_memalign` native symbol not exported');
+    };
     var MEMFS = {
       ops_table: null,
-      mount: function (mount) {
+      mount(mount) {
         return MEMFS.createNode(null, '/', 16384 | 511, 0);
       },
-      createNode: function (parent, name, mode, dev) {
+      createNode(parent, name, mode, dev) {
         if (FS.isBlkdev(mode) || FS.isFIFO(mode)) {
           throw new FS.ErrnoError(63);
         }
@@ -1654,10 +1621,7 @@ var PDFiumModule = (() => {
               stream: { llseek: MEMFS.stream_ops.llseek },
             },
             file: {
-              node: {
-                getattr: MEMFS.node_ops.getattr,
-                setattr: MEMFS.node_ops.setattr,
-              },
+              node: { getattr: MEMFS.node_ops.getattr, setattr: MEMFS.node_ops.setattr },
               stream: {
                 llseek: MEMFS.stream_ops.llseek,
                 read: MEMFS.stream_ops.read,
@@ -1676,10 +1640,7 @@ var PDFiumModule = (() => {
               stream: {},
             },
             chrdev: {
-              node: {
-                getattr: MEMFS.node_ops.getattr,
-                setattr: MEMFS.node_ops.setattr,
-              },
+              node: { getattr: MEMFS.node_ops.getattr, setattr: MEMFS.node_ops.setattr },
               stream: FS.chrdev_stream_ops,
             },
           };
@@ -1708,12 +1669,12 @@ var PDFiumModule = (() => {
         }
         return node;
       },
-      getFileDataAsTypedArray: function (node) {
+      getFileDataAsTypedArray(node) {
         if (!node.contents) return new Uint8Array(0);
         if (node.contents.subarray) return node.contents.subarray(0, node.usedBytes);
         return new Uint8Array(node.contents);
       },
-      expandFileStorage: function (node, newCapacity) {
+      expandFileStorage(node, newCapacity) {
         var prevCapacity = node.contents ? node.contents.length : 0;
         if (prevCapacity >= newCapacity) return;
         var CAPACITY_DOUBLING_MAX = 1024 * 1024;
@@ -1723,7 +1684,7 @@ var PDFiumModule = (() => {
         node.contents = new Uint8Array(newCapacity);
         if (node.usedBytes > 0) node.contents.set(oldContents.subarray(0, node.usedBytes), 0);
       },
-      resizeFileStorage: function (node, newSize) {
+      resizeFileStorage(node, newSize) {
         if (node.usedBytes == newSize) return;
         if (newSize == 0) {
           node.contents = null;
@@ -1738,7 +1699,7 @@ var PDFiumModule = (() => {
         }
       },
       node_ops: {
-        getattr: function (node) {
+        getattr(node) {
           var attr = {};
           attr.dev = FS.isChrdev(node.mode) ? node.id : 1;
           attr.ino = node.id;
@@ -1763,7 +1724,7 @@ var PDFiumModule = (() => {
           attr.blocks = Math.ceil(attr.size / attr.blksize);
           return attr;
         },
-        setattr: function (node, attr) {
+        setattr(node, attr) {
           if (attr.mode !== undefined) {
             node.mode = attr.mode;
           }
@@ -1774,13 +1735,13 @@ var PDFiumModule = (() => {
             MEMFS.resizeFileStorage(node, attr.size);
           }
         },
-        lookup: function (parent, name) {
+        lookup(parent, name) {
           throw FS.genericErrors[44];
         },
-        mknod: function (parent, name, mode, dev) {
+        mknod(parent, name, mode, dev) {
           return MEMFS.createNode(parent, name, mode, dev);
         },
-        rename: function (old_node, new_dir, new_name) {
+        rename(old_node, new_dir, new_name) {
           if (FS.isDir(old_node.mode)) {
             var new_node;
             try {
@@ -1799,11 +1760,11 @@ var PDFiumModule = (() => {
           new_dir.timestamp = old_node.parent.timestamp;
           old_node.parent = new_dir;
         },
-        unlink: function (parent, name) {
+        unlink(parent, name) {
           delete parent.contents[name];
           parent.timestamp = Date.now();
         },
-        rmdir: function (parent, name) {
+        rmdir(parent, name) {
           var node = FS.lookupNode(parent, name);
           for (var i in node.contents) {
             throw new FS.ErrnoError(55);
@@ -1811,7 +1772,7 @@ var PDFiumModule = (() => {
           delete parent.contents[name];
           parent.timestamp = Date.now();
         },
-        readdir: function (node) {
+        readdir(node) {
           var entries = ['.', '..'];
           for (var key in node.contents) {
             if (!node.contents.hasOwnProperty(key)) {
@@ -1821,12 +1782,12 @@ var PDFiumModule = (() => {
           }
           return entries;
         },
-        symlink: function (parent, newname, oldpath) {
+        symlink(parent, newname, oldpath) {
           var node = MEMFS.createNode(parent, newname, 511 | 40960, 0);
           node.link = oldpath;
           return node;
         },
-        readlink: function (node) {
+        readlink(node) {
           if (!FS.isLink(node.mode)) {
             throw new FS.ErrnoError(28);
           }
@@ -1834,7 +1795,7 @@ var PDFiumModule = (() => {
         },
       },
       stream_ops: {
-        read: function (stream, buffer, offset, length, position) {
+        read(stream, buffer, offset, length, position) {
           var contents = stream.node.contents;
           if (position >= stream.node.usedBytes) return 0;
           var size = Math.min(stream.node.usedBytes - position, length);
@@ -1846,7 +1807,7 @@ var PDFiumModule = (() => {
           }
           return size;
         },
-        write: function (stream, buffer, offset, length, position, canOwn) {
+        write(stream, buffer, offset, length, position, canOwn) {
           assert(!(buffer instanceof ArrayBuffer));
           if (buffer.buffer === HEAP8.buffer) {
             canOwn = false;
@@ -1880,7 +1841,7 @@ var PDFiumModule = (() => {
           node.usedBytes = Math.max(node.usedBytes, position + length);
           return length;
         },
-        llseek: function (stream, offset, whence) {
+        llseek(stream, offset, whence) {
           var position = offset;
           if (whence === 1) {
             position += stream.position;
@@ -1894,11 +1855,11 @@ var PDFiumModule = (() => {
           }
           return position;
         },
-        allocate: function (stream, offset, length) {
+        allocate(stream, offset, length) {
           MEMFS.expandFileStorage(stream.node, offset + length);
           stream.node.usedBytes = Math.max(stream.node.usedBytes, offset + length);
         },
-        mmap: function (stream, length, position, prot, flags) {
+        mmap(stream, length, position, prot, flags) {
           if (!FS.isFile(stream.node.mode)) {
             throw new FS.ErrnoError(43);
           }
@@ -1925,18 +1886,18 @@ var PDFiumModule = (() => {
           }
           return { ptr: ptr, allocated: allocated };
         },
-        msync: function (stream, buffer, offset, length, mmapFlags) {
+        msync(stream, buffer, offset, length, mmapFlags) {
           MEMFS.stream_ops.write(stream, buffer, 0, length, offset, false);
           return 0;
         },
       },
     };
-    function asyncLoad(url, onload, onerror, noRunDep) {
-      var dep = !noRunDep ? getUniqueRunDependency('al ' + url) : '';
+    var asyncLoad = (url, onload, onerror, noRunDep) => {
+      var dep = !noRunDep ? getUniqueRunDependency(`al ${url}`) : '';
       readAsync(
         url,
         (arrayBuffer) => {
-          assert(arrayBuffer, 'Loading data file "' + url + '" failed (no arrayBuffer).');
+          assert(arrayBuffer, `Loading data file "${url}" failed (no arrayBuffer).`);
           onload(new Uint8Array(arrayBuffer));
           if (dep) removeRunDependency(dep);
         },
@@ -1944,12 +1905,82 @@ var PDFiumModule = (() => {
           if (onerror) {
             onerror();
           } else {
-            throw 'Loading data file "' + url + '" failed.';
+            throw `Loading data file "${url}" failed.`;
           }
         }
       );
       if (dep) addRunDependency(dep);
-    }
+    };
+    var FS_createDataFile = (parent, name, fileData, canRead, canWrite, canOwn) => {
+      FS.createDataFile(parent, name, fileData, canRead, canWrite, canOwn);
+    };
+    var preloadPlugins = Module['preloadPlugins'] || [];
+    var FS_handledByPreloadPlugin = (byteArray, fullname, finish, onerror) => {
+      if (typeof Browser != 'undefined') Browser.init();
+      var handled = false;
+      preloadPlugins.forEach((plugin) => {
+        if (handled) return;
+        if (plugin['canHandle'](fullname)) {
+          plugin['handle'](byteArray, fullname, finish, onerror);
+          handled = true;
+        }
+      });
+      return handled;
+    };
+    var FS_createPreloadedFile = (
+      parent,
+      name,
+      url,
+      canRead,
+      canWrite,
+      onload,
+      onerror,
+      dontCreateFile,
+      canOwn,
+      preFinish
+    ) => {
+      var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
+      var dep = getUniqueRunDependency(`cp ${fullname}`);
+      function processData(byteArray) {
+        function finish(byteArray) {
+          if (preFinish) preFinish();
+          if (!dontCreateFile) {
+            FS_createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
+          }
+          if (onload) onload();
+          removeRunDependency(dep);
+        }
+        if (
+          FS_handledByPreloadPlugin(byteArray, fullname, finish, () => {
+            if (onerror) onerror();
+            removeRunDependency(dep);
+          })
+        ) {
+          return;
+        }
+        finish(byteArray);
+      }
+      addRunDependency(dep);
+      if (typeof url == 'string') {
+        asyncLoad(url, (byteArray) => processData(byteArray), onerror);
+      } else {
+        processData(url);
+      }
+    };
+    var FS_modeStringToFlags = (str) => {
+      var flagModes = { r: 0, 'r+': 2, w: 512 | 64 | 1, 'w+': 512 | 64 | 2, a: 1024 | 64 | 1, 'a+': 1024 | 64 | 2 };
+      var flags = flagModes[str];
+      if (typeof flags == 'undefined') {
+        throw new Error(`Unknown file open mode: ${str}`);
+      }
+      return flags;
+    };
+    var FS_getMode = (canRead, canWrite) => {
+      var mode = 0;
+      if (canRead) mode |= 292 | 73;
+      if (canWrite) mode |= 146;
+      return mode;
+    };
     var ERRNO_MESSAGES = {
       0: 'Success',
       1: 'Arg list too long',
@@ -2071,7 +2102,129 @@ var PDFiumModule = (() => {
       148: 'No medium (in tape drive)',
       156: 'Level 2 not synchronized',
     };
-    var ERRNO_CODES = {};
+    var ERRNO_CODES = {
+      EPERM: 63,
+      ENOENT: 44,
+      ESRCH: 71,
+      EINTR: 27,
+      EIO: 29,
+      ENXIO: 60,
+      E2BIG: 1,
+      ENOEXEC: 45,
+      EBADF: 8,
+      ECHILD: 12,
+      EAGAIN: 6,
+      EWOULDBLOCK: 6,
+      ENOMEM: 48,
+      EACCES: 2,
+      EFAULT: 21,
+      ENOTBLK: 105,
+      EBUSY: 10,
+      EEXIST: 20,
+      EXDEV: 75,
+      ENODEV: 43,
+      ENOTDIR: 54,
+      EISDIR: 31,
+      EINVAL: 28,
+      ENFILE: 41,
+      EMFILE: 33,
+      ENOTTY: 59,
+      ETXTBSY: 74,
+      EFBIG: 22,
+      ENOSPC: 51,
+      ESPIPE: 70,
+      EROFS: 69,
+      EMLINK: 34,
+      EPIPE: 64,
+      EDOM: 18,
+      ERANGE: 68,
+      ENOMSG: 49,
+      EIDRM: 24,
+      ECHRNG: 106,
+      EL2NSYNC: 156,
+      EL3HLT: 107,
+      EL3RST: 108,
+      ELNRNG: 109,
+      EUNATCH: 110,
+      ENOCSI: 111,
+      EL2HLT: 112,
+      EDEADLK: 16,
+      ENOLCK: 46,
+      EBADE: 113,
+      EBADR: 114,
+      EXFULL: 115,
+      ENOANO: 104,
+      EBADRQC: 103,
+      EBADSLT: 102,
+      EDEADLOCK: 16,
+      EBFONT: 101,
+      ENOSTR: 100,
+      ENODATA: 116,
+      ETIME: 117,
+      ENOSR: 118,
+      ENONET: 119,
+      ENOPKG: 120,
+      EREMOTE: 121,
+      ENOLINK: 47,
+      EADV: 122,
+      ESRMNT: 123,
+      ECOMM: 124,
+      EPROTO: 65,
+      EMULTIHOP: 36,
+      EDOTDOT: 125,
+      EBADMSG: 9,
+      ENOTUNIQ: 126,
+      EBADFD: 127,
+      EREMCHG: 128,
+      ELIBACC: 129,
+      ELIBBAD: 130,
+      ELIBSCN: 131,
+      ELIBMAX: 132,
+      ELIBEXEC: 133,
+      ENOSYS: 52,
+      ENOTEMPTY: 55,
+      ENAMETOOLONG: 37,
+      ELOOP: 32,
+      EOPNOTSUPP: 138,
+      EPFNOSUPPORT: 139,
+      ECONNRESET: 15,
+      ENOBUFS: 42,
+      EAFNOSUPPORT: 5,
+      EPROTOTYPE: 67,
+      ENOTSOCK: 57,
+      ENOPROTOOPT: 50,
+      ESHUTDOWN: 140,
+      ECONNREFUSED: 14,
+      EADDRINUSE: 3,
+      ECONNABORTED: 13,
+      ENETUNREACH: 40,
+      ENETDOWN: 38,
+      ETIMEDOUT: 73,
+      EHOSTDOWN: 142,
+      EHOSTUNREACH: 23,
+      EINPROGRESS: 26,
+      EALREADY: 7,
+      EDESTADDRREQ: 17,
+      EMSGSIZE: 35,
+      EPROTONOSUPPORT: 66,
+      ESOCKTNOSUPPORT: 137,
+      EADDRNOTAVAIL: 4,
+      ENETRESET: 39,
+      EISCONN: 30,
+      ENOTCONN: 53,
+      ETOOMANYREFS: 141,
+      EUSERS: 136,
+      EDQUOT: 19,
+      ESTALE: 72,
+      ENOTSUP: 138,
+      ENOMEDIUM: 148,
+      EILSEQ: 25,
+      EOVERFLOW: 61,
+      ECANCELED: 11,
+      ENOTRECOVERABLE: 56,
+      EOWNERDEAD: 62,
+      ESTRPIPE: 135,
+    };
     var FS = {
       root: null,
       mounts: [],
@@ -2086,7 +2239,7 @@ var PDFiumModule = (() => {
       genericErrors: {},
       filesystems: null,
       syncFSRequests: 0,
-      lookupPath: (path, opts = {}) => {
+      lookupPath(path, opts = {}) {
         path = PATH_FS.resolve(path);
         if (!path) return { path: '', node: null };
         var defaults = { follow_mount: true, recurse_count: 0 };
@@ -2114,9 +2267,7 @@ var PDFiumModule = (() => {
             while (FS.isLink(current.mode)) {
               var link = FS.readlink(current_path);
               current_path = PATH_FS.resolve(PATH.dirname(current_path), link);
-              var lookup = FS.lookupPath(current_path, {
-                recurse_count: opts.recurse_count + 1,
-              });
+              var lookup = FS.lookupPath(current_path, { recurse_count: opts.recurse_count + 1 });
               current = lookup.node;
               if (count++ > 40) {
                 throw new FS.ErrnoError(32);
@@ -2126,31 +2277,31 @@ var PDFiumModule = (() => {
         }
         return { path: current_path, node: current };
       },
-      getPath: (node) => {
+      getPath(node) {
         var path;
         while (true) {
           if (FS.isRoot(node)) {
             var mount = node.mount.mountpoint;
             if (!path) return mount;
-            return mount[mount.length - 1] !== '/' ? mount + '/' + path : mount + path;
+            return mount[mount.length - 1] !== '/' ? `${mount}/${path}` : mount + path;
           }
-          path = path ? node.name + '/' + path : node.name;
+          path = path ? `${node.name}/${path}` : node.name;
           node = node.parent;
         }
       },
-      hashName: (parentid, name) => {
+      hashName(parentid, name) {
         var hash = 0;
         for (var i = 0; i < name.length; i++) {
           hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
         }
         return ((parentid + hash) >>> 0) % FS.nameTable.length;
       },
-      hashAddNode: (node) => {
+      hashAddNode(node) {
         var hash = FS.hashName(node.parent.id, node.name);
         node.name_next = FS.nameTable[hash];
         FS.nameTable[hash] = node;
       },
-      hashRemoveNode: (node) => {
+      hashRemoveNode(node) {
         var hash = FS.hashName(node.parent.id, node.name);
         if (FS.nameTable[hash] === node) {
           FS.nameTable[hash] = node.name_next;
@@ -2165,7 +2316,7 @@ var PDFiumModule = (() => {
           }
         }
       },
-      lookupNode: (parent, name) => {
+      lookupNode(parent, name) {
         var errCode = FS.mayLookup(parent);
         if (errCode) {
           throw new FS.ErrnoError(errCode, parent);
@@ -2179,58 +2330,50 @@ var PDFiumModule = (() => {
         }
         return FS.lookup(parent, name);
       },
-      createNode: (parent, name, mode, rdev) => {
+      createNode(parent, name, mode, rdev) {
         assert(typeof parent == 'object');
         var node = new FS.FSNode(parent, name, mode, rdev);
         FS.hashAddNode(node);
         return node;
       },
-      destroyNode: (node) => {
+      destroyNode(node) {
         FS.hashRemoveNode(node);
       },
-      isRoot: (node) => {
+      isRoot(node) {
         return node === node.parent;
       },
-      isMountpoint: (node) => {
+      isMountpoint(node) {
         return !!node.mounted;
       },
-      isFile: (mode) => {
+      isFile(mode) {
         return (mode & 61440) === 32768;
       },
-      isDir: (mode) => {
+      isDir(mode) {
         return (mode & 61440) === 16384;
       },
-      isLink: (mode) => {
+      isLink(mode) {
         return (mode & 61440) === 40960;
       },
-      isChrdev: (mode) => {
+      isChrdev(mode) {
         return (mode & 61440) === 8192;
       },
-      isBlkdev: (mode) => {
+      isBlkdev(mode) {
         return (mode & 61440) === 24576;
       },
-      isFIFO: (mode) => {
+      isFIFO(mode) {
         return (mode & 61440) === 4096;
       },
-      isSocket: (mode) => {
+      isSocket(mode) {
         return (mode & 49152) === 49152;
       },
-      flagModes: { r: 0, 'r+': 2, w: 577, 'w+': 578, a: 1089, 'a+': 1090 },
-      modeStringToFlags: (str) => {
-        var flags = FS.flagModes[str];
-        if (typeof flags == 'undefined') {
-          throw new Error('Unknown file open mode: ' + str);
-        }
-        return flags;
-      },
-      flagsToPermissionString: (flag) => {
+      flagsToPermissionString(flag) {
         var perms = ['r', 'w', 'rw'][flag & 3];
         if (flag & 512) {
           perms += 'w';
         }
         return perms;
       },
-      nodePermissions: (node, perms) => {
+      nodePermissions(node, perms) {
         if (FS.ignorePermissions) {
           return 0;
         }
@@ -2243,20 +2386,20 @@ var PDFiumModule = (() => {
         }
         return 0;
       },
-      mayLookup: (dir) => {
+      mayLookup(dir) {
         var errCode = FS.nodePermissions(dir, 'x');
         if (errCode) return errCode;
         if (!dir.node_ops.lookup) return 2;
         return 0;
       },
-      mayCreate: (dir, name) => {
+      mayCreate(dir, name) {
         try {
           var node = FS.lookupNode(dir, name);
           return 20;
         } catch (e) {}
         return FS.nodePermissions(dir, 'wx');
       },
-      mayDelete: (dir, name, isdir) => {
+      mayDelete(dir, name, isdir) {
         var node;
         try {
           node = FS.lookupNode(dir, name);
@@ -2281,7 +2424,7 @@ var PDFiumModule = (() => {
         }
         return 0;
       },
-      mayOpen: (node, flags) => {
+      mayOpen(node, flags) {
         if (!node) {
           return 44;
         }
@@ -2295,16 +2438,23 @@ var PDFiumModule = (() => {
         return FS.nodePermissions(node, FS.flagsToPermissionString(flags));
       },
       MAX_OPEN_FDS: 4096,
-      nextfd: (fd_start = 0, fd_end = FS.MAX_OPEN_FDS) => {
-        for (var fd = fd_start; fd <= fd_end; fd++) {
+      nextfd() {
+        for (var fd = 0; fd <= FS.MAX_OPEN_FDS; fd++) {
           if (!FS.streams[fd]) {
             return fd;
           }
         }
         throw new FS.ErrnoError(33);
       },
+      getStreamChecked(fd) {
+        var stream = FS.getStream(fd);
+        if (!stream) {
+          throw new FS.ErrnoError(8);
+        }
+        return stream;
+      },
       getStream: (fd) => FS.streams[fd],
-      createStream: (stream, fd_start, fd_end) => {
+      createStream(stream, fd = -1) {
         if (!FS.FSStream) {
           FS.FSStream = function () {
             this.shared = {};
@@ -2312,75 +2462,77 @@ var PDFiumModule = (() => {
           FS.FSStream.prototype = {};
           Object.defineProperties(FS.FSStream.prototype, {
             object: {
-              get: function () {
+              get() {
                 return this.node;
               },
-              set: function (val) {
+              set(val) {
                 this.node = val;
               },
             },
             isRead: {
-              get: function () {
+              get() {
                 return (this.flags & 2097155) !== 1;
               },
             },
             isWrite: {
-              get: function () {
+              get() {
                 return (this.flags & 2097155) !== 0;
               },
             },
             isAppend: {
-              get: function () {
+              get() {
                 return this.flags & 1024;
               },
             },
             flags: {
-              get: function () {
+              get() {
                 return this.shared.flags;
               },
-              set: function (val) {
+              set(val) {
                 this.shared.flags = val;
               },
             },
             position: {
-              get: function () {
+              get() {
                 return this.shared.position;
               },
-              set: function (val) {
+              set(val) {
                 this.shared.position = val;
               },
             },
           });
         }
         stream = Object.assign(new FS.FSStream(), stream);
-        var fd = FS.nextfd(fd_start, fd_end);
+        if (fd == -1) {
+          fd = FS.nextfd();
+        }
         stream.fd = fd;
         FS.streams[fd] = stream;
         return stream;
       },
-      closeStream: (fd) => {
+      closeStream(fd) {
         FS.streams[fd] = null;
       },
       chrdev_stream_ops: {
-        open: (stream) => {
+        open(stream) {
           var device = FS.getDevice(stream.node.rdev);
           stream.stream_ops = device.stream_ops;
           if (stream.stream_ops.open) {
             stream.stream_ops.open(stream);
           }
         },
-        llseek: () => {
+        llseek() {
           throw new FS.ErrnoError(70);
         },
       },
       major: (dev) => dev >> 8,
       minor: (dev) => dev & 255,
       makedev: (ma, mi) => (ma << 8) | mi,
-      registerDevice: (dev, ops) => {
+      registerDevice(dev, ops) {
         FS.devices[dev] = { stream_ops: ops };
       },
       getDevice: (dev) => FS.devices[dev],
-      getMounts: (mount) => {
+      getMounts(mount) {
         var mounts = [];
         var check = [mount];
         while (check.length) {
@@ -2390,16 +2542,14 @@ var PDFiumModule = (() => {
         }
         return mounts;
       },
-      syncfs: (populate, callback) => {
+      syncfs(populate, callback) {
         if (typeof populate == 'function') {
           callback = populate;
           populate = false;
         }
         FS.syncFSRequests++;
         if (FS.syncFSRequests > 1) {
-          err(
-            'warning: ' + FS.syncFSRequests + ' FS.syncfs operations in flight at once, probably just doing extra work'
-          );
+          err(`warning: ${FS.syncFSRequests} FS.syncfs operations in flight at once, probably just doing extra work`);
         }
         var mounts = FS.getMounts(FS.root.mount);
         var completed = 0;
@@ -2427,7 +2577,7 @@ var PDFiumModule = (() => {
           mount.type.syncfs(mount, populate, done);
         });
       },
-      mount: (type, opts, mountpoint) => {
+      mount(type, opts, mountpoint) {
         if (typeof type == 'string') {
           throw type;
         }
@@ -2447,12 +2597,7 @@ var PDFiumModule = (() => {
             throw new FS.ErrnoError(54);
           }
         }
-        var mount = {
-          type: type,
-          opts: opts,
-          mountpoint: mountpoint,
-          mounts: [],
-        };
+        var mount = { type: type, opts: opts, mountpoint: mountpoint, mounts: [] };
         var mountRoot = type.mount(mount);
         mountRoot.mount = mount;
         mount.root = mountRoot;
@@ -2466,7 +2611,7 @@ var PDFiumModule = (() => {
         }
         return mountRoot;
       },
-      unmount: (mountpoint) => {
+      unmount(mountpoint) {
         var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
         if (!FS.isMountpoint(lookup.node)) {
           throw new FS.ErrnoError(28);
@@ -2489,10 +2634,10 @@ var PDFiumModule = (() => {
         assert(idx !== -1);
         node.mount.mounts.splice(idx, 1);
       },
-      lookup: (parent, name) => {
+      lookup(parent, name) {
         return parent.node_ops.lookup(parent, name);
       },
-      mknod: (path, mode, dev) => {
+      mknod(path, mode, dev) {
         var lookup = FS.lookupPath(path, { parent: true });
         var parent = lookup.node;
         var name = PATH.basename(path);
@@ -2508,19 +2653,19 @@ var PDFiumModule = (() => {
         }
         return parent.node_ops.mknod(parent, name, mode, dev);
       },
-      create: (path, mode) => {
+      create(path, mode) {
         mode = mode !== undefined ? mode : 438;
         mode &= 4095;
         mode |= 32768;
         return FS.mknod(path, mode, 0);
       },
-      mkdir: (path, mode) => {
+      mkdir(path, mode) {
         mode = mode !== undefined ? mode : 511;
         mode &= 511 | 512;
         mode |= 16384;
         return FS.mknod(path, mode, 0);
       },
-      mkdirTree: (path, mode) => {
+      mkdirTree(path, mode) {
         var dirs = path.split('/');
         var d = '';
         for (var i = 0; i < dirs.length; ++i) {
@@ -2533,7 +2678,7 @@ var PDFiumModule = (() => {
           }
         }
       },
-      mkdev: (path, mode, dev) => {
+      mkdev(path, mode, dev) {
         if (typeof dev == 'undefined') {
           dev = mode;
           mode = 438;
@@ -2541,7 +2686,7 @@ var PDFiumModule = (() => {
         mode |= 8192;
         return FS.mknod(path, mode, dev);
       },
-      symlink: (oldpath, newpath) => {
+      symlink(oldpath, newpath) {
         if (!PATH_FS.resolve(oldpath)) {
           throw new FS.ErrnoError(44);
         }
@@ -2560,7 +2705,7 @@ var PDFiumModule = (() => {
         }
         return parent.node_ops.symlink(parent, newname, oldpath);
       },
-      rename: (old_path, new_path) => {
+      rename(old_path, new_path) {
         var old_dirname = PATH.dirname(old_path);
         var new_dirname = PATH.dirname(new_path);
         var old_name = PATH.basename(old_path);
@@ -2620,7 +2765,7 @@ var PDFiumModule = (() => {
           FS.hashAddNode(old_node);
         }
       },
-      rmdir: (path) => {
+      rmdir(path) {
         var lookup = FS.lookupPath(path, { parent: true });
         var parent = lookup.node;
         var name = PATH.basename(path);
@@ -2638,7 +2783,7 @@ var PDFiumModule = (() => {
         parent.node_ops.rmdir(parent, name);
         FS.destroyNode(node);
       },
-      readdir: (path) => {
+      readdir(path) {
         var lookup = FS.lookupPath(path, { follow: true });
         var node = lookup.node;
         if (!node.node_ops.readdir) {
@@ -2646,7 +2791,7 @@ var PDFiumModule = (() => {
         }
         return node.node_ops.readdir(node);
       },
-      unlink: (path) => {
+      unlink(path) {
         var lookup = FS.lookupPath(path, { parent: true });
         var parent = lookup.node;
         if (!parent) {
@@ -2667,7 +2812,7 @@ var PDFiumModule = (() => {
         parent.node_ops.unlink(parent, name);
         FS.destroyNode(node);
       },
-      readlink: (path) => {
+      readlink(path) {
         var lookup = FS.lookupPath(path);
         var link = lookup.node;
         if (!link) {
@@ -2678,7 +2823,7 @@ var PDFiumModule = (() => {
         }
         return PATH_FS.resolve(FS.getPath(link.parent), link.node_ops.readlink(link));
       },
-      stat: (path, dontFollow) => {
+      stat(path, dontFollow) {
         var lookup = FS.lookupPath(path, { follow: !dontFollow });
         var node = lookup.node;
         if (!node) {
@@ -2689,10 +2834,10 @@ var PDFiumModule = (() => {
         }
         return node.node_ops.getattr(node);
       },
-      lstat: (path) => {
+      lstat(path) {
         return FS.stat(path, true);
       },
-      chmod: (path, mode, dontFollow) => {
+      chmod(path, mode, dontFollow) {
         var node;
         if (typeof path == 'string') {
           var lookup = FS.lookupPath(path, { follow: !dontFollow });
@@ -2703,22 +2848,16 @@ var PDFiumModule = (() => {
         if (!node.node_ops.setattr) {
           throw new FS.ErrnoError(63);
         }
-        node.node_ops.setattr(node, {
-          mode: (mode & 4095) | (node.mode & ~4095),
-          timestamp: Date.now(),
-        });
+        node.node_ops.setattr(node, { mode: (mode & 4095) | (node.mode & ~4095), timestamp: Date.now() });
       },
-      lchmod: (path, mode) => {
+      lchmod(path, mode) {
         FS.chmod(path, mode, true);
       },
-      fchmod: (fd, mode) => {
-        var stream = FS.getStream(fd);
-        if (!stream) {
-          throw new FS.ErrnoError(8);
-        }
+      fchmod(fd, mode) {
+        var stream = FS.getStreamChecked(fd);
         FS.chmod(stream.node, mode);
       },
-      chown: (path, uid, gid, dontFollow) => {
+      chown(path, uid, gid, dontFollow) {
         var node;
         if (typeof path == 'string') {
           var lookup = FS.lookupPath(path, { follow: !dontFollow });
@@ -2731,17 +2870,14 @@ var PDFiumModule = (() => {
         }
         node.node_ops.setattr(node, { timestamp: Date.now() });
       },
-      lchown: (path, uid, gid) => {
+      lchown(path, uid, gid) {
         FS.chown(path, uid, gid, true);
       },
-      fchown: (fd, uid, gid) => {
-        var stream = FS.getStream(fd);
-        if (!stream) {
-          throw new FS.ErrnoError(8);
-        }
+      fchown(fd, uid, gid) {
+        var stream = FS.getStreamChecked(fd);
         FS.chown(stream.node, uid, gid);
       },
-      truncate: (path, len) => {
+      truncate(path, len) {
         if (len < 0) {
           throw new FS.ErrnoError(28);
         }
@@ -2767,26 +2903,23 @@ var PDFiumModule = (() => {
         }
         node.node_ops.setattr(node, { size: len, timestamp: Date.now() });
       },
-      ftruncate: (fd, len) => {
-        var stream = FS.getStream(fd);
-        if (!stream) {
-          throw new FS.ErrnoError(8);
-        }
+      ftruncate(fd, len) {
+        var stream = FS.getStreamChecked(fd);
         if ((stream.flags & 2097155) === 0) {
           throw new FS.ErrnoError(28);
         }
         FS.truncate(stream.node, len);
       },
-      utime: (path, atime, mtime) => {
+      utime(path, atime, mtime) {
         var lookup = FS.lookupPath(path, { follow: true });
         var node = lookup.node;
         node.node_ops.setattr(node, { timestamp: Math.max(atime, mtime) });
       },
-      open: (path, flags, mode) => {
+      open(path, flags, mode) {
         if (path === '') {
           throw new FS.ErrnoError(44);
         }
-        flags = typeof flags == 'string' ? FS.modeStringToFlags(flags) : flags;
+        flags = typeof flags == 'string' ? FS_modeStringToFlags(flags) : flags;
         mode = typeof mode == 'undefined' ? 438 : mode;
         if (flags & 64) {
           mode = (mode & 4095) | 32768;
@@ -2854,7 +2987,7 @@ var PDFiumModule = (() => {
         }
         return stream;
       },
-      close: (stream) => {
+      close(stream) {
         if (FS.isClosed(stream)) {
           throw new FS.ErrnoError(8);
         }
@@ -2870,10 +3003,10 @@ var PDFiumModule = (() => {
         }
         stream.fd = null;
       },
-      isClosed: (stream) => {
+      isClosed(stream) {
         return stream.fd === null;
       },
-      llseek: (stream, offset, whence) => {
+      llseek(stream, offset, whence) {
         if (FS.isClosed(stream)) {
           throw new FS.ErrnoError(8);
         }
@@ -2887,7 +3020,8 @@ var PDFiumModule = (() => {
         stream.ungotten = [];
         return stream.position;
       },
-      read: (stream, buffer, offset, length, position) => {
+      read(stream, buffer, offset, length, position) {
+        assert(offset >= 0);
         if (length < 0 || position < 0) {
           throw new FS.ErrnoError(28);
         }
@@ -2913,7 +3047,8 @@ var PDFiumModule = (() => {
         if (!seeking) stream.position += bytesRead;
         return bytesRead;
       },
-      write: (stream, buffer, offset, length, position, canOwn) => {
+      write(stream, buffer, offset, length, position, canOwn) {
+        assert(offset >= 0);
         if (length < 0 || position < 0) {
           throw new FS.ErrnoError(28);
         }
@@ -2942,7 +3077,7 @@ var PDFiumModule = (() => {
         if (!seeking) stream.position += bytesWritten;
         return bytesWritten;
       },
-      allocate: (stream, offset, length) => {
+      allocate(stream, offset, length) {
         if (FS.isClosed(stream)) {
           throw new FS.ErrnoError(8);
         }
@@ -2960,7 +3095,7 @@ var PDFiumModule = (() => {
         }
         stream.stream_ops.allocate(stream, offset, length);
       },
-      mmap: (stream, length, position, prot, flags) => {
+      mmap(stream, length, position, prot, flags) {
         if ((prot & 2) !== 0 && (flags & 2) === 0 && (stream.flags & 2097155) !== 2) {
           throw new FS.ErrnoError(2);
         }
@@ -2972,24 +3107,25 @@ var PDFiumModule = (() => {
         }
         return stream.stream_ops.mmap(stream, length, position, prot, flags);
       },
-      msync: (stream, buffer, offset, length, mmapFlags) => {
+      msync(stream, buffer, offset, length, mmapFlags) {
+        assert(offset >= 0);
         if (!stream.stream_ops.msync) {
           return 0;
         }
         return stream.stream_ops.msync(stream, buffer, offset, length, mmapFlags);
       },
       munmap: (stream) => 0,
-      ioctl: (stream, cmd, arg) => {
+      ioctl(stream, cmd, arg) {
         if (!stream.stream_ops.ioctl) {
           throw new FS.ErrnoError(59);
         }
         return stream.stream_ops.ioctl(stream, cmd, arg);
       },
-      readFile: (path, opts = {}) => {
+      readFile(path, opts = {}) {
         opts.flags = opts.flags || 0;
         opts.encoding = opts.encoding || 'binary';
         if (opts.encoding !== 'utf8' && opts.encoding !== 'binary') {
-          throw new Error('Invalid encoding type "' + opts.encoding + '"');
+          throw new Error(`Invalid encoding type "${opts.encoding}"`);
         }
         var ret;
         var stream = FS.open(path, opts.flags);
@@ -3005,7 +3141,7 @@ var PDFiumModule = (() => {
         FS.close(stream);
         return ret;
       },
-      writeFile: (path, data, opts = {}) => {
+      writeFile(path, data, opts = {}) {
         opts.flags = opts.flags || 577;
         var stream = FS.open(path, opts.flags, opts.mode);
         if (typeof data == 'string') {
@@ -3020,7 +3156,7 @@ var PDFiumModule = (() => {
         FS.close(stream);
       },
       cwd: () => FS.currentPath,
-      chdir: (path) => {
+      chdir(path) {
         var lookup = FS.lookupPath(path, { follow: true });
         if (lookup.node === null) {
           throw new FS.ErrnoError(44);
@@ -3034,46 +3170,45 @@ var PDFiumModule = (() => {
         }
         FS.currentPath = lookup.path;
       },
-      createDefaultDirectories: () => {
+      createDefaultDirectories() {
         FS.mkdir('/tmp');
         FS.mkdir('/home');
         FS.mkdir('/home/web_user');
       },
-      createDefaultDevices: () => {
+      createDefaultDevices() {
         FS.mkdir('/dev');
-        FS.registerDevice(FS.makedev(1, 3), {
-          read: () => 0,
-          write: (stream, buffer, offset, length, pos) => length,
-        });
+        FS.registerDevice(FS.makedev(1, 3), { read: () => 0, write: (stream, buffer, offset, length, pos) => length });
         FS.mkdev('/dev/null', FS.makedev(1, 3));
         TTY.register(FS.makedev(5, 0), TTY.default_tty_ops);
         TTY.register(FS.makedev(6, 0), TTY.default_tty1_ops);
         FS.mkdev('/dev/tty', FS.makedev(5, 0));
         FS.mkdev('/dev/tty1', FS.makedev(6, 0));
-        var random_device = getRandomDevice();
-        FS.createDevice('/dev', 'random', random_device);
-        FS.createDevice('/dev', 'urandom', random_device);
+        var randomBuffer = new Uint8Array(1024),
+          randomLeft = 0;
+        var randomByte = () => {
+          if (randomLeft === 0) {
+            randomLeft = randomFill(randomBuffer).byteLength;
+          }
+          return randomBuffer[--randomLeft];
+        };
+        FS.createDevice('/dev', 'random', randomByte);
+        FS.createDevice('/dev', 'urandom', randomByte);
         FS.mkdir('/dev/shm');
         FS.mkdir('/dev/shm/tmp');
       },
-      createSpecialDirectories: () => {
+      createSpecialDirectories() {
         FS.mkdir('/proc');
         var proc_self = FS.mkdir('/proc/self');
         FS.mkdir('/proc/self/fd');
         FS.mount(
           {
-            mount: () => {
+            mount() {
               var node = FS.createNode(proc_self, 'fd', 16384 | 511, 73);
               node.node_ops = {
-                lookup: (parent, name) => {
+                lookup(parent, name) {
                   var fd = +name;
-                  var stream = FS.getStream(fd);
-                  if (!stream) throw new FS.ErrnoError(8);
-                  var ret = {
-                    parent: null,
-                    mount: { mountpoint: 'fake' },
-                    node_ops: { readlink: () => stream.path },
-                  };
+                  var stream = FS.getStreamChecked(fd);
+                  var ret = { parent: null, mount: { mountpoint: 'fake' }, node_ops: { readlink: () => stream.path } };
                   ret.parent = ret;
                   return ret;
                 },
@@ -3085,7 +3220,7 @@ var PDFiumModule = (() => {
           '/proc/self/fd'
         );
       },
-      createStandardStreams: () => {
+      createStandardStreams() {
         if (Module['stdin']) {
           FS.createDevice('/dev', 'stdin', Module['stdin']);
         } else {
@@ -3104,11 +3239,11 @@ var PDFiumModule = (() => {
         var stdin = FS.open('/dev/stdin', 0);
         var stdout = FS.open('/dev/stdout', 1);
         var stderr = FS.open('/dev/stderr', 1);
-        assert(stdin.fd === 0, 'invalid handle for stdin (' + stdin.fd + ')');
-        assert(stdout.fd === 1, 'invalid handle for stdout (' + stdout.fd + ')');
-        assert(stderr.fd === 2, 'invalid handle for stderr (' + stderr.fd + ')');
+        assert(stdin.fd === 0, `invalid handle for stdin (${stdin.fd})`);
+        assert(stdout.fd === 1, `invalid handle for stdout (${stdout.fd})`);
+        assert(stderr.fd === 2, `invalid handle for stderr (${stderr.fd})`);
       },
-      ensureErrnoError: () => {
+      ensureErrnoError() {
         if (FS.ErrnoError) return;
         FS.ErrnoError = function ErrnoError(errno, node) {
           this.name = 'ErrnoError';
@@ -3125,10 +3260,7 @@ var PDFiumModule = (() => {
           this.setErrno(errno);
           this.message = ERRNO_MESSAGES[errno];
           if (this.stack) {
-            Object.defineProperty(this, 'stack', {
-              value: new Error().stack,
-              writable: true,
-            });
+            Object.defineProperty(this, 'stack', { value: new Error().stack, writable: true });
             this.stack = demangleAll(this.stack);
           }
         };
@@ -3139,7 +3271,7 @@ var PDFiumModule = (() => {
           FS.genericErrors[code].stack = '<generic error, no stack>';
         });
       },
-      staticInit: () => {
+      staticInit() {
         FS.ensureErrnoError();
         FS.nameTable = new Array(4096);
         FS.mount(MEMFS, {}, '/');
@@ -3148,7 +3280,7 @@ var PDFiumModule = (() => {
         FS.createSpecialDirectories();
         FS.filesystems = { MEMFS: MEMFS };
       },
-      init: (input, output, error) => {
+      init(input, output, error) {
         assert(
           !FS.init.initialized,
           'FS.init was previously called. If you want to initialize later with custom parameters, remove any earlier calls (note that one is automatically added to the generated code)'
@@ -3160,7 +3292,7 @@ var PDFiumModule = (() => {
         Module['stderr'] = error || Module['stderr'];
         FS.createStandardStreams();
       },
-      quit: () => {
+      quit() {
         FS.init.initialized = false;
         _fflush(0);
         for (var i = 0; i < FS.streams.length; i++) {
@@ -3171,20 +3303,14 @@ var PDFiumModule = (() => {
           FS.close(stream);
         }
       },
-      getMode: (canRead, canWrite) => {
-        var mode = 0;
-        if (canRead) mode |= 292 | 73;
-        if (canWrite) mode |= 146;
-        return mode;
-      },
-      findObject: (path, dontResolveLastLink) => {
+      findObject(path, dontResolveLastLink) {
         var ret = FS.analyzePath(path, dontResolveLastLink);
         if (!ret.exists) {
           return null;
         }
         return ret.object;
       },
-      analyzePath: (path, dontResolveLastLink) => {
+      analyzePath(path, dontResolveLastLink) {
         try {
           var lookup = FS.lookupPath(path, { follow: !dontResolveLastLink });
           path = lookup.path;
@@ -3217,7 +3343,7 @@ var PDFiumModule = (() => {
         }
         return ret;
       },
-      createPath: (parent, path, canRead, canWrite) => {
+      createPath(parent, path, canRead, canWrite) {
         parent = typeof parent == 'string' ? parent : FS.getPath(parent);
         var parts = path.split('/').reverse();
         while (parts.length) {
@@ -3231,18 +3357,18 @@ var PDFiumModule = (() => {
         }
         return current;
       },
-      createFile: (parent, name, properties, canRead, canWrite) => {
+      createFile(parent, name, properties, canRead, canWrite) {
         var path = PATH.join2(typeof parent == 'string' ? parent : FS.getPath(parent), name);
-        var mode = FS.getMode(canRead, canWrite);
+        var mode = FS_getMode(canRead, canWrite);
         return FS.create(path, mode);
       },
-      createDataFile: (parent, name, data, canRead, canWrite, canOwn) => {
+      createDataFile(parent, name, data, canRead, canWrite, canOwn) {
         var path = name;
         if (parent) {
           parent = typeof parent == 'string' ? parent : FS.getPath(parent);
           path = name ? PATH.join2(parent, name) : parent;
         }
-        var mode = FS.getMode(canRead, canWrite);
+        var mode = FS_getMode(canRead, canWrite);
         var node = FS.create(path, mode);
         if (data) {
           if (typeof data == 'string') {
@@ -3256,23 +3382,22 @@ var PDFiumModule = (() => {
           FS.close(stream);
           FS.chmod(node, mode);
         }
-        return node;
       },
-      createDevice: (parent, name, input, output) => {
+      createDevice(parent, name, input, output) {
         var path = PATH.join2(typeof parent == 'string' ? parent : FS.getPath(parent), name);
-        var mode = FS.getMode(!!input, !!output);
+        var mode = FS_getMode(!!input, !!output);
         if (!FS.createDevice.major) FS.createDevice.major = 64;
         var dev = FS.makedev(FS.createDevice.major++, 0);
         FS.registerDevice(dev, {
-          open: (stream) => {
+          open(stream) {
             stream.seekable = false;
           },
-          close: (stream) => {
+          close(stream) {
             if (output && output.buffer && output.buffer.length) {
               output(10);
             }
           },
-          read: (stream, buffer, offset, length, pos) => {
+          read(stream, buffer, offset, length, pos) {
             var bytesRead = 0;
             for (var i = 0; i < length; i++) {
               var result;
@@ -3293,7 +3418,7 @@ var PDFiumModule = (() => {
             }
             return bytesRead;
           },
-          write: (stream, buffer, offset, length, pos) => {
+          write(stream, buffer, offset, length, pos) {
             for (var i = 0; i < length; i++) {
               try {
                 output(buffer[offset + i]);
@@ -3309,7 +3434,7 @@ var PDFiumModule = (() => {
         });
         return FS.mkdev(path, mode, dev);
       },
-      forceLoadFile: (obj) => {
+      forceLoadFile(obj) {
         if (obj.isDevice || obj.isFolder || obj.link || obj.contents) return true;
         if (typeof XMLHttpRequest != 'undefined') {
           throw new Error(
@@ -3326,7 +3451,7 @@ var PDFiumModule = (() => {
           throw new Error('Cannot load without read() or XMLHttpRequest.');
         }
       },
-      createLazyFile: (parent, name, url, canRead, canWrite) => {
+      createLazyFile(parent, name, url, canRead, canWrite) {
         function LazyUint8Array() {
           this.lengthKnown = false;
           this.chunks = [];
@@ -3474,157 +3599,28 @@ var PDFiumModule = (() => {
         node.stream_ops = stream_ops;
         return node;
       },
-      createPreloadedFile: (
-        parent,
-        name,
-        url,
-        canRead,
-        canWrite,
-        onload,
-        onerror,
-        dontCreateFile,
-        canOwn,
-        preFinish
-      ) => {
-        var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
-        var dep = getUniqueRunDependency('cp ' + fullname);
-        function processData(byteArray) {
-          function finish(byteArray) {
-            if (preFinish) preFinish();
-            if (!dontCreateFile) {
-              FS.createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
-            }
-            if (onload) onload();
-            removeRunDependency(dep);
-          }
-          if (
-            Browser.handledByPreloadPlugin(byteArray, fullname, finish, () => {
-              if (onerror) onerror();
-              removeRunDependency(dep);
-            })
-          ) {
-            return;
-          }
-          finish(byteArray);
-        }
-        addRunDependency(dep);
-        if (typeof url == 'string') {
-          asyncLoad(url, (byteArray) => processData(byteArray), onerror);
-        } else {
-          processData(url);
-        }
-      },
-      indexedDB: () => {
-        return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-      },
-      DB_NAME: () => {
-        return 'EM_FS_' + window.location.pathname;
-      },
-      DB_VERSION: 20,
-      DB_STORE_NAME: 'FILE_DATA',
-      saveFilesToDB: (paths, onload = () => {}, onerror = () => {}) => {
-        var indexedDB = FS.indexedDB();
-        try {
-          var openRequest = indexedDB.open(FS.DB_NAME(), FS.DB_VERSION);
-        } catch (e) {
-          return onerror(e);
-        }
-        openRequest.onupgradeneeded = () => {
-          out('creating db');
-          var db = openRequest.result;
-          db.createObjectStore(FS.DB_STORE_NAME);
-        };
-        openRequest.onsuccess = () => {
-          var db = openRequest.result;
-          var transaction = db.transaction([FS.DB_STORE_NAME], 'readwrite');
-          var files = transaction.objectStore(FS.DB_STORE_NAME);
-          var ok = 0,
-            fail = 0,
-            total = paths.length;
-          function finish() {
-            if (fail == 0) onload();
-            else onerror();
-          }
-          paths.forEach((path) => {
-            var putRequest = files.put(FS.analyzePath(path).object.contents, path);
-            putRequest.onsuccess = () => {
-              ok++;
-              if (ok + fail == total) finish();
-            };
-            putRequest.onerror = () => {
-              fail++;
-              if (ok + fail == total) finish();
-            };
-          });
-          transaction.onerror = onerror;
-        };
-        openRequest.onerror = onerror;
-      },
-      loadFilesFromDB: (paths, onload = () => {}, onerror = () => {}) => {
-        var indexedDB = FS.indexedDB();
-        try {
-          var openRequest = indexedDB.open(FS.DB_NAME(), FS.DB_VERSION);
-        } catch (e) {
-          return onerror(e);
-        }
-        openRequest.onupgradeneeded = onerror;
-        openRequest.onsuccess = () => {
-          var db = openRequest.result;
-          try {
-            var transaction = db.transaction([FS.DB_STORE_NAME], 'readonly');
-          } catch (e) {
-            onerror(e);
-            return;
-          }
-          var files = transaction.objectStore(FS.DB_STORE_NAME);
-          var ok = 0,
-            fail = 0,
-            total = paths.length;
-          function finish() {
-            if (fail == 0) onload();
-            else onerror();
-          }
-          paths.forEach((path) => {
-            var getRequest = files.get(path);
-            getRequest.onsuccess = () => {
-              if (FS.analyzePath(path).exists) {
-                FS.unlink(path);
-              }
-              FS.createDataFile(PATH.dirname(path), PATH.basename(path), getRequest.result, true, true, true);
-              ok++;
-              if (ok + fail == total) finish();
-            };
-            getRequest.onerror = () => {
-              fail++;
-              if (ok + fail == total) finish();
-            };
-          });
-          transaction.onerror = onerror;
-        };
-        openRequest.onerror = onerror;
-      },
-      absolutePath: () => {
+      absolutePath() {
         abort('FS.absolutePath has been removed; use PATH_FS.resolve instead');
       },
-      createFolder: () => {
+      createFolder() {
         abort('FS.createFolder has been removed; use FS.mkdir instead');
       },
-      createLink: () => {
+      createLink() {
         abort('FS.createLink has been removed; use FS.symlink instead');
       },
-      joinPath: () => {
+      joinPath() {
         abort('FS.joinPath has been removed; use PATH.join instead');
       },
-      mmapAlloc: () => {
+      mmapAlloc() {
         abort('FS.mmapAlloc has been replaced by the top level function mmapAlloc');
       },
-      standardizePath: () => {
+      standardizePath() {
         abort('FS.standardizePath has been removed; use PATH.normalize instead');
       },
     };
     var SYSCALLS = {
       DEFAULT_POLLMASK: 5,
-      calculateAt: function (dirfd, path, allowEmpty) {
+      calculateAt(dirfd, path, allowEmpty) {
         if (PATH.isAbs(path)) {
           return path;
         }
@@ -3643,7 +3639,7 @@ var PDFiumModule = (() => {
         }
         return PATH.join2(dir, path);
       },
-      doStat: function (func, path, buf) {
+      doStat(func, path, buf) {
         try {
           var stat = func(path);
         } catch (e) {
@@ -3653,25 +3649,24 @@ var PDFiumModule = (() => {
           throw e;
         }
         HEAP32[buf >> 2] = stat.dev;
-        HEAP32[(buf + 8) >> 2] = stat.ino;
-        HEAP32[(buf + 12) >> 2] = stat.mode;
-        HEAPU32[(buf + 16) >> 2] = stat.nlink;
-        HEAP32[(buf + 20) >> 2] = stat.uid;
-        HEAP32[(buf + 24) >> 2] = stat.gid;
-        HEAP32[(buf + 28) >> 2] = stat.rdev;
+        HEAP32[(buf + 4) >> 2] = stat.mode;
+        HEAPU32[(buf + 8) >> 2] = stat.nlink;
+        HEAP32[(buf + 12) >> 2] = stat.uid;
+        HEAP32[(buf + 16) >> 2] = stat.gid;
+        HEAP32[(buf + 20) >> 2] = stat.rdev;
         (tempI64 = [
           stat.size >>> 0,
           ((tempDouble = stat.size),
           +Math.abs(tempDouble) >= 1
             ? tempDouble > 0
-              ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+              ? +Math.floor(tempDouble / 4294967296) >>> 0
               : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
             : 0),
         ]),
-          (HEAP32[(buf + 40) >> 2] = tempI64[0]),
-          (HEAP32[(buf + 44) >> 2] = tempI64[1]);
-        HEAP32[(buf + 48) >> 2] = 4096;
-        HEAP32[(buf + 52) >> 2] = stat.blocks;
+          (HEAP32[(buf + 24) >> 2] = tempI64[0]),
+          (HEAP32[(buf + 28) >> 2] = tempI64[1]);
+        HEAP32[(buf + 32) >> 2] = 4096;
+        HEAP32[(buf + 36) >> 2] = stat.blocks;
         var atime = stat.atime.getTime();
         var mtime = stat.mtime.getTime();
         var ctime = stat.ctime.getTime();
@@ -3680,51 +3675,51 @@ var PDFiumModule = (() => {
           ((tempDouble = Math.floor(atime / 1e3)),
           +Math.abs(tempDouble) >= 1
             ? tempDouble > 0
-              ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+              ? +Math.floor(tempDouble / 4294967296) >>> 0
               : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
             : 0),
         ]),
-          (HEAP32[(buf + 56) >> 2] = tempI64[0]),
-          (HEAP32[(buf + 60) >> 2] = tempI64[1]);
-        HEAPU32[(buf + 64) >> 2] = (atime % 1e3) * 1e3;
+          (HEAP32[(buf + 40) >> 2] = tempI64[0]),
+          (HEAP32[(buf + 44) >> 2] = tempI64[1]);
+        HEAPU32[(buf + 48) >> 2] = (atime % 1e3) * 1e3;
         (tempI64 = [
           Math.floor(mtime / 1e3) >>> 0,
           ((tempDouble = Math.floor(mtime / 1e3)),
           +Math.abs(tempDouble) >= 1
             ? tempDouble > 0
-              ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+              ? +Math.floor(tempDouble / 4294967296) >>> 0
               : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
             : 0),
         ]),
-          (HEAP32[(buf + 72) >> 2] = tempI64[0]),
-          (HEAP32[(buf + 76) >> 2] = tempI64[1]);
-        HEAPU32[(buf + 80) >> 2] = (mtime % 1e3) * 1e3;
+          (HEAP32[(buf + 56) >> 2] = tempI64[0]),
+          (HEAP32[(buf + 60) >> 2] = tempI64[1]);
+        HEAPU32[(buf + 64) >> 2] = (mtime % 1e3) * 1e3;
         (tempI64 = [
           Math.floor(ctime / 1e3) >>> 0,
           ((tempDouble = Math.floor(ctime / 1e3)),
           +Math.abs(tempDouble) >= 1
             ? tempDouble > 0
-              ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+              ? +Math.floor(tempDouble / 4294967296) >>> 0
               : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
             : 0),
         ]),
-          (HEAP32[(buf + 88) >> 2] = tempI64[0]),
-          (HEAP32[(buf + 92) >> 2] = tempI64[1]);
-        HEAPU32[(buf + 96) >> 2] = (ctime % 1e3) * 1e3;
+          (HEAP32[(buf + 72) >> 2] = tempI64[0]),
+          (HEAP32[(buf + 76) >> 2] = tempI64[1]);
+        HEAPU32[(buf + 80) >> 2] = (ctime % 1e3) * 1e3;
         (tempI64 = [
           stat.ino >>> 0,
           ((tempDouble = stat.ino),
           +Math.abs(tempDouble) >= 1
             ? tempDouble > 0
-              ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+              ? +Math.floor(tempDouble / 4294967296) >>> 0
               : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
             : 0),
         ]),
-          (HEAP32[(buf + 104) >> 2] = tempI64[0]),
-          (HEAP32[(buf + 108) >> 2] = tempI64[1]);
+          (HEAP32[(buf + 88) >> 2] = tempI64[0]),
+          (HEAP32[(buf + 92) >> 2] = tempI64[1]);
         return 0;
       },
-      doMsync: function (addr, stream, len, flags, offset) {
+      doMsync(addr, stream, len, flags, offset) {
         if (!FS.isFile(stream.node.mode)) {
           throw new FS.ErrnoError(43);
         }
@@ -3735,19 +3730,21 @@ var PDFiumModule = (() => {
         FS.msync(stream, buffer, offset, len, flags);
       },
       varargs: undefined,
-      get: function () {
+      get() {
         assert(SYSCALLS.varargs != undefined);
+        var ret = HEAP32[+SYSCALLS.varargs >> 2];
         SYSCALLS.varargs += 4;
-        var ret = HEAP32[(SYSCALLS.varargs - 4) >> 2];
         return ret;
       },
-      getStr: function (ptr) {
+      getp() {
+        return SYSCALLS.get();
+      },
+      getStr(ptr) {
         var ret = UTF8ToString(ptr);
         return ret;
       },
-      getStreamFromFD: function (fd) {
-        var stream = FS.getStream(fd);
-        if (!stream) throw new FS.ErrnoError(8);
+      getStreamFromFD(fd) {
+        var stream = FS.getStreamChecked(fd);
         return stream;
       },
     };
@@ -3760,6 +3757,9 @@ var PDFiumModule = (() => {
             var arg = SYSCALLS.get();
             if (arg < 0) {
               return -28;
+            }
+            while (FS.streams[arg]) {
+              arg++;
             }
             var newStream;
             newStream = FS.createStream(stream, arg);
@@ -3776,7 +3776,7 @@ var PDFiumModule = (() => {
             return 0;
           }
           case 5: {
-            var arg = SYSCALLS.get();
+            var arg = SYSCALLS.getp();
             var offset = 0;
             HEAP16[(arg + offset) >> 1] = 2;
             return 0;
@@ -3808,15 +3808,15 @@ var PDFiumModule = (() => {
         return -e.errno;
       }
     }
-    function convertI32PairToI53Checked(lo, hi) {
+    var convertI32PairToI53Checked = (lo, hi) => {
       assert(lo == lo >>> 0 || lo == (lo | 0));
       assert(hi === (hi | 0));
       return (hi + 2097152) >>> 0 < 4194305 - !!lo ? (lo >>> 0) + hi * 4294967296 : NaN;
-    }
+    };
     function ___syscall_ftruncate64(fd, length_low, length_high) {
+      var length = convertI32PairToI53Checked(length_low, length_high);
       try {
-        var length = convertI32PairToI53Checked(length_low, length_high);
-        if (isNaN(length)) return -61;
+        if (isNaN(length)) return 61;
         FS.ftruncate(fd, length);
         return 0;
       } catch (e) {
@@ -3856,7 +3856,7 @@ var PDFiumModule = (() => {
             ((tempDouble = id),
             +Math.abs(tempDouble) >= 1
               ? tempDouble > 0
-                ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+                ? +Math.floor(tempDouble / 4294967296) >>> 0
                 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
               : 0),
           ]),
@@ -3867,7 +3867,7 @@ var PDFiumModule = (() => {
             ((tempDouble = (idx + 1) * struct_size),
             +Math.abs(tempDouble) >= 1
               ? tempDouble > 0
-                ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+                ? +Math.floor(tempDouble / 4294967296) >>> 0
                 : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
               : 0),
           ]),
@@ -3891,23 +3891,59 @@ var PDFiumModule = (() => {
       try {
         var stream = SYSCALLS.getStreamFromFD(fd);
         switch (op) {
-          case 21509:
+          case 21509: {
+            if (!stream.tty) return -59;
+            return 0;
+          }
           case 21505: {
             if (!stream.tty) return -59;
+            if (stream.tty.ops.ioctl_tcgets) {
+              var termios = stream.tty.ops.ioctl_tcgets(stream);
+              var argp = SYSCALLS.getp();
+              HEAP32[argp >> 2] = termios.c_iflag || 0;
+              HEAP32[(argp + 4) >> 2] = termios.c_oflag || 0;
+              HEAP32[(argp + 8) >> 2] = termios.c_cflag || 0;
+              HEAP32[(argp + 12) >> 2] = termios.c_lflag || 0;
+              for (var i = 0; i < 32; i++) {
+                HEAP8[(argp + i + 17) >> 0] = termios.c_cc[i] || 0;
+              }
+              return 0;
+            }
             return 0;
           }
           case 21510:
           case 21511:
-          case 21512:
+          case 21512: {
+            if (!stream.tty) return -59;
+            return 0;
+          }
           case 21506:
           case 21507:
           case 21508: {
             if (!stream.tty) return -59;
+            if (stream.tty.ops.ioctl_tcsets) {
+              var argp = SYSCALLS.getp();
+              var c_iflag = HEAP32[argp >> 2];
+              var c_oflag = HEAP32[(argp + 4) >> 2];
+              var c_cflag = HEAP32[(argp + 8) >> 2];
+              var c_lflag = HEAP32[(argp + 12) >> 2];
+              var c_cc = [];
+              for (var i = 0; i < 32; i++) {
+                c_cc.push(HEAP8[(argp + i + 17) >> 0]);
+              }
+              return stream.tty.ops.ioctl_tcsets(stream.tty, op, {
+                c_iflag: c_iflag,
+                c_oflag: c_oflag,
+                c_cflag: c_cflag,
+                c_lflag: c_lflag,
+                c_cc: c_cc,
+              });
+            }
             return 0;
           }
           case 21519: {
             if (!stream.tty) return -59;
-            var argp = SYSCALLS.get();
+            var argp = SYSCALLS.getp();
             HEAP32[argp >> 2] = 0;
             return 0;
           }
@@ -3916,14 +3952,24 @@ var PDFiumModule = (() => {
             return -28;
           }
           case 21531: {
-            var argp = SYSCALLS.get();
+            var argp = SYSCALLS.getp();
             return FS.ioctl(stream, op, argp);
           }
           case 21523: {
             if (!stream.tty) return -59;
+            if (stream.tty.ops.ioctl_tiocgwinsz) {
+              var winsize = stream.tty.ops.ioctl_tiocgwinsz(stream.tty);
+              var argp = SYSCALLS.getp();
+              HEAP16[argp >> 1] = winsize[0];
+              HEAP16[(argp + 2) >> 1] = winsize[1];
+            }
             return 0;
           }
           case 21524: {
+            if (!stream.tty) return -59;
+            return 0;
+          }
+          case 21515: {
             if (!stream.tty) return -59;
             return 0;
           }
@@ -3950,7 +3996,7 @@ var PDFiumModule = (() => {
         var nofollow = flags & 256;
         var allowEmpty = flags & 4096;
         flags = flags & ~6400;
-        assert(!flags, 'unknown flags in __syscall_newfstatat: ' + flags);
+        assert(!flags, `unknown flags in __syscall_newfstatat: ${flags}`);
         path = SYSCALLS.calculateAt(dirfd, path, allowEmpty);
         return SYSCALLS.doStat(nofollow ? FS.lstat : FS.stat, path, buf);
       } catch (e) {
@@ -4006,14 +4052,12 @@ var PDFiumModule = (() => {
         return -e.errno;
       }
     }
-    function __emscripten_throw_longjmp() {
+    var __emscripten_throw_longjmp = () => {
       throw Infinity;
-    }
-    function readI53FromI64(ptr) {
-      return HEAPU32[ptr >> 2] + HEAP32[(ptr + 4) >> 2] * 4294967296;
-    }
-    function __gmtime_js(time, tmPtr) {
-      var date = new Date(readI53FromI64(time) * 1e3);
+    };
+    function __gmtime_js(time_low, time_high, tmPtr) {
+      var time = convertI32PairToI53Checked(time_low, time_high);
+      var date = new Date(time * 1e3);
       HEAP32[tmPtr >> 2] = date.getUTCSeconds();
       HEAP32[(tmPtr + 4) >> 2] = date.getUTCMinutes();
       HEAP32[(tmPtr + 8) >> 2] = date.getUTCHours();
@@ -4025,19 +4069,18 @@ var PDFiumModule = (() => {
       var yday = ((date.getTime() - start) / (1e3 * 60 * 60 * 24)) | 0;
       HEAP32[(tmPtr + 28) >> 2] = yday;
     }
-    function __isLeapYear(year) {
-      return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-    }
-    var __MONTH_DAYS_LEAP_CUMULATIVE = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
-    var __MONTH_DAYS_REGULAR_CUMULATIVE = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-    function __yday_from_date(date) {
-      var isLeapYear = __isLeapYear(date.getFullYear());
-      var monthDaysCumulative = isLeapYear ? __MONTH_DAYS_LEAP_CUMULATIVE : __MONTH_DAYS_REGULAR_CUMULATIVE;
+    var isLeapYear = (year) => year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    var MONTH_DAYS_LEAP_CUMULATIVE = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+    var MONTH_DAYS_REGULAR_CUMULATIVE = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    var ydayFromDate = (date) => {
+      var leap = isLeapYear(date.getFullYear());
+      var monthDaysCumulative = leap ? MONTH_DAYS_LEAP_CUMULATIVE : MONTH_DAYS_REGULAR_CUMULATIVE;
       var yday = monthDaysCumulative[date.getMonth()] + date.getDate() - 1;
       return yday;
-    }
-    function __localtime_js(time, tmPtr) {
-      var date = new Date(readI53FromI64(time) * 1e3);
+    };
+    function __localtime_js(time_low, time_high, tmPtr) {
+      var time = convertI32PairToI53Checked(time_low, time_high);
+      var date = new Date(time * 1e3);
       HEAP32[tmPtr >> 2] = date.getSeconds();
       HEAP32[(tmPtr + 4) >> 2] = date.getMinutes();
       HEAP32[(tmPtr + 8) >> 2] = date.getHours();
@@ -4045,7 +4088,7 @@ var PDFiumModule = (() => {
       HEAP32[(tmPtr + 16) >> 2] = date.getMonth();
       HEAP32[(tmPtr + 20) >> 2] = date.getFullYear() - 1900;
       HEAP32[(tmPtr + 24) >> 2] = date.getDay();
-      var yday = __yday_from_date(date) | 0;
+      var yday = ydayFromDate(date) | 0;
       HEAP32[(tmPtr + 28) >> 2] = yday;
       HEAP32[(tmPtr + 36) >> 2] = -(date.getTimezoneOffset() * 60);
       var start = new Date(date.getFullYear(), 0, 1);
@@ -4054,13 +4097,13 @@ var PDFiumModule = (() => {
       var dst = (summerOffset != winterOffset && date.getTimezoneOffset() == Math.min(winterOffset, summerOffset)) | 0;
       HEAP32[(tmPtr + 32) >> 2] = dst;
     }
-    function allocateUTF8(str) {
+    var stringToNewUTF8 = (str) => {
       var size = lengthBytesUTF8(str) + 1;
       var ret = _malloc(size);
-      if (ret) stringToUTF8Array(str, HEAP8, ret, size);
+      if (ret) stringToUTF8(str, ret, size);
       return ret;
-    }
-    function __tzset_js(timezone, daylight, tzname) {
+    };
+    var __tzset_js = (timezone, daylight, tzname) => {
       var currentYear = new Date().getFullYear();
       var winter = new Date(currentYear, 0, 1);
       var summer = new Date(currentYear, 6, 1);
@@ -4075,8 +4118,8 @@ var PDFiumModule = (() => {
       }
       var winterName = extractZone(winter);
       var summerName = extractZone(summer);
-      var winterNamePtr = allocateUTF8(winterName);
-      var summerNamePtr = allocateUTF8(summerName);
+      var winterNamePtr = stringToNewUTF8(winterName);
+      var summerNamePtr = stringToNewUTF8(summerName);
       if (summerOffset < winterOffset) {
         HEAPU32[tzname >> 2] = winterNamePtr;
         HEAPU32[(tzname + 4) >> 2] = summerNamePtr;
@@ -4084,69 +4127,50 @@ var PDFiumModule = (() => {
         HEAPU32[tzname >> 2] = summerNamePtr;
         HEAPU32[(tzname + 4) >> 2] = winterNamePtr;
       }
-    }
-    function _abort() {
+    };
+    var _abort = () => {
       abort('native code called abort()');
-    }
-    function _emscripten_date_now() {
-      return Date.now();
-    }
-    function _emscripten_memcpy_big(dest, src, num) {
-      HEAPU8.copyWithin(dest, src, src + num);
-    }
-    function getHeapMax() {
-      return 2147483648;
-    }
-    function emscripten_realloc_buffer(size) {
+    };
+    var _emscripten_date_now = () => Date.now();
+    var _emscripten_errn = (str, len) => err(UTF8ToString(str, len));
+    var _emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
+    var getHeapMax = () => 2147483648;
+    var growMemory = (size) => {
       var b = wasmMemory.buffer;
+      var pages = (size - b.byteLength + 65535) / 65536;
       try {
-        wasmMemory.grow((size - b.byteLength + 65535) >>> 16);
+        wasmMemory.grow(pages);
         updateMemoryViews();
         return 1;
       } catch (e) {
-        err(
-          'emscripten_realloc_buffer: Attempted to grow heap from ' +
-            b.byteLength +
-            ' bytes to ' +
-            size +
-            ' bytes, but got error: ' +
-            e
-        );
+        err(`growMemory: Attempted to grow heap from ${b.byteLength} bytes to ${size} bytes, but got error: ${e}`);
       }
-    }
-    function _emscripten_resize_heap(requestedSize) {
+    };
+    var _emscripten_resize_heap = (requestedSize) => {
       var oldSize = HEAPU8.length;
-      requestedSize = requestedSize >>> 0;
+      requestedSize >>>= 0;
       assert(requestedSize > oldSize);
       var maxHeapSize = getHeapMax();
       if (requestedSize > maxHeapSize) {
-        err(
-          'Cannot enlarge memory, asked to go up to ' +
-            requestedSize +
-            ' bytes, but the limit is ' +
-            maxHeapSize +
-            ' bytes!'
-        );
+        err(`Cannot enlarge memory, requested ${requestedSize} bytes, but the limit is ${maxHeapSize} bytes!`);
         return false;
       }
-      let alignUp = (x, multiple) => x + ((multiple - (x % multiple)) % multiple);
+      var alignUp = (x, multiple) => x + ((multiple - (x % multiple)) % multiple);
       for (var cutDown = 1; cutDown <= 4; cutDown *= 2) {
         var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown);
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296);
         var newSize = Math.min(maxHeapSize, alignUp(Math.max(requestedSize, overGrownHeapSize), 65536));
-        var replacement = emscripten_realloc_buffer(newSize);
+        var replacement = growMemory(newSize);
         if (replacement) {
           return true;
         }
       }
-      err('Failed to grow the heap from ' + oldSize + ' bytes to ' + newSize + ' bytes, not enough memory!');
+      err(`Failed to grow the heap from ${oldSize} bytes to ${newSize} bytes, not enough memory!`);
       return false;
-    }
+    };
     var ENV = {};
-    function getExecutableName() {
-      return thisProgram || './this.program';
-    }
-    function getEnvStrings() {
+    var getExecutableName = () => thisProgram || './this.program';
+    var getEnvStrings = () => {
       if (!getEnvStrings.strings) {
         var lang =
           ((typeof navigator == 'object' && navigator.languages && navigator.languages[0]) || 'C').replace('-', '_') +
@@ -4166,39 +4190,37 @@ var PDFiumModule = (() => {
         }
         var strings = [];
         for (var x in env) {
-          strings.push(x + '=' + env[x]);
+          strings.push(`${x}=${env[x]}`);
         }
         getEnvStrings.strings = strings;
       }
       return getEnvStrings.strings;
-    }
-    function writeAsciiToMemory(str, buffer, dontAddNull) {
+    };
+    var stringToAscii = (str, buffer) => {
       for (var i = 0; i < str.length; ++i) {
         assert(str.charCodeAt(i) === (str.charCodeAt(i) & 255));
         HEAP8[buffer++ >> 0] = str.charCodeAt(i);
       }
-      if (!dontAddNull) HEAP8[buffer >> 0] = 0;
-    }
-    function _environ_get(__environ, environ_buf) {
+      HEAP8[buffer >> 0] = 0;
+    };
+    var _environ_get = (__environ, environ_buf) => {
       var bufSize = 0;
-      getEnvStrings().forEach(function (string, i) {
+      getEnvStrings().forEach((string, i) => {
         var ptr = environ_buf + bufSize;
         HEAPU32[(__environ + i * 4) >> 2] = ptr;
-        writeAsciiToMemory(string, ptr);
+        stringToAscii(string, ptr);
         bufSize += string.length + 1;
       });
       return 0;
-    }
-    function _environ_sizes_get(penviron_count, penviron_buf_size) {
+    };
+    var _environ_sizes_get = (penviron_count, penviron_buf_size) => {
       var strings = getEnvStrings();
       HEAPU32[penviron_count >> 2] = strings.length;
       var bufSize = 0;
-      strings.forEach(function (string) {
-        bufSize += string.length + 1;
-      });
+      strings.forEach((string) => (bufSize += string.length + 1));
       HEAPU32[penviron_buf_size >> 2] = bufSize;
       return 0;
-    }
+    };
     function _fd_close(fd) {
       try {
         var stream = SYSCALLS.getStreamFromFD(fd);
@@ -4209,7 +4231,7 @@ var PDFiumModule = (() => {
         return e.errno;
       }
     }
-    function doReadv(stream, iov, iovcnt, offset) {
+    var doReadv = (stream, iov, iovcnt, offset) => {
       var ret = 0;
       for (var i = 0; i < iovcnt; i++) {
         var ptr = HEAPU32[iov >> 2];
@@ -4224,7 +4246,7 @@ var PDFiumModule = (() => {
         }
       }
       return ret;
-    }
+    };
     function _fd_read(fd, iov, iovcnt, pnum) {
       try {
         var stream = SYSCALLS.getStreamFromFD(fd);
@@ -4237,8 +4259,8 @@ var PDFiumModule = (() => {
       }
     }
     function _fd_seek(fd, offset_low, offset_high, whence, newOffset) {
+      var offset = convertI32PairToI53Checked(offset_low, offset_high);
       try {
-        var offset = convertI32PairToI53Checked(offset_low, offset_high);
         if (isNaN(offset)) return 61;
         var stream = SYSCALLS.getStreamFromFD(fd);
         FS.llseek(stream, offset, whence);
@@ -4247,7 +4269,7 @@ var PDFiumModule = (() => {
           ((tempDouble = stream.position),
           +Math.abs(tempDouble) >= 1
             ? tempDouble > 0
-              ? (Math.min(+Math.floor(tempDouble / 4294967296), 4294967295) | 0) >>> 0
+              ? +Math.floor(tempDouble / 4294967296) >>> 0
               : ~~+Math.ceil((tempDouble - +(~~tempDouble >>> 0)) / 4294967296) >>> 0
             : 0),
         ]),
@@ -4272,7 +4294,7 @@ var PDFiumModule = (() => {
         return e.errno;
       }
     }
-    function doWritev(stream, iov, iovcnt, offset) {
+    var doWritev = (stream, iov, iovcnt, offset) => {
       var ret = 0;
       for (var i = 0; i < iovcnt; i++) {
         var ptr = HEAPU32[iov >> 2];
@@ -4286,7 +4308,7 @@ var PDFiumModule = (() => {
         }
       }
       return ret;
-    }
+    };
     function _fd_write(fd, iov, iovcnt, pnum) {
       try {
         var stream = SYSCALLS.getStreamFromFD(fd);
@@ -4298,19 +4320,19 @@ var PDFiumModule = (() => {
         return e.errno;
       }
     }
-    function __arraySum(array, index) {
+    var arraySum = (array, index) => {
       var sum = 0;
       for (var i = 0; i <= index; sum += array[i++]) {}
       return sum;
-    }
-    var __MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    var __MONTH_DAYS_REGULAR = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    function __addDays(date, days) {
+    };
+    var MONTH_DAYS_LEAP = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var MONTH_DAYS_REGULAR = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var addDays = (date, days) => {
       var newDate = new Date(date.getTime());
       while (days > 0) {
-        var leap = __isLeapYear(newDate.getFullYear());
+        var leap = isLeapYear(newDate.getFullYear());
         var currentMonth = newDate.getMonth();
-        var daysInCurrentMonth = (leap ? __MONTH_DAYS_LEAP : __MONTH_DAYS_REGULAR)[currentMonth];
+        var daysInCurrentMonth = (leap ? MONTH_DAYS_LEAP : MONTH_DAYS_REGULAR)[currentMonth];
         if (days > daysInCurrentMonth - newDate.getDate()) {
           days -= daysInCurrentMonth - newDate.getDate() + 1;
           newDate.setDate(1);
@@ -4326,13 +4348,13 @@ var PDFiumModule = (() => {
         }
       }
       return newDate;
-    }
-    function writeArrayToMemory(array, buffer) {
+    };
+    var writeArrayToMemory = (array, buffer) => {
       assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)');
       HEAP8.set(array, buffer);
-    }
-    function _strftime(s, maxsize, format, tm) {
-      var tm_zone = HEAP32[(tm + 40) >> 2];
+    };
+    var _strftime = (s, maxsize, format, tm) => {
+      var tm_zone = HEAPU32[(tm + 40) >> 2];
       var date = {
         tm_sec: HEAP32[tm >> 2],
         tm_min: HEAP32[(tm + 4) >> 2],
@@ -4436,7 +4458,7 @@ var PDFiumModule = (() => {
         }
       }
       function getWeekBasedYear(date) {
-        var thisDate = __addDays(new Date(date.tm_year + 1900, 0, 1), date.tm_yday);
+        var thisDate = addDays(new Date(date.tm_year + 1900, 0, 1), date.tm_yday);
         var janFourthThisYear = new Date(thisDate.getFullYear(), 0, 4);
         var janFourthNextYear = new Date(thisDate.getFullYear() + 1, 0, 4);
         var firstWeekStartThisYear = getFirstWeekStartDate(janFourthThisYear);
@@ -4450,79 +4472,48 @@ var PDFiumModule = (() => {
         return thisDate.getFullYear() - 1;
       }
       var EXPANSION_RULES_2 = {
-        '%a': function (date) {
-          return WEEKDAYS[date.tm_wday].substring(0, 3);
-        },
-        '%A': function (date) {
-          return WEEKDAYS[date.tm_wday];
-        },
-        '%b': function (date) {
-          return MONTHS[date.tm_mon].substring(0, 3);
-        },
-        '%B': function (date) {
-          return MONTHS[date.tm_mon];
-        },
-        '%C': function (date) {
+        '%a': (date) => WEEKDAYS[date.tm_wday].substring(0, 3),
+        '%A': (date) => WEEKDAYS[date.tm_wday],
+        '%b': (date) => MONTHS[date.tm_mon].substring(0, 3),
+        '%B': (date) => MONTHS[date.tm_mon],
+        '%C': (date) => {
           var year = date.tm_year + 1900;
           return leadingNulls((year / 100) | 0, 2);
         },
-        '%d': function (date) {
-          return leadingNulls(date.tm_mday, 2);
-        },
-        '%e': function (date) {
-          return leadingSomething(date.tm_mday, 2, ' ');
-        },
-        '%g': function (date) {
-          return getWeekBasedYear(date).toString().substring(2);
-        },
-        '%G': function (date) {
-          return getWeekBasedYear(date);
-        },
-        '%H': function (date) {
-          return leadingNulls(date.tm_hour, 2);
-        },
-        '%I': function (date) {
+        '%d': (date) => leadingNulls(date.tm_mday, 2),
+        '%e': (date) => leadingSomething(date.tm_mday, 2, ' '),
+        '%g': (date) => getWeekBasedYear(date).toString().substring(2),
+        '%G': (date) => getWeekBasedYear(date),
+        '%H': (date) => leadingNulls(date.tm_hour, 2),
+        '%I': (date) => {
           var twelveHour = date.tm_hour;
           if (twelveHour == 0) twelveHour = 12;
           else if (twelveHour > 12) twelveHour -= 12;
           return leadingNulls(twelveHour, 2);
         },
-        '%j': function (date) {
-          return leadingNulls(
+        '%j': (date) =>
+          leadingNulls(
             date.tm_mday +
-              __arraySum(__isLeapYear(date.tm_year + 1900) ? __MONTH_DAYS_LEAP : __MONTH_DAYS_REGULAR, date.tm_mon - 1),
+              arraySum(isLeapYear(date.tm_year + 1900) ? MONTH_DAYS_LEAP : MONTH_DAYS_REGULAR, date.tm_mon - 1),
             3
-          );
-        },
-        '%m': function (date) {
-          return leadingNulls(date.tm_mon + 1, 2);
-        },
-        '%M': function (date) {
-          return leadingNulls(date.tm_min, 2);
-        },
-        '%n': function () {
-          return '\n';
-        },
-        '%p': function (date) {
+          ),
+        '%m': (date) => leadingNulls(date.tm_mon + 1, 2),
+        '%M': (date) => leadingNulls(date.tm_min, 2),
+        '%n': () => '\n',
+        '%p': (date) => {
           if (date.tm_hour >= 0 && date.tm_hour < 12) {
             return 'AM';
           }
           return 'PM';
         },
-        '%S': function (date) {
-          return leadingNulls(date.tm_sec, 2);
-        },
-        '%t': function () {
-          return '\t';
-        },
-        '%u': function (date) {
-          return date.tm_wday || 7;
-        },
-        '%U': function (date) {
+        '%S': (date) => leadingNulls(date.tm_sec, 2),
+        '%t': () => '\t',
+        '%u': (date) => date.tm_wday || 7,
+        '%U': (date) => {
           var days = date.tm_yday + 7 - date.tm_wday;
           return leadingNulls(Math.floor(days / 7), 2);
         },
-        '%V': function (date) {
+        '%V': (date) => {
           var val = Math.floor((date.tm_yday + 7 - ((date.tm_wday + 6) % 7)) / 7);
           if ((date.tm_wday + 371 - date.tm_yday - 2) % 7 <= 2) {
             val++;
@@ -4530,41 +4521,31 @@ var PDFiumModule = (() => {
           if (!val) {
             val = 52;
             var dec31 = (date.tm_wday + 7 - date.tm_yday - 1) % 7;
-            if (dec31 == 4 || (dec31 == 5 && __isLeapYear((date.tm_year % 400) - 1))) {
+            if (dec31 == 4 || (dec31 == 5 && isLeapYear((date.tm_year % 400) - 1))) {
               val++;
             }
           } else if (val == 53) {
             var jan1 = (date.tm_wday + 371 - date.tm_yday) % 7;
-            if (jan1 != 4 && (jan1 != 3 || !__isLeapYear(date.tm_year))) val = 1;
+            if (jan1 != 4 && (jan1 != 3 || !isLeapYear(date.tm_year))) val = 1;
           }
           return leadingNulls(val, 2);
         },
-        '%w': function (date) {
-          return date.tm_wday;
-        },
-        '%W': function (date) {
+        '%w': (date) => date.tm_wday,
+        '%W': (date) => {
           var days = date.tm_yday + 7 - ((date.tm_wday + 6) % 7);
           return leadingNulls(Math.floor(days / 7), 2);
         },
-        '%y': function (date) {
-          return (date.tm_year + 1900).toString().substring(2);
-        },
-        '%Y': function (date) {
-          return date.tm_year + 1900;
-        },
-        '%z': function (date) {
+        '%y': (date) => (date.tm_year + 1900).toString().substring(2),
+        '%Y': (date) => date.tm_year + 1900,
+        '%z': (date) => {
           var off = date.tm_gmtoff;
           var ahead = off >= 0;
           off = Math.abs(off) / 60;
           off = (off / 60) * 100 + (off % 60);
           return (ahead ? '+' : '-') + String('0000' + off).slice(-4);
         },
-        '%Z': function (date) {
-          return date.tm_zone;
-        },
-        '%%': function () {
-          return '%';
-        },
+        '%Z': (date) => date.tm_zone,
+        '%%': () => '%',
       };
       pattern = pattern.replace(/%%/g, '\0\0');
       for (var rule in EXPANSION_RULES_2) {
@@ -4579,12 +4560,11 @@ var PDFiumModule = (() => {
       }
       writeArrayToMemory(bytes, s);
       return bytes.length - 1;
-    }
-    function _strftime_l(s, maxsize, format, tm, loc) {
-      return _strftime(s, maxsize, format, tm);
-    }
+    };
+    var _strftime_l = (s, maxsize, format, tm, loc) => _strftime(s, maxsize, format, tm);
     var wasmTableMirror = [];
-    function getWasmTableEntry(funcPtr) {
+    var wasmTable;
+    var getWasmTableEntry = (funcPtr) => {
       var func = wasmTableMirror[funcPtr];
       if (!func) {
         if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
@@ -4592,20 +4572,18 @@ var PDFiumModule = (() => {
       }
       assert(wasmTable.get(funcPtr) == func, 'JavaScript-side Wasm function table mirror is out of date!');
       return func;
-    }
-    function getCFunc(ident) {
+    };
+    var getCFunc = (ident) => {
       var func = Module['_' + ident];
       assert(func, 'Cannot call unknown function ' + ident + ', make sure it is exported');
       return func;
-    }
-    function ccall(ident, returnType, argTypes, args, opts) {
+    };
+    var ccall = (ident, returnType, argTypes, args, opts) => {
       var toC = {
         string: (str) => {
           var ret = 0;
           if (str !== null && str !== undefined && str !== 0) {
-            var len = (str.length << 2) + 1;
-            ret = stackAlloc(len);
-            stringToUTF8(str, ret, len);
+            ret = stringToUTF8OnStack(str);
           }
           return ret;
         },
@@ -4644,12 +4622,11 @@ var PDFiumModule = (() => {
       }
       ret = onDone(ret);
       return ret;
-    }
-    function cwrap(ident, returnType, argTypes, opts) {
-      return function () {
+    };
+    var cwrap = (ident, returnType, argTypes, opts) =>
+      function () {
         return ccall(ident, returnType, argTypes, arguments, opts);
       };
-    }
     var FSNode = function (parent, name, mode, rdev) {
       if (!parent) {
         parent = this;
@@ -4695,130 +4672,8 @@ var PDFiumModule = (() => {
       },
     });
     FS.FSNode = FSNode;
+    FS.createPreloadedFile = FS_createPreloadedFile;
     FS.staticInit();
-    ERRNO_CODES = {
-      EPERM: 63,
-      ENOENT: 44,
-      ESRCH: 71,
-      EINTR: 27,
-      EIO: 29,
-      ENXIO: 60,
-      E2BIG: 1,
-      ENOEXEC: 45,
-      EBADF: 8,
-      ECHILD: 12,
-      EAGAIN: 6,
-      EWOULDBLOCK: 6,
-      ENOMEM: 48,
-      EACCES: 2,
-      EFAULT: 21,
-      ENOTBLK: 105,
-      EBUSY: 10,
-      EEXIST: 20,
-      EXDEV: 75,
-      ENODEV: 43,
-      ENOTDIR: 54,
-      EISDIR: 31,
-      EINVAL: 28,
-      ENFILE: 41,
-      EMFILE: 33,
-      ENOTTY: 59,
-      ETXTBSY: 74,
-      EFBIG: 22,
-      ENOSPC: 51,
-      ESPIPE: 70,
-      EROFS: 69,
-      EMLINK: 34,
-      EPIPE: 64,
-      EDOM: 18,
-      ERANGE: 68,
-      ENOMSG: 49,
-      EIDRM: 24,
-      ECHRNG: 106,
-      EL2NSYNC: 156,
-      EL3HLT: 107,
-      EL3RST: 108,
-      ELNRNG: 109,
-      EUNATCH: 110,
-      ENOCSI: 111,
-      EL2HLT: 112,
-      EDEADLK: 16,
-      ENOLCK: 46,
-      EBADE: 113,
-      EBADR: 114,
-      EXFULL: 115,
-      ENOANO: 104,
-      EBADRQC: 103,
-      EBADSLT: 102,
-      EDEADLOCK: 16,
-      EBFONT: 101,
-      ENOSTR: 100,
-      ENODATA: 116,
-      ETIME: 117,
-      ENOSR: 118,
-      ENONET: 119,
-      ENOPKG: 120,
-      EREMOTE: 121,
-      ENOLINK: 47,
-      EADV: 122,
-      ESRMNT: 123,
-      ECOMM: 124,
-      EPROTO: 65,
-      EMULTIHOP: 36,
-      EDOTDOT: 125,
-      EBADMSG: 9,
-      ENOTUNIQ: 126,
-      EBADFD: 127,
-      EREMCHG: 128,
-      ELIBACC: 129,
-      ELIBBAD: 130,
-      ELIBSCN: 131,
-      ELIBMAX: 132,
-      ELIBEXEC: 133,
-      ENOSYS: 52,
-      ENOTEMPTY: 55,
-      ENAMETOOLONG: 37,
-      ELOOP: 32,
-      EOPNOTSUPP: 138,
-      EPFNOSUPPORT: 139,
-      ECONNRESET: 15,
-      ENOBUFS: 42,
-      EAFNOSUPPORT: 5,
-      EPROTOTYPE: 67,
-      ENOTSOCK: 57,
-      ENOPROTOOPT: 50,
-      ESHUTDOWN: 140,
-      ECONNREFUSED: 14,
-      EADDRINUSE: 3,
-      ECONNABORTED: 13,
-      ENETUNREACH: 40,
-      ENETDOWN: 38,
-      ETIMEDOUT: 73,
-      EHOSTDOWN: 142,
-      EHOSTUNREACH: 23,
-      EINPROGRESS: 26,
-      EALREADY: 7,
-      EDESTADDRREQ: 17,
-      EMSGSIZE: 35,
-      EPROTONOSUPPORT: 66,
-      ESOCKTNOSUPPORT: 137,
-      EADDRNOTAVAIL: 4,
-      ENETRESET: 39,
-      EISCONN: 30,
-      ENOTCONN: 53,
-      ETOOMANYREFS: 141,
-      EUSERS: 136,
-      EDQUOT: 19,
-      ESTALE: 72,
-      ENOTSUP: 138,
-      ENOMEDIUM: 148,
-      EILSEQ: 25,
-      EOVERFLOW: 61,
-      ECANCELED: 11,
-      ENOTRECOVERABLE: 56,
-      EOWNERDEAD: 62,
-      ESTRPIPE: 135,
-    };
     function checkIncomingModuleAPI() {
       ignoredModuleProp('fetchSettings');
     }
@@ -4841,7 +4696,8 @@ var PDFiumModule = (() => {
       _tzset_js: __tzset_js,
       abort: _abort,
       emscripten_date_now: _emscripten_date_now,
-      emscripten_memcpy_big: _emscripten_memcpy_big,
+      emscripten_errn: _emscripten_errn,
+      emscripten_memcpy_js: _emscripten_memcpy_js,
       emscripten_resize_heap: _emscripten_resize_heap,
       environ_get: _environ_get,
       environ_sizes_get: _environ_sizes_get,
@@ -4860,7 +4716,7 @@ var PDFiumModule = (() => {
       invoke_viiii: invoke_viiii,
       strftime_l: _strftime_l,
     };
-    var asm = createWasm();
+    var wasmExports = createWasm();
     var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
     var _PDFium_Init = (Module['_PDFium_Init'] = createExportWrapper('PDFium_Init'));
     var _FPDF_InitLibraryWithConfig = (Module['_FPDF_InitLibraryWithConfig'] =
@@ -5060,8 +4916,12 @@ var PDFiumModule = (() => {
     var _FPDFImageObj_GetImageMetadata = (Module['_FPDFImageObj_GetImageMetadata'] = createExportWrapper(
       'FPDFImageObj_GetImageMetadata'
     ));
+    var _FPDFImageObj_GetImagePixelSize = (Module['_FPDFImageObj_GetImagePixelSize'] = createExportWrapper(
+      'FPDFImageObj_GetImagePixelSize'
+    ));
     var _FPDF_CreateNewDocument = (Module['_FPDF_CreateNewDocument'] = createExportWrapper('FPDF_CreateNewDocument'));
     var _FPDFPage_Delete = (Module['_FPDFPage_Delete'] = createExportWrapper('FPDFPage_Delete'));
+    var _FPDF_MovePages = (Module['_FPDF_MovePages'] = createExportWrapper('FPDF_MovePages'));
     var _FPDFPage_New = (Module['_FPDFPage_New'] = createExportWrapper('FPDFPage_New'));
     var _FPDFPage_GetRotation = (Module['_FPDFPage_GetRotation'] = createExportWrapper('FPDFPage_GetRotation'));
     var _FPDFPage_InsertObject = (Module['_FPDFPage_InsertObject'] = createExportWrapper('FPDFPage_InsertObject'));
@@ -5370,6 +5230,8 @@ var PDFiumModule = (() => {
     var _FPDF_StructElement_GetChildAtIndex = (Module['_FPDF_StructElement_GetChildAtIndex'] = createExportWrapper(
       'FPDF_StructElement_GetChildAtIndex'
     ));
+    var _FPDF_StructElement_GetChildMarkedContentID = (Module['_FPDF_StructElement_GetChildMarkedContentID'] =
+      createExportWrapper('FPDF_StructElement_GetChildMarkedContentID'));
     var _FPDF_StructElement_GetParent = (Module['_FPDF_StructElement_GetParent'] =
       createExportWrapper('FPDF_StructElement_GetParent'));
     var _FPDF_StructElement_Attr_GetCount = (Module['_FPDF_StructElement_Attr_GetCount'] = createExportWrapper(
@@ -5408,6 +5270,7 @@ var PDFiumModule = (() => {
     var _FPDFText_CountChars = (Module['_FPDFText_CountChars'] = createExportWrapper('FPDFText_CountChars'));
     var _FPDFText_GetUnicode = (Module['_FPDFText_GetUnicode'] = createExportWrapper('FPDFText_GetUnicode'));
     var _FPDFText_IsGenerated = (Module['_FPDFText_IsGenerated'] = createExportWrapper('FPDFText_IsGenerated'));
+    var _FPDFText_IsHyphen = (Module['_FPDFText_IsHyphen'] = createExportWrapper('FPDFText_IsHyphen'));
     var _FPDFText_HasUnicodeMapError = (Module['_FPDFText_HasUnicodeMapError'] =
       createExportWrapper('FPDFText_HasUnicodeMapError'));
     var _FPDFText_GetFontSize = (Module['_FPDFText_GetFontSize'] = createExportWrapper('FPDFText_GetFontSize'));
@@ -5484,7 +5347,7 @@ var PDFiumModule = (() => {
     var _FPDF_InitLibrary = (Module['_FPDF_InitLibrary'] = createExportWrapper('FPDF_InitLibrary'));
     var _malloc = createExportWrapper('malloc');
     var _free = createExportWrapper('free');
-    var _saveSetjmp = createExportWrapper('saveSetjmp');
+    var setTempRet0 = createExportWrapper('setTempRet0');
     var _FPDF_DestroyLibrary = (Module['_FPDF_DestroyLibrary'] = createExportWrapper('FPDF_DestroyLibrary'));
     var _FPDF_SetSandBoxPolicy = (Module['_FPDF_SetSandBoxPolicy'] = createExportWrapper('FPDF_SetSandBoxPolicy'));
     var _FPDF_LoadDocument = (Module['_FPDF_LoadDocument'] = createExportWrapper('FPDF_LoadDocument'));
@@ -5498,6 +5361,8 @@ var PDFiumModule = (() => {
     var _FPDF_DocumentHasValidCrossReferenceTable = (Module['_FPDF_DocumentHasValidCrossReferenceTable'] =
       createExportWrapper('FPDF_DocumentHasValidCrossReferenceTable'));
     var _FPDF_GetDocPermissions = (Module['_FPDF_GetDocPermissions'] = createExportWrapper('FPDF_GetDocPermissions'));
+    var _FPDF_GetDocUserPermissions = (Module['_FPDF_GetDocUserPermissions'] =
+      createExportWrapper('FPDF_GetDocUserPermissions'));
     var _FPDF_GetSecurityHandlerRevision = (Module['_FPDF_GetSecurityHandlerRevision'] = createExportWrapper(
       'FPDF_GetSecurityHandlerRevision'
     ));
@@ -5557,26 +5422,16 @@ var PDFiumModule = (() => {
     var _FPDF_GetTrailerEnds = (Module['_FPDF_GetTrailerEnds'] = createExportWrapper('FPDF_GetTrailerEnds'));
     var ___errno_location = createExportWrapper('__errno_location');
     var _fflush = (Module['_fflush'] = createExportWrapper('fflush'));
-    var _emscripten_builtin_memalign = createExportWrapper('emscripten_builtin_memalign');
     var _setThrew = createExportWrapper('setThrew');
-    var _emscripten_stack_init = function () {
-      return (_emscripten_stack_init = Module['asm']['emscripten_stack_init']).apply(null, arguments);
-    };
-    var _emscripten_stack_get_free = function () {
-      return (_emscripten_stack_get_free = Module['asm']['emscripten_stack_get_free']).apply(null, arguments);
-    };
-    var _emscripten_stack_get_base = function () {
-      return (_emscripten_stack_get_base = Module['asm']['emscripten_stack_get_base']).apply(null, arguments);
-    };
-    var _emscripten_stack_get_end = function () {
-      return (_emscripten_stack_get_end = Module['asm']['emscripten_stack_get_end']).apply(null, arguments);
-    };
+    var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
+    var _emscripten_stack_get_free = () => (_emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'])();
+    var _emscripten_stack_get_base = () => (_emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'])();
+    var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'])();
     var stackSave = createExportWrapper('stackSave');
     var stackRestore = createExportWrapper('stackRestore');
     var stackAlloc = createExportWrapper('stackAlloc');
-    var _emscripten_stack_get_current = function () {
-      return (_emscripten_stack_get_current = Module['asm']['emscripten_stack_get_current']).apply(null, arguments);
-    };
+    var _emscripten_stack_get_current = () =>
+      (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
     var ___cxa_demangle = createExportWrapper('__cxa_demangle');
     var dynCall_ji = (Module['dynCall_ji'] = createExportWrapper('dynCall_ji'));
     var dynCall_jij = (Module['dynCall_jij'] = createExportWrapper('dynCall_jij'));
@@ -5673,10 +5528,19 @@ var PDFiumModule = (() => {
         _setThrew(1, 0);
       }
     }
+    Module['wasmExports'] = wasmExports;
     Module['ccall'] = ccall;
     Module['cwrap'] = cwrap;
     var missingLibrarySymbols = [
-      'stringToNewUTF8',
+      'writeI53ToI64',
+      'writeI53ToI64Clamped',
+      'writeI53ToI64Signaling',
+      'writeI53ToU64Clamped',
+      'writeI53ToU64Signaling',
+      'readI53FromI64',
+      'readI53FromU64',
+      'convertI32PairToI53',
+      'convertU32PairToI53',
       'exitJS',
       'inetPton4',
       'inetNtop4',
@@ -5685,7 +5549,8 @@ var PDFiumModule = (() => {
       'readSockaddr',
       'writeSockaddr',
       'getHostByName',
-      'traverseStack',
+      'getCallstack',
+      'emscriptenLog',
       'convertPCtoSourceLocation',
       'readEmAsmArgs',
       'jstoi_q',
@@ -5696,26 +5561,19 @@ var PDFiumModule = (() => {
       'getDynCaller',
       'dynCall',
       'handleException',
+      'keepRuntimeAlive',
       'runtimeKeepalivePush',
       'runtimeKeepalivePop',
       'callUserCallback',
       'maybeExit',
-      'safeSetTimeout',
       'asmjsMangle',
+      'handleAllocatorInit',
       'HandleAllocator',
       'getNativeTypeSize',
       'STACK_SIZE',
       'STACK_ALIGN',
       'POINTER_SIZE',
       'ASSERTIONS',
-      'writeI53ToI64',
-      'writeI53ToI64Clamped',
-      'writeI53ToI64Signaling',
-      'writeI53ToU64Clamped',
-      'writeI53ToU64Signaling',
-      'readI53FromU64',
-      'convertI32PairToI53',
-      'convertU32PairToI53',
       'uleb128Encode',
       'sigToWasmTypes',
       'generateFuncType',
@@ -5732,17 +5590,12 @@ var PDFiumModule = (() => {
       'formatString',
       'intArrayToString',
       'AsciiToString',
-      'stringToAscii',
       'UTF16ToString',
       'stringToUTF16',
       'lengthBytesUTF16',
       'UTF32ToString',
       'stringToUTF32',
       'lengthBytesUTF32',
-      'allocateUTF8OnStack',
-      'writeStringToMemory',
-      'getSocketFromFD',
-      'getSocketAddress',
       'registerKeyEventCallback',
       'maybeCStringToJsString',
       'findEventTarget',
@@ -5786,46 +5639,57 @@ var PDFiumModule = (() => {
       'setCanvasElementSize',
       'getCanvasElementSize',
       'checkWasiClock',
+      'wasiRightsToMuslOFlags',
+      'wasiOFlagsToMuslOFlags',
       'createDyncallWrapper',
+      'safeSetTimeout',
       'setImmediateWrapped',
       'clearImmediateWrapped',
       'polyfillSetImmediate',
       'getPromise',
       'makePromise',
+      'idsToPromises',
       'makePromiseCallback',
       'ExceptionInfo',
-      'exception_addRef',
-      'exception_decRef',
+      'findMatchingCatch',
       'setMainLoop',
+      'getSocketFromFD',
+      'getSocketAddress',
+      'FS_unlink',
+      'FS_mkdirTree',
       '_setNetworkCallback',
       'heapObjectForWebGLType',
       'heapAccessShiftForWebGLHeap',
+      'webgl_enable_ANGLE_instanced_arrays',
+      'webgl_enable_OES_vertex_array_object',
+      'webgl_enable_WEBGL_draw_buffers',
+      'webgl_enable_WEBGL_multi_draw',
       'emscriptenWebGLGet',
       'computeUnpackAlignedImageSize',
+      'colorChannelsInGlTextureFormat',
       'emscriptenWebGLGetTexPixelData',
+      '__glGenObject',
       'emscriptenWebGLGetUniform',
       'webglGetUniformLocation',
       'webglPrepareUniformLocationsBeforeFirstUse',
       'webglGetLeftBracePos',
       'emscriptenWebGLGetVertexAttrib',
+      '__glGetActiveAttribOrUniform',
       'writeGLArray',
+      'registerWebGlEventCallback',
+      'runAndAbortIfError',
       'SDL_unicode',
       'SDL_ttfContext',
       'SDL_audio',
-      'GLFW_Window',
-      'runAndAbortIfError',
       'ALLOC_NORMAL',
       'ALLOC_STACK',
       'allocate',
+      'writeStringToMemory',
+      'writeAsciiToMemory',
     ];
     missingLibrarySymbols.forEach(missingLibrarySymbol);
     var unexportedSymbols = [
       'run',
-      'UTF8ArrayToString',
-      'UTF8ToString',
-      'stringToUTF8Array',
-      'stringToUTF8',
-      'lengthBytesUTF8',
       'addOnPreRun',
       'addOnInit',
       'addOnPreMain',
@@ -5835,17 +5699,14 @@ var PDFiumModule = (() => {
       'removeRunDependency',
       'FS_createFolder',
       'FS_createPath',
-      'FS_createDataFile',
-      'FS_createPreloadedFile',
       'FS_createLazyFile',
       'FS_createLink',
       'FS_createDevice',
-      'FS_unlink',
+      'FS_readFile',
       'out',
       'err',
       'callMain',
       'abort',
-      'keepRuntimeAlive',
       'wasmMemory',
       'stackAlloc',
       'stackSave',
@@ -5854,18 +5715,28 @@ var PDFiumModule = (() => {
       'setTempRet0',
       'writeStackCookie',
       'checkStackCookie',
+      'convertI32PairToI53Checked',
       'ptrToString',
       'zeroMemory',
       'getHeapMax',
-      'emscripten_realloc_buffer',
+      'growMemory',
       'ENV',
+      'MONTH_DAYS_REGULAR',
+      'MONTH_DAYS_LEAP',
+      'MONTH_DAYS_REGULAR_CUMULATIVE',
+      'MONTH_DAYS_LEAP_CUMULATIVE',
+      'isLeapYear',
+      'ydayFromDate',
+      'arraySum',
+      'addDays',
       'ERRNO_CODES',
       'ERRNO_MESSAGES',
       'setErrNo',
       'DNS',
       'Protocols',
       'Sockets',
-      'getRandomDevice',
+      'initRandomFill',
+      'randomFill',
       'timers',
       'warnOnce',
       'UNWIND_CACHE',
@@ -5874,8 +5745,8 @@ var PDFiumModule = (() => {
       'asyncLoad',
       'alignMemory',
       'mmapAlloc',
-      'readI53FromI64',
-      'convertI32PairToI53Checked',
+      'wasmTable',
+      'noExitRuntime',
       'getCFunc',
       'freeTableIndexes',
       'functionsInTableMap',
@@ -5883,12 +5754,18 @@ var PDFiumModule = (() => {
       'getValue',
       'PATH',
       'PATH_FS',
+      'UTF8Decoder',
+      'UTF8ArrayToString',
+      'UTF8ToString',
+      'stringToUTF8Array',
+      'stringToUTF8',
+      'lengthBytesUTF8',
       'intArrayFromString',
+      'stringToAscii',
       'UTF16Decoder',
-      'allocateUTF8',
+      'stringToNewUTF8',
+      'stringToUTF8OnStack',
       'writeArrayToMemory',
-      'writeAsciiToMemory',
-      'SYSCALLS',
       'JSEvents',
       'specialHTMLTargets',
       'currentFullscreenStrategy',
@@ -5901,29 +5778,39 @@ var PDFiumModule = (() => {
       'getEnvStrings',
       'doReadv',
       'doWritev',
-      'dlopenMissingError',
       'promiseMap',
       'uncaughtExceptionCount',
       'exceptionLast',
       'exceptionCaught',
       'Browser',
       'wget',
+      'SYSCALLS',
+      'preloadPlugins',
+      'FS_createPreloadedFile',
+      'FS_modeStringToFlags',
+      'FS_getMode',
+      'FS_stdin_getChar_buffer',
+      'FS_stdin_getChar',
       'FS',
+      'FS_createDataFile',
       'MEMFS',
       'TTY',
       'PIPEFS',
       'SOCKFS',
       'tempFixedLengthArray',
       'miniTempWebGLFloatBuffers',
+      'miniTempWebGLIntBuffers',
       'GL',
+      'emscripten_webgl_power_preferences',
       'AL',
-      'SDL',
-      'SDL_gfx',
       'GLUT',
       'EGL',
-      'GLFW',
       'GLEW',
       'IDBStore',
+      'SDL',
+      'SDL_gfx',
+      'allocateUTF8',
+      'allocateUTF8OnStack',
     ];
     unexportedSymbols.forEach(unexportedRuntimeSymbol);
     var calledRun;
@@ -5979,12 +5866,8 @@ var PDFiumModule = (() => {
     }
     run();
 
-    return PDFiumModule.ready;
+    return moduleArg.ready;
   };
 })();
 if (typeof exports === 'object' && typeof module === 'object') module.exports = PDFiumModule;
-else if (typeof define === 'function' && define['amd'])
-  define([], function () {
-    return PDFiumModule;
-  });
-else if (typeof exports === 'object') exports['PDFiumModule'] = PDFiumModule;
+else if (typeof define === 'function' && define['amd']) define([], () => PDFiumModule);
