@@ -108,6 +108,37 @@ describe('PDFium', () => {
       });
     });
 
+    test('should render a sharp image of a page with custom smaller width and height', async () => {
+      await loadDocument('test_1.pdf', async (document) => {
+        const result = await document.getPage(0).render({
+          // original size is 595x841, but let's try use different proportions to see how it works
+          width: 100,
+          height: 100,
+          render: 'sharp',
+        });
+        expect(result.height).toBe(100);
+        expect(result.width).toBe(100);
+        expect(result.originalHeight).toBe(A1_SIZE.height);
+        expect(result.originalWidth).toBe(A1_SIZE.width);
+        expect(result.data).toMatchImageSnapshot();
+      });
+    });
+
+    test('should render a sharp image of a page with custom bigger width and height', async () => {
+      await loadDocument('test_1.pdf', async (document) => {
+        const result = await document.getPage(0).render({
+          width: 9000,
+          height: 4000,
+          render: 'sharp',
+        });
+        expect(result.height).toBe(4000);
+        expect(result.width).toBe(9000);
+        expect(result.originalHeight).toBe(A1_SIZE.height);
+        expect(result.originalWidth).toBe(A1_SIZE.width);
+        expect(result.data).toMatchImageSnapshot();
+      });
+    });
+
     test('should call a custom render function', async () => {
       await loadDocument('test_1.pdf', async (document) => {
         const result = await document.getPage(0).render({

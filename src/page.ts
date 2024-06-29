@@ -2,7 +2,7 @@ import type * as t from './vendor/pdfium';
 
 import { BYTES_PER_PIXEL, FPDF, FPDFBitmap } from './constants';
 import { renderBySharp } from './renderer/sharp';
-import { PDFiumPageRender, PDFiumPageRenderFunction, PDFiumPageRenderOptions } from './types';
+import { PDFiumPageRender, PDFiumPageRenderFunction, PDFiumPageRenderOptions, PDFiumPageRenderParams } from './types';
 
 export class PDFiumPage {
   private readonly module: t.PDFium;
@@ -32,23 +32,28 @@ export class PDFiumPage {
   }
 
   async render(
-    options: {
-      scale: number;
-      render: PDFiumPageRenderFunction;
-    } = {
+    options: PDFiumPageRenderParams = {
       scale: 1,
       render: 'bitmap',
     }
   ): Promise<PDFiumPageRender> {
     const { width: originalWidth, height: originalHeight } = this.getSize();
 
-    const width = Math.floor(originalWidth * options.scale);
-    const height = Math.floor(originalHeight * options.scale);
+    // You can specify either the scale or the width and height.
+    let width: number;
+    let height: number;
+    if ('scale' in options) {
+      width = Math.floor(originalWidth * options.scale);
+      height = Math.floor(originalHeight * options.scale);
+    } else {
+      width = options.width;
+      height = options.height;
+    }
 
     const buffSize = width * height * BYTES_PER_PIXEL;
 
     // Allocate a block of memory for the bitmap and fill it with zeros.
-    const ptr = this.module.asm.malloc(buffSize);
+    const ptr = this.module.wasmExports.malloc(buffSize);
     this.module.HEAPU8.fill(0, ptr, ptr + buffSize);
 
     const bitmap = this.module._FPDFBitmap_CreateEx(width, height, FPDFBitmap.BGRA, ptr, width * BYTES_PER_PIXEL);
@@ -74,7 +79,7 @@ export class PDFiumPage {
     this.module._FPDF_ClosePage(this.pageHandle);
 
     const data = Buffer.from(this.module.HEAPU8.subarray(ptr, ptr + buffSize));
-    this.module.asm.free(ptr);
+    this.module.wasmExports.free(ptr);
 
     const image = await this.convertBitmapToImage({
       render: options.render,

@@ -44,7 +44,7 @@ for (const page of document.pages()) {
 }
 ```
 
-Then you can render the page to an image by calling `render` method of the page instance. It accepts an optional `RenderPageOptions` object with the following properties:
+Then you can render the page to an image by calling `render` method of the page instance. It accepts an optional `PDFiumPageRenderParams` object with the following properties:
 
 - `scale` - scale factor for the image (default is 1, which means 91 DPI, 3 almost always is enough for good quality)
 - `render` - render engine to use, can be either `sharp`, `bitmap` (default is `bitmap`) or custom render function. If you need to render to PNG, it's recommended to use `sharp` render function.
@@ -129,6 +129,19 @@ const image = await page.render({
       .png()
       .toBuffer();
   },
+});
+```
+
+## render: `width` and `height`, instead of `scale`
+
+You can use `width` and `height` options instead of `scale` to specify the exact image size in points that you want to render. In this
+case, aspect ratio will not be preserved, and the image will be stretched to the specified size. If you want to preserve the aspect ratio, you can calculate manually calculated `width` and `height` based on the original page size and the desired scale.
+
+```typescript
+const image = await page.render({
+  width: 800,
+  height: 600,
+  render: 'sharp',
 });
 ```
 

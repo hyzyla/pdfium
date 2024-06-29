@@ -8,6 +8,18 @@ export type PDFiumPageRenderCallback = (options: PDFiumPageRenderOptions) => Pro
 
 export type PDFiumPageRenderFunction = 'sharp' | 'bitmap' | PDFiumPageRenderCallback;
 
+export type PDFiumPageRenderParams = {
+  render: PDFiumPageRenderFunction;
+} & (
+  | {
+      scale: number;
+    }
+  | {
+      width: number;
+      height: number;
+    }
+);
+
 export type PDFiumPageSize = {
   width: number;
   height: number;

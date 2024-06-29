@@ -31,6 +31,6 @@ export class PDFiumDocument {
 
   destroy(): void {
     this.module._FPDF_CloseDocument(this.documentHandle);
-    this.module.asm.free(this.documentPointer);
+    this.module.wasmExports.free(this.documentPointer);
   }
 }

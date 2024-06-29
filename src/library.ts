@@ -30,7 +30,7 @@ export class PDFiumLibrary {
     //  The malloc function is a standard C library function for memory allocation, and here it's exposed via
     // this.module.asm, which likely represents the compiled WebAssembly module. The returned pointer (ptr) is
     // an integer value representing the memory location within the WebAssembly module's memory space.
-    const ptr = this.module.asm.malloc(size);
+    const ptr = this.module.wasmExports.malloc(size);
 
     // This line copies the content of buff into the WebAssembly module's memory starting at the address specified by ptr.
     // Here HEAPU8 is a typed array that serves as a view into the WebAssembly memory, allowing JavaScript code to read

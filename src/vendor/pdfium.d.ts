@@ -22,7 +22,7 @@ export declare type PDFium = {
   ) => void;
   _FPDFBitmap_Destroy: (bitmap: any) => void;
   _FPDF_CloseDocument(document: any): void;
-  asm: {
+  wasmExports: {
     malloc: (size: number) => number;
     free: (ptr: number) => void;
   };
