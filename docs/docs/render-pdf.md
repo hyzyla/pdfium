@@ -132,10 +132,10 @@ const image = await page.render({
 });
 ```
 
-## render: `width` and `height`, instead of `scale`
+#### render: `width` and `height`, instead of `scale`
 
-You can use `width` and `height` options instead of `scale` to specify the exact image size in points that you want to render. In this
-case, aspect ratio will not be preserved, and the image will be stretched to the specified size. If you want to preserve the aspect ratio, you can calculate manually calculated `width` and `height` based on the original page size and the desired scale.
+You can use the `width` and `height` options instead of scale to specify the exact image size in points that you want to render. In this case, the aspect ratio will not be preserved, and the image will be stretched to the specified size. If you want to preserve the aspect ratio, you can manually calculate the width and height based on the original image size and the desired scale.
+
 
 ```typescript
 const image = await page.render({
