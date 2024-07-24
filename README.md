@@ -46,7 +46,7 @@ async main() {
 
     // Render PDF page to PNG image
     const image = await page({
-      scale: 3, // 3x scale (91 DPI is the default)
+      scale: 3, // 3x scale (72 DPI is the default)
       render: 'sharp', // use "sharp" for converting bitmap to PNG
     });
 

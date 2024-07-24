@@ -6,9 +6,9 @@ import { PDFiumDocument, PDFiumLibrary, PDFiumPage } from '../src/index';
 
 expect.extend({ toMatchImageSnapshot });
 
-const A1_SIZE = {
-  width: 595,
-  height: 841,
+const A4_SIZE = {
+  width: 595, // px = 210 mm ~ 8.27 inches => 72 DPI
+  height: 841, // px = 297 mm ~ 11.69 inches => 72 DPI
 };
 
 test('adds 1 + 2 to equal 3', () => {
@@ -59,11 +59,11 @@ describe('PDFium', () => {
           scale: 1,
           render: 'bitmap',
         });
-        expect(buff.height).toBe(A1_SIZE.height);
-        expect(buff.width).toBe(A1_SIZE.width);
-        expect(buff.originalHeight).toBe(A1_SIZE.height);
-        expect(buff.originalWidth).toBe(A1_SIZE.width);
-        expect(buff.data.length).toBe(A1_SIZE.height * A1_SIZE.width * 4);
+        expect(buff.height).toBe(A4_SIZE.height);
+        expect(buff.width).toBe(A4_SIZE.width);
+        expect(buff.originalHeight).toBe(A4_SIZE.height);
+        expect(buff.originalWidth).toBe(A4_SIZE.width);
+        expect(buff.data.length).toBe(A4_SIZE.height * A4_SIZE.width * 4);
       });
     });
     test('should render a bitmap of a page with scale', async () => {
@@ -72,11 +72,11 @@ describe('PDFium', () => {
           scale: 3,
           render: 'bitmap',
         });
-        expect(buff.height).toBe(A1_SIZE.height * 3);
-        expect(buff.width).toBe(A1_SIZE.width * 3);
-        expect(buff.originalHeight).toBe(A1_SIZE.height);
-        expect(buff.originalWidth).toBe(A1_SIZE.width);
-        expect(buff.data.length).toBe(A1_SIZE.height * 3 * A1_SIZE.width * 3 * 4);
+        expect(buff.height).toBe(A4_SIZE.height * 3);
+        expect(buff.width).toBe(A4_SIZE.width * 3);
+        expect(buff.originalHeight).toBe(A4_SIZE.height);
+        expect(buff.originalWidth).toBe(A4_SIZE.width);
+        expect(buff.data.length).toBe(A4_SIZE.height * 3 * A4_SIZE.width * 3 * 4);
       });
     });
 
@@ -86,10 +86,10 @@ describe('PDFium', () => {
           scale: 1,
           render: 'sharp',
         });
-        expect(result.height).toBe(A1_SIZE.height);
-        expect(result.width).toBe(A1_SIZE.width);
-        expect(result.originalHeight).toBe(A1_SIZE.height);
-        expect(result.originalWidth).toBe(A1_SIZE.width);
+        expect(result.height).toBe(A4_SIZE.height);
+        expect(result.width).toBe(A4_SIZE.width);
+        expect(result.originalHeight).toBe(A4_SIZE.height);
+        expect(result.originalWidth).toBe(A4_SIZE.width);
         expect(result.data).toMatchImageSnapshot();
       });
     });
@@ -100,10 +100,10 @@ describe('PDFium', () => {
           scale: 3,
           render: 'sharp',
         });
-        expect(result.height).toBe(A1_SIZE.height * 3);
-        expect(result.width).toBe(A1_SIZE.width * 3);
-        expect(result.originalHeight).toBe(A1_SIZE.height);
-        expect(result.originalWidth).toBe(A1_SIZE.width);
+        expect(result.height).toBe(A4_SIZE.height * 3);
+        expect(result.width).toBe(A4_SIZE.width * 3);
+        expect(result.originalHeight).toBe(A4_SIZE.height);
+        expect(result.originalWidth).toBe(A4_SIZE.width);
         expect(result.data).toMatchImageSnapshot();
       });
     });
@@ -118,8 +118,8 @@ describe('PDFium', () => {
         });
         expect(result.height).toBe(100);
         expect(result.width).toBe(100);
-        expect(result.originalHeight).toBe(A1_SIZE.height);
-        expect(result.originalWidth).toBe(A1_SIZE.width);
+        expect(result.originalHeight).toBe(A4_SIZE.height);
+        expect(result.originalWidth).toBe(A4_SIZE.width);
         expect(result.data).toMatchImageSnapshot();
       });
     });
@@ -133,8 +133,8 @@ describe('PDFium', () => {
         });
         expect(result.height).toBe(4000);
         expect(result.width).toBe(9000);
-        expect(result.originalHeight).toBe(A1_SIZE.height);
-        expect(result.originalWidth).toBe(A1_SIZE.width);
+        expect(result.originalHeight).toBe(A4_SIZE.height);
+        expect(result.originalWidth).toBe(A4_SIZE.width);
         expect(result.data).toMatchImageSnapshot();
       });
     });
@@ -145,17 +145,17 @@ describe('PDFium', () => {
           scale: 1,
           render: async (options) => {
             expect(options.data).toBeInstanceOf(Buffer);
-            expect(options.height).toBe(A1_SIZE.height);
-            expect(options.width).toBe(A1_SIZE.width);
+            expect(options.height).toBe(A4_SIZE.height);
+            expect(options.width).toBe(A4_SIZE.width);
             return Buffer.from('test');
           },
         });
         expect(result).toEqual({
           data: Buffer.from('test'),
-          height: A1_SIZE.height,
-          width: A1_SIZE.width,
-          originalHeight: A1_SIZE.height,
-          originalWidth: A1_SIZE.width,
+          height: A4_SIZE.height,
+          width: A4_SIZE.width,
+          originalHeight: A4_SIZE.height,
+          originalWidth: A4_SIZE.width,
         });
       });
     });
