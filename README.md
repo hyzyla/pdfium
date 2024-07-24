@@ -29,11 +29,11 @@ import { PDFiumLibrary } from "@hyzyla/pdfium";
 import { promises as fs } from 'fs';
 
 async main() {
-  const buff = await fs.readFile('test2.pdf')
+  const buff = await fs.readFile('test2.pdf');
 
   // Initialize the library, you can do this once for the whole application
   // and reuse the library instance.
-  const library = await PDFiumLibrary.init();;
+  const library = await PDFiumLibrary.init();
 
   // Load the document from the buffer
   // You can also pass "password" as the second argument if the document is encrypted.
@@ -42,16 +42,16 @@ async main() {
   // Iterate over the pages, render them to PNG images and
   // save to the output folder
   for (const page of document.pages()) {
-    console.log(`${i + 1} - rendering...`);
+    console.log(`${page.number} - rendering...`);
 
     // Render PDF page to PNG image
-    const image = await page({
+    const image = await page.render({
       scale: 3, // 3x scale (72 DPI is the default)
       render: 'sharp', // use "sharp" for converting bitmap to PNG
     });
 
     // Save the PNG image to the output folder
-    await fs.writeFile(`output/${i + 1}.png`, image.data);
+    await fs.writeFile(`output/${page.number}.png`, image.data);
   }
 
   // Do not forget to destroy the document and the library
