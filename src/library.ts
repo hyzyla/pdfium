@@ -3,6 +3,27 @@ import vendor from './vendor/pdfium';
 
 import { FPDF_ERR } from './constants';
 import { PDFiumDocument } from './document';
+import { lengthBytesUTF8, stringToUTF8 } from './utils';
+
+/**
+ * Converts a JavaScript string to a null-terminated C string and returns
+ * a pointer to the allocated memory.
+ *
+ * Remeber to free the allocated memory using the `free` function after
+ * you're done with the string.
+ */
+function stringToCString(module: t.PDFium, str: string): number {
+  // Get the length of the UTF-8 string including the null terminator
+  const length = lengthBytesUTF8(str) + 1;
+
+  // Allocate memory for the string
+  const ptr = module.wasmExports.malloc(length);
+
+  // Copy the string to the allocated memory
+  stringToUTF8(str, module.HEAPU8, ptr, length);
+
+  return ptr;
+}
 
 export class PDFiumLibrary {
   private readonly module: t.PDFium;
@@ -38,13 +59,39 @@ export class PDFiumLibrary {
     // starting at the index ptr.
     this.module.HEAPU8.set(buff, ptr);
 
-    const document = this.module._FPDF_LoadMemDocument(ptr, size, password);
-    const lastError = this.module._FPDF_GetLastError();
-    if (lastError != FPDF_ERR.SUCCESS) {
-      throw new Error(`PDF Loading = ${lastError}`);
+    let passwordPtr: number = 0;
+    if (password) {
+      passwordPtr = stringToCString(this.module, password);
     }
 
-    return new PDFiumDocument(this.module, ptr, document);
+    const document = this.module._FPDF_LoadMemDocument(ptr, size, passwordPtr);
+    const lastError = this.module._FPDF_GetLastError();
+    if (lastError != FPDF_ERR.SUCCESS) {
+      switch (lastError) {
+        case FPDF_ERR.UNKNOWN:
+          throw new Error('Unknown error');
+        case FPDF_ERR.FILE:
+          throw new Error('File not found or could not be opened');
+        case FPDF_ERR.FORMAT:
+          throw new Error('File not in PDF format or corrupted');
+        case FPDF_ERR.PASSWORD:
+          throw new Error('Password required or incorrect password');
+        case FPDF_ERR.SECURITY:
+          throw new Error('Unsupported security scheme');
+        case FPDF_ERR.PAGE:
+          throw new Error('Page not found or content error');
+        default:
+          throw new Error(`PDF Loading = ${lastError}`);
+      }
+    }
+
+    const pdfiumDocument = new PDFiumDocument(this.module, ptr, document);
+
+    if (passwordPtr !== null) {
+      this.module.wasmExports.free(passwordPtr);
+    }
+
+    return pdfiumDocument;
   }
 
   destroy() {

@@ -159,5 +159,18 @@ describe('PDFium', () => {
         });
       });
     });
+
+    test('should open a PDF with password', async () => {
+      const buff = await fs.readFile('test/data/test_1_pass_12345678.pdf');
+      const password = '12345678';
+      const document = await library.loadDocument(buff, password);
+      document.destroy();
+    });
+    test('should open a PDF with password 2', async () => {
+      const buff = await fs.readFile('test/data/test_2_pass_12345678.pdf');
+      const password = '12345678';
+      const document = await library.loadDocument(buff, password);
+      document.destroy();
+    });
   });
 });

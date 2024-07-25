@@ -1,6 +1,6 @@
 export declare type PDFium = {
   _FPDF_InitLibraryWithConfig: (config: any) => void;
-  _FPDF_LoadMemDocument: (ptr: number, size: number, password: string) => any;
+  _FPDF_LoadMemDocument: (ptr: number, size: number, password: number) => any;
   _FPDF_GetLastError: () => number;
   _FPDF_DestroyLibrary: () => void;
   _FPDF_GetPageCount: (handle: any) => number;
