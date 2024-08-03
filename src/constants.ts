@@ -1,6 +1,6 @@
 export const BYTES_PER_PIXEL = 4;
 
-export const FPDFErr = {
+export const FPDFErrorCode = {
   SUCCESS: 0, // No error.
   UNKNOWN: 1, // Unknown error.
   FILE: 2, // File not found or could not be opened.

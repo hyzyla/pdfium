@@ -1,7 +1,7 @@
 import type * as t from "./vendor/pdfium";
 import vendor from "./vendor/pdfium";
 
-import { FPDFErr } from "./constants";
+import { FPDFErrorCode } from "./constants";
 import { PDFiumDocument } from "./document";
 import { lengthBytesUTF8, stringToUTF8 } from "./emscripten";
 
@@ -78,19 +78,19 @@ export class PDFiumLibrary {
 
     // Handle error if the document could not be loaded
     const lastError = this.module._FPDF_GetLastError();
-    if (lastError !== FPDFErr.SUCCESS) {
+    if (lastError !== FPDFErrorCode.SUCCESS) {
       switch (lastError) {
-        case FPDFErr.UNKNOWN:
+        case FPDFErrorCode.UNKNOWN:
           throw new Error("Unknown error");
-        case FPDFErr.FILE:
+        case FPDFErrorCode.FILE:
           throw new Error("File not found or could not be opened");
-        case FPDFErr.FORMAT:
+        case FPDFErrorCode.FORMAT:
           throw new Error("File not in PDF format or corrupted");
-        case FPDFErr.PASSWORD:
+        case FPDFErrorCode.PASSWORD:
           throw new Error("Password required or incorrect password");
-        case FPDFErr.SECURITY:
+        case FPDFErrorCode.SECURITY:
           throw new Error("Unsupported security scheme");
-        case FPDFErr.PAGE:
+        case FPDFErrorCode.PAGE:
           throw new Error("Page not found or content error");
         default:
           throw new Error(`PDF Loading = ${lastError}`);
