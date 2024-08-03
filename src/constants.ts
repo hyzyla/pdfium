@@ -1,6 +1,6 @@
 export const BYTES_PER_PIXEL = 4;
 
-export const FPDF_ERR = {
+export const FPDFErrorCode = {
   SUCCESS: 0, // No error.
   UNKNOWN: 1, // Unknown error.
   FILE: 2, // File not found or could not be opened.
@@ -19,7 +19,7 @@ export const FPDFBitmap = {
 };
 
 // Page rendering flags. They can be combined with bit-wise OR.
-export const FPDF = {
+export const FPDFRenderFlag = {
   // Set if annotations are to be rendered.
   ANNOT: 0x01,
   // Set if using text rendering optimized for LCD display. This flag will only
@@ -53,4 +53,12 @@ export const FPDF = {
   // FPDF_COLORSCHEME is passed in, since with a single fill color for paths the
   // boundaries of adjacent fill paths are less visible.
   CONVERT_FILL_TO_STROKE: 0x20,
+};
+
+export const FPDFPageObjectType = {
+  TEXT: 1,
+  PATH: 2,
+  IMAGE: 3,
+  SHADING: 4,
+  FORM: 5,
 };
