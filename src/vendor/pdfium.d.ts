@@ -1,5 +1,5 @@
 export declare type PDFium = {
-  _FPDF_InitLibraryWithConfig: (config: number) => void;
+  _FPDF_InitLibraryWithConfig: (config: object) => void;
   _FPDF_LoadMemDocument: (
     documentPtr: number,
     documentSize: number,

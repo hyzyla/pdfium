@@ -16,11 +16,14 @@ jobs:
 
       - name: Install dependencies
         run: npm clean-install
+
+      - name: Run type checker
+        run: npm run type-check
           
       - name: Run linter
         run: npm run lint
       
-      - name: Run prettier
+      - name: Run formatter
         run: npm run format
 
       - name: Run tests
