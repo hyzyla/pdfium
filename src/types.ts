@@ -1,34 +1,11 @@
-export type PDFiumPageRenderOptions = {
+export type PDFiumRenderOptions = {
   width: number;
   height: number;
   data: Buffer;
 };
 
-export type PDFiumPageRenderCallback = (options: PDFiumPageRenderOptions) => Promise<Buffer>;
+export type PDFiumRenderCallback = (
+  options: PDFiumRenderOptions,
+) => Promise<Buffer>;
 
-export type PDFiumPageRenderFunction = 'sharp' | 'bitmap' | PDFiumPageRenderCallback;
-
-export type PDFiumPageRenderParams = {
-  render: PDFiumPageRenderFunction;
-} & (
-  | {
-      scale: number;
-    }
-  | {
-      width: number;
-      height: number;
-    }
-);
-
-export type PDFiumPageSize = {
-  width: number;
-  height: number;
-};
-
-export type PDFiumPageRender = {
-  width: number;
-  height: number;
-  originalHeight: number;
-  originalWidth: number;
-  data: Buffer;
-};
+export type PDFiumRenderFunction = "sharp" | "bitmap" | PDFiumRenderCallback;
