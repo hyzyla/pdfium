@@ -1,7 +1,3 @@
----
-sidebar_position: 1
----
-
 # Introduction
 
 @hyzyla/pdfium is a Node.js wrapper for the [PDFium](https://pdfium.googlesource.com/pdfium/) library:

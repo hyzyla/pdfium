@@ -6,7 +6,7 @@ import type {
   PDFiumImageObjectRender,
   PDFiumImageObjectRenderParams,
   PDFiumObjectType,
-} from "./object.types";
+} from "./objects.types";
 
 export abstract class PDFiumObjectBase {
   public abstract readonly type: PDFiumObjectType;

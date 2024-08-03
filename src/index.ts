@@ -7,3 +7,16 @@ export type {
   PDFiumPageSize,
   PDFiumPageRender,
 } from "./page.types";
+export {
+  PDFiumObjectType,
+  PDFiumImageObjectRenderParams,
+  PDFiumImageObjectRender,
+} from "./objects.types";
+export {
+  PDFiumTextObject,
+  PDFiumPathObject,
+  PDFiumImageObject,
+  PDFiumShadingObject,
+  PDFiumFormObject,
+  PDFiumObject,
+} from "./objects";

@@ -1,7 +1,3 @@
----
-sidebar_position: 1
----
-
 # Render PDF to image
 
 ## Load PDFiumLibrary
