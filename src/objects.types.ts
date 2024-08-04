@@ -11,3 +11,10 @@ export type PDFiumImageObjectRender = {
   height: number;
   data: Buffer;
 };
+
+export type PDFiumImageObjectRaw = {
+  width: number;
+  height: number;
+  data: Buffer;
+  filters: string[];
+};

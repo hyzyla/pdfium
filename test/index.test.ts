@@ -262,5 +262,95 @@ describe("PDFium", () => {
         }
       });
     });
+
+    test("get page object image raw", async () => {
+      await loadDocument("test_4_with_images.pdf", async (document) => {
+        const expected = [
+          {
+            size: 1523, // 1.5 KB
+            width: 313,
+            height: 234,
+            filters: ["DCTDecode"],
+          },
+          {
+            size: 14679, // 14 KB
+            width: 313,
+            height: 234,
+            filters: ["DCTDecode"],
+          },
+          {
+            size: 57828, // 57 KB
+            width: 400,
+            height: 400,
+            filters: ["FlateDecode"],
+          },
+          {
+            size: 680515, // 680 KB
+            width: 640,
+            height: 480,
+            filters: ["FlateDecode"],
+          },
+          {
+            size: 176469, // 176 KB
+            width: 720,
+            height: 486,
+            filters: ["FlateDecode"],
+          },
+          {
+            size: 1064661, // 1 MB
+            width: 762,
+            height: 1309,
+            filters: ["FlateDecode"],
+          },
+        ]
+
+        const result: any[] = [];
+        for (const page of document.pages()) {
+          for (const object of page.objects()) {
+            if (object.type === "image") {
+              const imageObj = object as PDFiumImageObject;
+
+              const image = await imageObj.getImageDataRaw();
+              result.push({
+                size: image.data.length,
+                width: image.width,
+                height: image.height,
+                filters: image.filters,
+              })
+            }
+          }
+        }
+        expect(result).toMatchObject(expected)
+      });
+    });
+
+    test("get page object image jpeg", async () => {
+      await loadDocument("test_4_with_images.pdf", async (document) => {
+
+        for (const page of document.pages()) {
+          for (const object of page.objects()) {
+            if (object.type === "image") {
+              const imageObj = object as PDFiumImageObject;
+
+              const image = await imageObj.render({
+                render: async (options) => {
+                  const { default: sharp } = await import("sharp");
+                  return await sharp(options.data, {
+                    raw: {
+                      width: options.width,
+                      height: options.height,
+                      channels: 4,
+                    },
+                  })
+                    .jpeg()
+                    .toBuffer();
+                }
+              });
+              expect(image.data).toMatchImageSnapshot();
+            }
+          }
+        }
+      });
+    });
   });
 });

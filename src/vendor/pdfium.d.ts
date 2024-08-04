@@ -13,9 +13,14 @@ export declare type PDFium = {
   _FPDF_GetPageHeight: (page: number) => number;
   _FPDFPage_CountObjects: (page: number) => number;
   _FPDFPage_GetObject: (page: number, i: number) => number;
-  _FPDFPageObj_GetType: (object: number) => number;
-  _FPDFImageObj_GetBitmap: (object: number) => number;
+  _FPDFPageObj_GetType: (objectIdx: number) => number;
+  _FPDFImageObj_GetBitmap: (objectIdx: number) => number;
+  _FPDFImageObj_GetImageDataRaw: (objectIdx: number, buffer: number, lenght: number) => number;
   _FPDF_ClosePage: (page: number) => void;
+  _FPDFImageObj_GetImagePixelSize: (objectIdx: number, width: number, height: number) => number;
+  _FPDFImageObj_GetImageFilterCount(objectIdx: number): number;
+  _FPDFImageObj_GetImageFilter(objectIdx: number, index: number, buffer: number, length: number): number;
+
   _FPDFBitmap_CreateEx: (
     width: number,
     height: number,

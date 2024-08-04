@@ -3,6 +3,7 @@ import type * as t from "./vendor/pdfium";
 import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType } from "./constants";
 import { convertBitmapToImage } from "./utils";
 import type {
+  PDFiumImageObjectRaw,
   PDFiumImageObjectRender,
   PDFiumImageObjectRenderParams,
   PDFiumObjectType,
@@ -77,6 +78,68 @@ export class PDFiumImageObject extends PDFiumObjectBase {
     }
   }
 
+
+  /**
+   * Return the raw uncompressed image data.
+   */
+  async getImageDataRaw(): Promise<PDFiumImageObjectRaw> {
+    const bufferSize = this.module._FPDFImageObj_GetImageDataRaw(this.objectIdx, 0, 0);
+    if (!bufferSize) {
+      throw new Error("Failed to get bitmap from image object.");
+    }
+
+    const bufferPtr = this.module.wasmExports.malloc(bufferSize);
+
+    if (!this.module._FPDFImageObj_GetImageDataRaw(this.objectIdx, bufferPtr, bufferSize)) {
+      throw new Error("Failed to get bitmap buffer.");
+    }
+
+    const oData = Buffer.from(this.module.HEAPU8.slice(bufferPtr, bufferPtr + bufferSize));
+    this.module.wasmExports.free(bufferPtr);
+
+    // Width and height of the image in pixels will be written to these pointers as 16-bit integers (2 bytes each):
+    // [ ... width (2 bytes) ... | ... height (2 bytes) ... ]
+    const sizePtr = this.module.wasmExports.malloc(2 + 2);
+    const widthPtr = sizePtr;
+    const heightPtr = sizePtr + 2;
+
+    if (!this.module._FPDFImageObj_GetImagePixelSize(this.objectIdx, widthPtr, heightPtr)) {
+      throw new Error("Failed to get image size.");
+    }
+
+    const widthBuffer = Buffer.from(this.module.HEAPU8.slice(widthPtr, widthPtr + 2));
+    const heightBuffer = Buffer.from(this.module.HEAPU8.slice(heightPtr, heightPtr + 2));
+    this.module.wasmExports.free(sizePtr);
+
+    const width = widthBuffer.readUInt16LE();
+    const height = heightBuffer.readUInt16LE();
+
+    const filtersCount = this.module._FPDFImageObj_GetImageFilterCount(this.objectIdx);
+    const filters: string[] = [];
+    for (let i = 0; i < filtersCount; i++) {
+
+      const filterSize = this.module._FPDFImageObj_GetImageFilter(this.objectIdx, i, 0, 0);
+      const filterPtr = this.module.wasmExports.malloc(filterSize);
+      if (!this.module._FPDFImageObj_GetImageFilter(this.objectIdx, i, filterPtr, filterSize)) {
+        throw new Error("Failed to get image filter.");
+      }
+      const filterBuffer = Buffer.from(this.module.HEAPU8.slice(filterPtr, filterPtr + filterSize - 1));
+      const filter = filterBuffer.toString("utf8").trim();
+      this.module.wasmExports.free(filterPtr);
+      filters.push(filter);
+    }
+
+    return {
+      width: width,
+      height: height,
+      data: oData,
+      filters: filters,
+    };
+  }
+
+  /**
+   * Render the image object to a buffer with the specified render function.
+   */
   async render(
     options: PDFiumImageObjectRenderParams = {
       render: "bitmap",
