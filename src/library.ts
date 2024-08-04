@@ -70,11 +70,7 @@ export class PDFiumLibrary {
     // This line reads the PDF document from the memory block starting at documentPtr and of size bytes.
     // If the document is password-protected, the password should be provided as a null-terminated C string.
     // The function returns a document index (handle) that can be used to interact with the document.
-    const documentIdx = this.module._FPDF_LoadMemDocument(
-      documentPtr,
-      size,
-      passwordPtr,
-    );
+    const documentIdx = this.module._FPDF_LoadMemDocument(documentPtr, size, passwordPtr);
 
     // Handle error if the document could not be loaded
     const lastError = this.module._FPDF_GetLastError();

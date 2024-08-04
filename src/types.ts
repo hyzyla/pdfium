@@ -4,8 +4,6 @@ export type PDFiumRenderOptions = {
   data: Buffer;
 };
 
-export type PDFiumRenderCallback = (
-  options: PDFiumRenderOptions,
-) => Promise<Buffer>;
+export type PDFiumRenderCallback = (options: PDFiumRenderOptions) => Promise<Buffer>;
 
 export type PDFiumRenderFunction = "sharp" | "bitmap" | PDFiumRenderCallback;

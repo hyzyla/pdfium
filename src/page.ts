@@ -67,13 +67,7 @@ export class PDFiumPage {
     const ptr = this.module.wasmExports.malloc(buffSize);
     this.module.HEAPU8.fill(0, ptr, ptr + buffSize);
 
-    const bitmap = this.module._FPDFBitmap_CreateEx(
-      width,
-      height,
-      FPDFBitmap.BGRA,
-      ptr,
-      width * BYTES_PER_PIXEL,
-    );
+    const bitmap = this.module._FPDFBitmap_CreateEx(width, height, FPDFBitmap.BGRA, ptr, width * BYTES_PER_PIXEL);
     this.module._FPDFBitmap_FillRect(
       bitmap,
       0, // left
@@ -90,9 +84,7 @@ export class PDFiumPage {
       width, // size_x
       height, // size_y
       0, // rotate (0, normal)
-      FPDFRenderFlag.REVERSE_BYTE_ORDER |
-        FPDFRenderFlag.ANNOT |
-        FPDFRenderFlag.LCD_TEXT, // flags
+      FPDFRenderFlag.REVERSE_BYTE_ORDER | FPDFRenderFlag.ANNOT | FPDFRenderFlag.LCD_TEXT, // flags
     );
     this.module._FPDFBitmap_Destroy(bitmap);
     this.module._FPDF_ClosePage(this.pageIdx);

@@ -78,7 +78,6 @@ export class PDFiumImageObject extends PDFiumObjectBase {
     }
   }
 
-
   /**
    * Return the raw uncompressed image data.
    */
@@ -117,7 +116,6 @@ export class PDFiumImageObject extends PDFiumObjectBase {
     const filtersCount = this.module._FPDFImageObj_GetImageFilterCount(this.objectIdx);
     const filters: string[] = [];
     for (let i = 0; i < filtersCount; i++) {
-
       const filterSize = this.module._FPDFImageObj_GetImageFilter(this.objectIdx, i, 0, 0);
       const filterPtr = this.module.wasmExports.malloc(filterSize);
       if (!this.module._FPDFImageObj_GetImageFilter(this.objectIdx, i, filterPtr, filterSize)) {
