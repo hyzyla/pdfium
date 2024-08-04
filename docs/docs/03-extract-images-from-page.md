@@ -31,7 +31,7 @@ for (const page of document.pages()) {
 ```
 
 
-## Reduce image of extracted images
+## Reduce image size of extracted images
 
 When images are extracted from the PDF page objects, they are rendered without any compression by default. You can use sharp and custom render function to compress the extracted images and reduce their size.
 
