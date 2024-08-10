@@ -9,12 +9,12 @@ export type PDFiumImageObjectRenderParams = {
 export type PDFiumImageObjectRender = {
   width: number;
   height: number;
-  data: Buffer;
+  data: Uint8Array;
 };
 
 export type PDFiumImageObjectRaw = {
   width: number;
   height: number;
-  data: Buffer;
+  data: Uint8Array;
   filters: string[];
 };

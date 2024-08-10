@@ -89,7 +89,7 @@ export class PDFiumPage {
     this.module._FPDFBitmap_Destroy(bitmap);
     this.module._FPDF_ClosePage(this.pageIdx);
 
-    const data = Buffer.from(this.module.HEAPU8.subarray(ptr, ptr + buffSize));
+    const data = this.module.HEAPU8.subarray(ptr, ptr + buffSize);
     this.module.wasmExports.free(ptr);
 
     const image = await this.convertBitmapToImage({
@@ -112,7 +112,7 @@ export class PDFiumPage {
     options: {
       render: PDFiumRenderFunction;
     } & PDFiumRenderOptions,
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     return await convertBitmapToImage(options);
   }
 

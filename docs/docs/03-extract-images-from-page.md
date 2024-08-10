@@ -22,7 +22,7 @@ for (const page of document.pages()) {
       });
 
       // Save the PNG image to the output folder
-      await fs.writeFile(`output/${index}.png`, image.data);
+      await fs.writeFile(`output/${index}.png`, Buffer.from(image.data));
       
       index++;
     }
@@ -44,7 +44,7 @@ const page = document.getPage(0);
 const object = page.getObject(0);
 
 const image = await object.render({
-  render: async (options: PDFiumPageRenderOptions): Promise<Buffer> => {
+  render: async (options: PDFiumPageRenderOptions): Promise<Uint8Array> => {
     return await sharp(options.data, {
       raw: {
         width: options.width,

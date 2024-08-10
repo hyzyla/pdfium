@@ -151,14 +151,14 @@ describe("PDFium", () => {
         const result = await document.getPage(0).render({
           scale: 1,
           render: async (options) => {
-            expect(options.data).toBeInstanceOf(Buffer);
+            expect(options.data).toBeInstanceOf(Uint8Array);
             expect(options.height).toBe(A4_SIZE.height);
             expect(options.width).toBe(A4_SIZE.width);
-            return Buffer.from("test");
+            return new TextEncoder().encode("test");
           },
         });
         expect(result).toEqual({
-          data: Buffer.from("test"),
+          data: new TextEncoder().encode("test"),
           height: A4_SIZE.height,
           width: A4_SIZE.width,
           originalHeight: A4_SIZE.height,
@@ -256,6 +256,7 @@ describe("PDFium", () => {
               const { data: image } = await imageObj.render({
                 render: "sharp",
               });
+              expect(image).toBeInstanceOf(Uint8Array);
               expect(image).toMatchImageSnapshot();
             }
           }

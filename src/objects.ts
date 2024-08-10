@@ -1,7 +1,7 @@
 import type * as t from "./vendor/pdfium";
 
 import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType } from "./constants";
-import { convertBitmapToImage } from "./utils";
+import { convertBitmapToImage, readUInt16LE } from "./utils";
 import type {
   PDFiumImageObjectRaw,
   PDFiumImageObjectRender,
@@ -93,7 +93,7 @@ export class PDFiumImageObject extends PDFiumObjectBase {
       throw new Error("Failed to get bitmap buffer.");
     }
 
-    const oData = Buffer.from(this.module.HEAPU8.slice(bufferPtr, bufferPtr + bufferSize));
+    const oData = this.module.HEAPU8.slice(bufferPtr, bufferPtr + bufferSize);
     this.module.wasmExports.free(bufferPtr);
 
     // Width and height of the image in pixels will be written to these pointers as 16-bit integers (2 bytes each):
@@ -106,12 +106,12 @@ export class PDFiumImageObject extends PDFiumObjectBase {
       throw new Error("Failed to get image size.");
     }
 
-    const widthBuffer = Buffer.from(this.module.HEAPU8.slice(widthPtr, widthPtr + 2));
-    const heightBuffer = Buffer.from(this.module.HEAPU8.slice(heightPtr, heightPtr + 2));
+    const widthBuffer = this.module.HEAPU8.slice(widthPtr, widthPtr + 2);
+    const heightBuffer = this.module.HEAPU8.slice(heightPtr, heightPtr + 2);
     this.module.wasmExports.free(sizePtr);
 
-    const width = widthBuffer.readUInt16LE();
-    const height = heightBuffer.readUInt16LE();
+    const width = readUInt16LE(widthBuffer)
+    const height = readUInt16LE(heightBuffer)
 
     const filtersCount = this.module._FPDFImageObj_GetImageFilterCount(this.objectIdx);
     const filters: string[] = [];
@@ -121,8 +121,9 @@ export class PDFiumImageObject extends PDFiumObjectBase {
       if (!this.module._FPDFImageObj_GetImageFilter(this.objectIdx, i, filterPtr, filterSize)) {
         throw new Error("Failed to get image filter.");
       }
-      const filterBuffer = Buffer.from(this.module.HEAPU8.slice(filterPtr, filterPtr + filterSize - 1));
-      const filter = filterBuffer.toString("utf8").trim();
+      const filterBuffer = this.module.HEAPU8.slice(filterPtr, filterPtr + filterSize - 1);
+      const filter = (new TextDecoder().decode(filterBuffer)).trim();
+
       this.module.wasmExports.free(filterPtr);
       filters.push(filter);
     }
@@ -178,7 +179,9 @@ export class PDFiumImageObject extends PDFiumObjectBase {
     const tBPP = BYTES_PER_PIXEL;
 
     // Create a new buffer for the target image and fill it with white color
-    const tData = Buffer.alloc(width * height * tBPP, 255);
+    const tData = new Uint8Array(width * height * tBPP);
+    // Fill the buffer with transparent white color
+    tData.fill(255);
 
     // Iterate over the rows of the original and target images
     for (let rowIndex = 0; rowIndex < height; rowIndex++) {

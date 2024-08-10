@@ -106,7 +106,7 @@ console.log(image.data); // Bitmap image data as a buffer
 
 #### render: custom render function
 
-You can also pass a custom render function as the `render` option. It should be a function that accepts a `RenderPageOptions` object and returns a `Promise<Buffer>` object. You can use it to render to any image format:
+You can also pass a custom render function as the `render` option. It should be a function that accepts a `RenderPageOptions` object and returns a `Promise<Uint8Array>` object. You can use it to render to any image format:
 
 ```typescript
 import sharp from 'sharp';
@@ -114,7 +114,7 @@ import { type PDFiumPageRenderOptions } from '@hyzyla/pdfium';
 
 const image = await page.render({
   scale: 3,
-  render: async (options: PDFiumPageRenderOptions): Promise<Buffer> => {
+  render: async (options: PDFiumPageRenderOptions): Promise<Uint8Array> => {
     return await sharp(options.data, {
       raw: {
         width: options.width,
@@ -170,7 +170,7 @@ async main() {
     });
 
     // Save the PNG image to the output folder
-    await fs.writeFile(`output/${page.number}.png`, image.data);
+    await fs.writeFile(`output/${page.number}.png`, Buffer.from(image.data));
   }
 
   // Do not forget to destroy the document and the library

@@ -1,6 +1,6 @@
 import type { PDFiumRenderOptions } from "../types";
 
-export async function renderBySharp(options: PDFiumRenderOptions): Promise<Buffer> {
+export async function renderBySharp(options: PDFiumRenderOptions): Promise<Uint8Array> {
   const { default: sharp } = await import("sharp");
   return await sharp(options.data, {
     raw: {
