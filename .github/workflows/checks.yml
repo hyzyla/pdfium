@@ -7,8 +7,10 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bun run check:ci
-      - run: bun run type-check
-      - run: bun test
+      - uses: actions/setup-node@v4
+      - run: npm clean-install
+      - run: npm install @biomejs/biome
+      - run: npm install rollup
+      - run: npm run check:ci
+      - run: npm run type-check
+      - run: npm test
