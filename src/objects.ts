@@ -1,13 +1,13 @@
 import type * as t from "./vendor/pdfium";
 
 import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType } from "./constants";
-import { convertBitmapToImage, readUInt16LE } from "./utils";
 import type {
   PDFiumImageObjectRaw,
   PDFiumImageObjectRender,
   PDFiumImageObjectRenderParams,
   PDFiumObjectType,
 } from "./objects.types";
+import { convertBitmapToImage, readUInt16LE } from "./utils";
 
 export abstract class PDFiumObjectBase {
   public abstract readonly type: PDFiumObjectType;

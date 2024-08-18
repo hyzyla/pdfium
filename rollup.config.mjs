@@ -1,10 +1,10 @@
-import typescript from "@rollup/plugin-typescript";
+import fs from "node:fs";
 import commonjs from "@rollup/plugin-commonjs";
+import resolve from "@rollup/plugin-node-resolve";
+import rollupReplace from "@rollup/plugin-replace";
+import typescript from "@rollup/plugin-typescript";
 import copyPlugin from "rollup-plugin-copy";
 import deletePlugin from "rollup-plugin-delete";
-import rollupReplace from "@rollup/plugin-replace";
-import fs from "node:fs";
-import resolve from "@rollup/plugin-node-resolve";
 
 const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
 

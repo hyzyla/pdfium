@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useQuery, QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 const client = new QueryClient();
 

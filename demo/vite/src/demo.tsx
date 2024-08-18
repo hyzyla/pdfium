@@ -1,6 +1,6 @@
 import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium";
-import { useQuery } from "@tanstack/react-query";
 import wasmUrl from "@hyzyla/pdfium/pdfium.wasm?url";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
 const useDocument = () => {
