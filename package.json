@@ -29,6 +29,7 @@
     "build:prod": "rollup --config rollup.config.mjs --environment NODE_ENV:production",
     "clean": "rm -rf dist",
     "check": "biome check --write",
+    "check:ci": "biome ci",
     "test": "vitest",
     "type-check": "tsc --noEmit"
   },

@@ -6,27 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout the repository
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm clean-install
-
-      - name: Setup Biome
-        uses: biomejs/setup-biome@v2
-        with:
-          version: latest
-
-      - name: Run linter
-        run: biome ci .
-
-      - name: Run type checker
-        run: npm run type-check
-
-      - name: Run tests
-        run: npm test
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun run check:ci
+      - run: bun run type-check
+      - run: bun test
