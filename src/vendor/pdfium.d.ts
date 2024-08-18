@@ -65,6 +65,11 @@ export declare type PDFium = {
   HEAPU8: Uint8Array;
 };
 
-export declare function loadPdfium(): Promise<PDFium>;
+export declare type LoadPdfiumOptions = {
+  wasmBinary?: ArrayBuffer;
+  locateFile?: (path: string) => string;
+};
+
+export declare function loadPdfium(options: LoadPdfiumOptions): Promise<PDFium>;
 
 export default loadPdfium;

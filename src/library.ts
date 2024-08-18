@@ -5,6 +5,14 @@ import { FPDFErrorCode } from "./constants";
 import { PDFiumDocument } from "./document";
 import { lengthBytesUTF8, stringToUTF8 } from "./emscripten";
 
+// This global variable is defined by Rollup at build time
+declare const __PACKAGE_VERSION__: string;
+
+const CDN_WASM_WARNING = `@hyzyla/pdfium: You are using the default CDN URL to load the PDFium wasm binary. For better performance, consider hosting the wasm binary yourself and passing it to the PDFiumLibrary.init method using the 'wasmBinary' option or by providing a 'wasmUrl' pointing to your own CDN or server. You can also disable this warning by passing the 'disableWarningAboutCDN' option to PDFiumLibrary.init method.`;
+
+const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/vendor/pdfium.wasm`;
+
+
 /**
  * Converts a JavaScript string to a null-terminated C string and returns
  * a pointer to the allocated memory.
@@ -25,10 +33,33 @@ function stringToCString(module: t.PDFium, str: string): number {
   return passwordPtr;
 }
 
+
+type PDFiumLibraryInitOptions = {
+  wasmUrl?: string;
+  wasmBinary?: ArrayBuffer;
+  disableWarningAboutCDN?: boolean;
+}
+
+
 export class PDFiumLibrary {
   private readonly module: t.PDFium;
-  static async init() {
-    const module = await vendor();
+  static async init(options?: PDFiumLibraryInitOptions) {
+    const { wasmUrl, wasmBinary } = options || {};
+    const loadOptions: t.LoadPdfiumOptions = {};
+    if (wasmUrl) {
+      loadOptions.locateFile = (path: string) => wasmUrl;
+    } else if (wasmBinary) {
+      loadOptions.wasmBinary = wasmBinary
+    } else {
+      if (typeof window !== "undefined") {
+        loadOptions.locateFile = (path: string) => CDN_WASM_LINK;
+        if (!options?.disableWarningAboutCDN) {
+          console.warn(CDN_WASM_WARNING);
+        }
+      }
+    }
+
+    const module = await vendor(loadOptions);
     module._FPDF_InitLibraryWithConfig({
       version: 2,
       m_pIsolate: null,

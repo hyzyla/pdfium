@@ -4,7 +4,18 @@
     "enabled": true
   },
   "files": {
-    "include": ["src/**/*.ts", "biome.jsonc"],
+    "include": [
+      "src/**/*.ts",
+      "docs/**/*.tsx",
+      "demo/**/*.js",
+      "demo/**/*.ts",
+      "demo/**/*.tsx",
+      "biome.jsonc",
+      "rollup.config.mjs",
+      "tsconfig.json",
+      "package.json",
+      "vite.config.ts"
+    ],
     "ignore": ["src/vendor/**/*", "src/emscripten.ts"]
   },
   "linter": {

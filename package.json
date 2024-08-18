@@ -1,11 +1,33 @@
 {
   "name": "@hyzyla/pdfium",
   "version": "1.0.11",
-  "description": "",
-  "main": "dist/index.js",
+  "description": "Universal wrapper for PDFium",
+  "type": "module",
+  "exports": {
+    ".": {
+      "node": {
+        "module": "./dist/index.esm.js",
+        "require": "./dist/index.cjs",
+        "types": "./dist/index.d.ts"
+      },
+      "default": "./dist/index.esm.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./pdfium.wasm": "./dist/pdfium.wasm",
+    "./dist/*": "./dist/*"
+  },
+  "browser": {
+    "fs": false,
+    "url": false,
+    "node": false,
+    "path": false,
+    "sharp": false,
+    "crypto": false
+  },
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && tsc && cp -r src/vendor dist",
+    "build": "rollup --config rollup.config.mjs",
+    "build:watch": "rollup --config rollup.config.mjs --watch",
     "clean": "rm -rf dist",
     "lint": "biome lint",
     "format": "biome format",
@@ -18,23 +40,29 @@
   },
   "author": "Yevhenii Hyzyla",
   "license": "MIT",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "dependencies": {
     "sharp": "^0.33.4"
   },
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
     "@octokit/rest": "^19.0.13",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.7",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/axios": "^0.14.0",
     "@types/jest-image-snapshot": "^6.4.0",
     "@types/node": "^20.2.5",
     "axios": "^1.4.0",
     "jest-image-snapshot": "^6.4.0",
     "prettier": "^3.3.2",
+    "rollup": "^4.20.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-delete": "^2.0.0",
     "tar": "^6.1.15",
     "ts-node": "^10.9.1",
+    "tslib": "^2.6.3",
     "unzipper": "^0.10.14",
     "vitest": "^2.0.5"
   },
@@ -64,22 +92,12 @@
       "ecmaVersion": "latest",
       "sourceType": "module"
     },
-    "plugins": [
-      "@typescript-eslint",
-      "import"
-    ],
+    "plugins": ["@typescript-eslint", "import"],
     "rules": {
       "import/order": [
         "error",
         {
-          "groups": [
-            "builtin",
-            "external",
-            "internal",
-            "parent",
-            "sibling",
-            "index"
-          ],
+          "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
           "pathGroups": [
             {
               "pattern": "./vendor/**",
@@ -95,9 +113,7 @@
         }
       ]
     },
-    "ignorePatterns": [
-      "src/vendor/**/*"
-    ],
+    "ignorePatterns": ["src/vendor/**/*"],
     "settings": {
       "import/resolver": {
         "typescript": true,
