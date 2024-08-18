@@ -1,7 +1,7 @@
 import React from "react";
 import Layout from "@theme/Layout";
 import BrowserOnly from "@docusaurus/BrowserOnly";
-import { DemoViewer } from "../compnents/demo";
+import { DemoViewer } from "../components/demo";
 
 export default function Demo() {
   return (
