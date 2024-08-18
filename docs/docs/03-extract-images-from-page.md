@@ -18,7 +18,7 @@ for (const page of document.pages()) {
 
       // Render the image using the sharp rendering engine
       const { data: image } = await object.render({
-        render: "sharp",
+        render: renderFunction,
       });
 
       // Save the PNG image to the output folder

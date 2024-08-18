@@ -146,6 +146,25 @@ const image = await page.render({
 ```typescript
 import { PDFiumLibrary } from "@hyzyla/pdfium";
 import { promises as fs } from 'fs';
+import sharp from 'sharp';
+
+/**
+ * For this and the following examples, we will use "sharp" library to convert
+ * the raw bitmap data to PNG images. You can use any other library or write
+ * your own function to convert the raw bitmap data to PNG images.
+ */
+async function renderFunction(options: PDFiumPageRenderOptions) {
+  return await sharp(options.data, {
+    raw: {
+      width: options.width,
+      height: options.height,
+      channels: 4,
+    },
+  })
+    .png()
+    .toBuffer();
+}
+
 
 async main() {
   const buff = await fs.readFile('test2.pdf');
@@ -166,7 +185,7 @@ async main() {
     // Render PDF page to PNG image
     const image = await page.render({
       scale: 3, // 3x scale (72 DPI is the default)
-      render: 'sharp', // use "sharp" for converting bitmap to PNG
+      render: renderFunction, 
     });
 
     // Save the PNG image to the output folder

@@ -6,4 +6,4 @@ export type PDFiumRenderOptions = {
 
 export type PDFiumRenderCallback = (options: PDFiumRenderOptions) => Promise<Uint8Array>;
 
-export type PDFiumRenderFunction = "sharp" | "bitmap" | PDFiumRenderCallback;
+export type PDFiumRenderFunction = "bitmap" | PDFiumRenderCallback;

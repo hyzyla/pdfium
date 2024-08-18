@@ -1,10 +1,12 @@
 import { promises as fs } from "node:fs";
+import sharp from "sharp";
 
 import { toMatchImageSnapshot } from "jest-image-snapshot";
 import { test, describe, expect, beforeAll, afterAll } from "vitest";
 
-import { type PDFiumDocument, PDFiumLibrary, PDFiumPage } from "../src/index";
+import { type PDFiumDocument, PDFiumLibrary, PDFiumPage, PDFiumPageRenderOptions } from "../src/index";
 import type { PDFiumImageObject } from "../src/objects";
+
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -12,6 +14,19 @@ const A4_SIZE = {
   width: 595, // px = 210 mm ~ 8.27 inches => 72 DPI
   height: 841, // px = 297 mm ~ 11.69 inches => 72 DPI
 };
+
+async function renderFunction(options: PDFiumPageRenderOptions) {
+  return await sharp(options.data, {
+    raw: {
+      width: options.width,
+      height: options.height,
+      channels: 4,
+    },
+  })
+    .png()
+    .toBuffer();
+}
+
 
 test("adds 1 + 2 to equal 3", () => {
   expect(1 + 2).toBe(3);
@@ -91,7 +106,7 @@ describe("PDFium", () => {
       await loadDocument("test_1.pdf", async (document) => {
         const result = await document.getPage(0).render({
           scale: 1,
-          render: "sharp",
+          render: renderFunction,
         });
         expect(result.height).toBe(A4_SIZE.height);
         expect(result.width).toBe(A4_SIZE.width);
@@ -105,7 +120,7 @@ describe("PDFium", () => {
       await loadDocument("test_1.pdf", async (document) => {
         const result = await document.getPage(0).render({
           scale: 3,
-          render: "sharp",
+          render: renderFunction,
         });
         expect(result.height).toBe(A4_SIZE.height * 3);
         expect(result.width).toBe(A4_SIZE.width * 3);
@@ -121,7 +136,7 @@ describe("PDFium", () => {
           // original size is 595x841, but let's try use different proportions to see how it works
           width: 100,
           height: 100,
-          render: "sharp",
+          render: renderFunction,
         });
         expect(result.height).toBe(100);
         expect(result.width).toBe(100);
@@ -136,7 +151,7 @@ describe("PDFium", () => {
         const result = await document.getPage(0).render({
           width: 9000,
           height: 4000,
-          render: "sharp",
+          render: renderFunction,
         });
         expect(result.height).toBe(4000);
         expect(result.width).toBe(9000);
@@ -254,7 +269,7 @@ describe("PDFium", () => {
               const imageObj = object as PDFiumImageObject;
 
               const { data: image } = await imageObj.render({
-                render: "sharp",
+                render: renderFunction,
               });
               expect(image).toBeInstanceOf(Uint8Array);
               expect(image).toMatchImageSnapshot();

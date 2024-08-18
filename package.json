@@ -21,7 +21,6 @@
     "url": false,
     "node": false,
     "path": false,
-    "sharp": false,
     "crypto": false
   },
   "types": "dist/index.d.ts",
@@ -40,10 +39,9 @@
   },
   "author": "Yevhenii Hyzyla",
   "license": "MIT",
-  "files": ["dist/**/*"],
-  "dependencies": {
-    "sharp": "^0.33.4"
-  },
+  "files": [
+    "dist/**/*"
+  ],
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
     "@octokit/rest": "^19.0.13",
@@ -60,16 +58,12 @@
     "rollup": "^4.20.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-delete": "^2.0.0",
+    "sharp": "^0.33.5",
     "tar": "^6.1.15",
     "ts-node": "^10.9.1",
     "tslib": "^2.6.3",
     "unzipper": "^0.10.14",
     "vitest": "^2.0.5"
-  },
-  "peerDependenciesMeta": {
-    "sharp": {
-      "optional": true
-    }
   },
   "publishConfig": {
     "access": "public"
@@ -92,12 +86,22 @@
       "ecmaVersion": "latest",
       "sourceType": "module"
     },
-    "plugins": ["@typescript-eslint", "import"],
+    "plugins": [
+      "@typescript-eslint",
+      "import"
+    ],
     "rules": {
       "import/order": [
         "error",
         {
-          "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+          "groups": [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "index"
+          ],
           "pathGroups": [
             {
               "pattern": "./vendor/**",
@@ -113,7 +117,9 @@
         }
       ]
     },
-    "ignorePatterns": ["src/vendor/**/*"],
+    "ignorePatterns": [
+      "src/vendor/**/*"
+    ],
     "settings": {
       "import/resolver": {
         "typescript": true,
