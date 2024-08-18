@@ -17,14 +17,16 @@ jobs:
       - name: Install dependencies
         run: npm clean-install
 
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+
+      - name: Run linter
+        run: biome ci .
+
       - name: Run type checker
         run: npm run type-check
-          
-      - name: Run linter
-        run: npm run lint
-      
-      - name: Run formatter
-        run: npm run format
 
       - name: Run tests
         run: npm test
