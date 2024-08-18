@@ -110,8 +110,8 @@ export class PDFiumImageObject extends PDFiumObjectBase {
     const heightBuffer = this.module.HEAPU8.slice(heightPtr, heightPtr + 2);
     this.module.wasmExports.free(sizePtr);
 
-    const width = readUInt16LE(widthBuffer)
-    const height = readUInt16LE(heightBuffer)
+    const width = readUInt16LE(widthBuffer);
+    const height = readUInt16LE(heightBuffer);
 
     const filtersCount = this.module._FPDFImageObj_GetImageFilterCount(this.objectIdx);
     const filters: string[] = [];
@@ -122,7 +122,7 @@ export class PDFiumImageObject extends PDFiumObjectBase {
         throw new Error("Failed to get image filter.");
       }
       const filterBuffer = this.module.HEAPU8.slice(filterPtr, filterPtr + filterSize - 1);
-      const filter = (new TextDecoder().decode(filterBuffer)).trim();
+      const filter = new TextDecoder().decode(filterBuffer).trim();
 
       this.module.wasmExports.free(filterPtr);
       filters.push(filter);

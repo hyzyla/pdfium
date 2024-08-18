@@ -12,7 +12,6 @@ const CDN_WASM_WARNING = `@hyzyla/pdfium: You are using the default CDN URL to l
 
 const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/vendor/pdfium.wasm`;
 
-
 /**
  * Converts a JavaScript string to a null-terminated C string and returns
  * a pointer to the allocated memory.
@@ -33,13 +32,11 @@ function stringToCString(module: t.PDFium, str: string): number {
   return passwordPtr;
 }
 
-
 type PDFiumLibraryInitOptions = {
   wasmUrl?: string;
   wasmBinary?: ArrayBuffer;
   disableWarningAboutCDN?: boolean;
-}
-
+};
 
 export class PDFiumLibrary {
   private readonly module: t.PDFium;
@@ -49,7 +46,7 @@ export class PDFiumLibrary {
     if (wasmUrl) {
       loadOptions.locateFile = (path: string) => wasmUrl;
     } else if (wasmBinary) {
-      loadOptions.wasmBinary = wasmBinary
+      loadOptions.wasmBinary = wasmBinary;
     } else {
       if (typeof window !== "undefined") {
         loadOptions.locateFile = (path: string) => CDN_WASM_LINK;

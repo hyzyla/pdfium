@@ -26,11 +26,11 @@
   },
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rollup --config rollup.config.mjs",
     "build:watch": "rollup --config rollup.config.mjs --watch",
+    "build:prod": "rollup --config rollup.config.mjs --environment NODE_ENV:production",
     "clean": "rm -rf dist",
     "lint": "biome lint",
-    "format": "biome format",
+    "format": "biome format --write",
     "test": "vitest",
     "type-check": "tsc --noEmit"
   },

@@ -7,14 +7,14 @@ export type PDFiumPageRenderCallback = (options: PDFiumPageRenderOptions) => Pro
 export type PDFiumPageRenderParams = {
   render: PDFiumPageRenderFunction;
 } & (
-    | {
+  | {
       scale: number;
     }
-    | {
+  | {
       width: number;
       height: number;
     }
-  );
+);
 
 export type PDFiumPageSize = {
   width: number;
