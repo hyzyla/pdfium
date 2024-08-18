@@ -5,12 +5,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm clean-install
       - run: npm install @biomejs/biome@1.8.3
       - run: npm install rollup@4.20.0
+      - run: echo package.json
       - run: npm run check:ci
       - run: npm run type-check
       - run: npm test
