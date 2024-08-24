@@ -9,7 +9,7 @@ jobs:
         with:
           path: main
       - uses: actions/setup-node@v4
-      - run: npm clean-install
+      - run: npm ci
       - run: npm install @biomejs/biome@1.8.3
       - run: npm install rollup@4.20.0
       - run: cat package.json
