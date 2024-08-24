@@ -10,7 +10,7 @@ declare const __PACKAGE_VERSION__: string;
 
 const CDN_WASM_WARNING = `@hyzyla/pdfium: You are using the default CDN URL to load the PDFium wasm binary. For better performance, consider hosting the wasm binary yourself and passing it to the PDFiumLibrary.init method using the 'wasmBinary' option or by providing a 'wasmUrl' pointing to your own CDN or server. You can also disable this warning by passing the 'disableWarningAboutCDN' option to PDFiumLibrary.init method.`;
 
-const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/vendor/pdfium.wasm`;
+const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/pdfium.wasm`;
 
 /**
  * Converts a JavaScript string to a null-terminated C string and returns
