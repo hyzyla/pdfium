@@ -7,10 +7,15 @@ import { lengthBytesUTF8, stringToUTF8 } from "./emscripten";
 
 // This global variable is defined by Rollup at build time
 declare const __PACKAGE_VERSION__: string;
+declare const __WASM_SHA265_B64__: string;
 
 const CDN_WASM_WARNING = `@hyzyla/pdfium: You are using the default CDN URL to load the PDFium wasm binary. For better performance, consider hosting the wasm binary yourself and passing it to the PDFiumLibrary.init method using the 'wasmBinary' option or by providing a 'wasmUrl' pointing to your own CDN or server. You can also disable this warning by passing the 'disableWarningAboutCDN' option to PDFiumLibrary.init method.`;
+const CDN_BROWSER_WARNING = `@hyzyla/pdfium: The useCDN option is only available in browser environment.`;
+const NO_OPTION_WARNING = `@hyzyla/pdfium: wasmUrl, wasmBinary or useCDN option is required.`;
 
 const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/pdfium.wasm`;
+
+const WASM_INTEGRITY = `sha256-${__WASM_SHA265_B64__}`;
 
 /**
  * Converts a JavaScript string to a null-terminated C string and returns
@@ -35,6 +40,7 @@ function stringToCString(module: t.PDFium, str: string): number {
 type PDFiumLibraryInitOptions = {
   wasmUrl?: string;
   wasmBinary?: ArrayBuffer;
+  useCDN?: boolean;
   disableWarningAboutCDN?: boolean;
 };
 
@@ -47,13 +53,20 @@ export class PDFiumLibrary {
       loadOptions.locateFile = (path: string) => wasmUrl;
     } else if (wasmBinary) {
       loadOptions.wasmBinary = wasmBinary;
-    } else {
-      if (typeof window !== "undefined") {
-        loadOptions.locateFile = (path: string) => CDN_WASM_LINK;
-        if (!options?.disableWarningAboutCDN) {
-          console.warn(CDN_WASM_WARNING);
-        }
+    } else if (options?.useCDN) {
+      if (typeof window === "undefined") {
+        console.warn(CDN_BROWSER_WARNING);
+        throw new Error(CDN_BROWSER_WARNING);
       }
+      const req = await fetch(CDN_WASM_LINK, { integrity: WASM_INTEGRITY });
+      const wasmBinary = await req.arrayBuffer();
+      loadOptions.wasmBinary = wasmBinary;
+      if (!options?.disableWarningAboutCDN) {
+        console.warn(CDN_WASM_WARNING);
+      }
+    } else {
+      console.warn(NO_OPTION_WARNING);
+      throw new Error(NO_OPTION_WARNING);
     }
 
     const module = await vendor(loadOptions);
@@ -98,7 +111,11 @@ export class PDFiumLibrary {
     // This line reads the PDF document from the memory block starting at documentPtr and of size bytes.
     // If the document is password-protected, the password should be provided as a null-terminated C string.
     // The function returns a document index (handle) that can be used to interact with the document.
-    const documentIdx = this.module._FPDF_LoadMemDocument(documentPtr, size, passwordPtr);
+    const documentIdx = this.module._FPDF_LoadMemDocument(
+      documentPtr,
+      size,
+      passwordPtr
+    );
 
     // Handle error if the document could not be loaded
     const lastError = this.module._FPDF_GetLastError();

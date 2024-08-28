@@ -5,6 +5,7 @@ import rollupReplace from "@rollup/plugin-replace";
 import typescript from "@rollup/plugin-typescript";
 import copyPlugin from "rollup-plugin-copy";
 import deletePlugin from "rollup-plugin-delete";
+import crypto from "node:crypto";
 
 const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
 
@@ -63,6 +64,18 @@ function injectDebugLog({ message }) {
   };
 }
 
+const wasmFile = fs.readFileSync("src/vendor/pdfium.wasm");
+const wasmSHA256B64 = crypto.createHash("sha256").update(wasmFile).digest("base64");
+
+function injectWasmHash() {
+  return rollupReplace({
+    preventAssignment: true,
+    values: {
+      __WASM_SHA265_B64__: JSON.stringify(wasmSHA256B64),
+    },
+  });
+}
+
 export default [
   // CommonJS build
   {
@@ -77,6 +90,7 @@ export default [
       deletePlugin({ targets: `${DIST_FOLDER}/*` }),
       !IS_PROD && injectDebugLog({ message: "PDFium CJS loaded" }),
       injectPackageVersion(),
+      injectWasmHash(),
       resolve(),
       typescript(),
       commonjs({
@@ -102,6 +116,7 @@ export default [
       !IS_PROD && injectDebugLog({ message: "PDFium ESM loaded" }),
       ...nodeEsmShim(),
       injectPackageVersion(),
+      injectWasmHash(),
       resolve(),
       typescript(),
       commonjs({
