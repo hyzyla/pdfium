@@ -11,7 +11,6 @@ declare const __WASM_SHA265_B64__: string;
 
 const CDN_WASM_WARNING = `@hyzyla/pdfium: You are using the default CDN URL to load the PDFium wasm binary. For better performance, consider hosting the wasm binary yourself and passing it to the PDFiumLibrary.init method using the 'wasmBinary' option or by providing a 'wasmUrl' pointing to your own CDN or server. You can also disable this warning by passing the 'disableWarningAboutCDN' option to PDFiumLibrary.init method.`;
 const CDN_BROWSER_WARNING = `@hyzyla/pdfium: The useCDN option is only available in browser environment.`;
-const NO_OPTION_WARNING = `@hyzyla/pdfium: wasmUrl, wasmBinary or useCDN option is required.`;
 
 const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/pdfium.wasm`;
 
@@ -35,6 +34,15 @@ function stringToCString(module: t.PDFium, str: string): number {
   stringToUTF8(str, module.HEAPU8, passwordPtr, length);
 
   return passwordPtr;
+}
+
+function base64ToUint8Array(base64: string) {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
 }
 
 type PDFiumLibraryInitOptions = {
@@ -65,8 +73,9 @@ export class PDFiumLibrary {
         console.warn(CDN_WASM_WARNING);
       }
     } else {
-      console.warn(NO_OPTION_WARNING);
-      throw new Error(NO_OPTION_WARNING);
+      // Fall back to b64 inline
+      const { pdfiumWasmBase64 } = await import("./pdfiumB64.js");
+      loadOptions.wasmBinary = base64ToUint8Array(pdfiumWasmBase64).buffer;
     }
 
     const module = await vendor(loadOptions);

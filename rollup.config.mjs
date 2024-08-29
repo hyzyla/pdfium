@@ -11,6 +11,7 @@ const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
 
 const DIST_FOLDER = "dist";
 const EXTERNAL_NODE_PACKAGES = ["fs", "path", "crypto"];
+const WASMB64_IMPORT = './pdfiumB64.js';
 const IS_PROD = process.env.NODE_ENV === "production";
 
 const ESM_SHIM = `
@@ -67,11 +68,12 @@ function injectDebugLog({ message }) {
 const wasmFile = fs.readFileSync("src/vendor/pdfium.wasm");
 const wasmSHA256B64 = crypto.createHash("sha256").update(wasmFile).digest("base64");
 
-function injectWasmHash() {
+function injectWasm() {
   return rollupReplace({
     preventAssignment: true,
     values: {
       __WASM_SHA265_B64__: JSON.stringify(wasmSHA256B64),
+      __WASM_BINARY_B64__: JSON.stringify(wasmFile.toString("base64")),
     },
   });
 }
@@ -90,7 +92,7 @@ export default [
       deletePlugin({ targets: `${DIST_FOLDER}/*` }),
       !IS_PROD && injectDebugLog({ message: "PDFium CJS loaded" }),
       injectPackageVersion(),
-      injectWasmHash(),
+      injectWasm(),
       resolve(),
       typescript(),
       commonjs({
@@ -101,7 +103,7 @@ export default [
         targets: [{ src: "src/vendor/pdfium.wasm", dest: DIST_FOLDER }],
       }),
     ],
-    external: EXTERNAL_NODE_PACKAGES,
+    external: EXTERNAL_NODE_PACKAGES.concat(WASMB64_IMPORT),
   },
   // // ES module build
   {
@@ -116,12 +118,28 @@ export default [
       !IS_PROD && injectDebugLog({ message: "PDFium ESM loaded" }),
       ...nodeEsmShim(),
       injectPackageVersion(),
-      injectWasmHash(),
+      injectWasm(),
       resolve(),
       typescript(),
       commonjs({
         strictRequires: false,
       }),
+    ],
+    external: [WASMB64_IMPORT],
+  },
+  // PDFium wasm base64
+  {
+    input: "src/pdfiumB64.ts",
+    output: {
+      name: "@hyzyla/pdfium",
+      file: `${DIST_FOLDER}/pdfiumB64.js`,
+      format: "es",
+      exports: "named",
+    },
+    plugins: [
+      !IS_PROD && injectDebugLog({ message: "PDFium B64 loaded" }),
+      injectWasm(),
+      typescript(),
     ],
   },
 ];
