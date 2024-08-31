@@ -15,5 +15,5 @@ jobs:
       - run: npm ci
       - run: cat package.json
       - run: npm run check:ci
-      - run: npm run type-check
-      - run: npm test
+      - run: npm run check:types
+      - run: npm run check:test

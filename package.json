@@ -41,11 +41,10 @@
     "build:watch": "rollup --config rollup.config.mjs --watch",
     "build:prod": "rollup --config rollup.config.mjs --environment NODE_ENV:production",
     "clean": "rm -rf dist",
-    "check": "biome check --write",
-    "check:fix": "biome check --fix",
+    "check:fix": "biome check --write",
     "check:ci": "biome ci",
-    "test": "vitest",
-    "type-check": "tsc --noEmit"
+    "check:test": "vitest",
+    "check:types": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
