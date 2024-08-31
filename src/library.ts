@@ -4,11 +4,10 @@ import { FPDFErrorCode } from "./constants";
 import { PDFiumDocument } from "./document";
 import { lengthBytesUTF8, stringToUTF8 } from "./emscripten";
 
-const NO_OPTION_WARNING = `
-@hyzyla/pdfium: wasmUrl, wasmBinary is required for browser environment. 
+const NO_OPTION_WARNING = "@hyzyla/pdfium: wasmUrl, wasmBinary is required for browser environment. \n\n"
+  + "Please provide the wasm binary or URL to the init method. You can also use '@hyzyla/pdfium/browser/cdn'"
+  + "or '@hyzyla/pdfium/browser/base64' for quick setup, but it's not recommended for production use.";
 
-You can also use "@hyzyla/pdfium/browser/base64" or "@hyzyla/pdfium/browser/cdn" for quick setup, but keep in mind that it can lead to larger bundle size or slower load time.
-`;
 
 /**
  * Converts a JavaScript string to a null-terminated C string and returns
@@ -50,7 +49,7 @@ export class PDFiumLibrary {
       // Node.js will use wasm binary from node_modules, but for browser environment,
       // user must provide the wasm binary or URL
       if (typeof window !== "undefined") {
-        console.warn(NO_OPTION_WARNING);
+        console.error(NO_OPTION_WARNING);
         throw new Error(NO_OPTION_WARNING);
       }
     }
