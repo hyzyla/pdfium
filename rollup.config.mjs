@@ -54,17 +54,12 @@ async function injectCdnVars() {
     });
   }
 
-  // For dev we fetch the wasm file from CDN to have proper sha256 hash, but for prod we just use the hash of
-  // the wasm file in the dist folder
-  const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${pkg.version}/dist/pdfium.wasm`;
-  const response = await fetch(CDN_WASM_LINK);
-  const wasmFileFromCDN = await response.arrayBuffer();
-  const wasmSHA256B64 = sha256Base64(Buffer.from(wasmFileFromCDN));
+  // For dev environent we don't care about integrity
   return rollupReplace({
     preventAssignment: true,
     values: {
       __PACKAGE_VERSION__: JSON.stringify(pkg.version),
-      __WASM_SHA265_B64__: JSON.stringify(wasmSHA256B64),
+      __WASM_SHA265_B64__: JSON.stringify(null),
     },
   });
 }
@@ -128,13 +123,6 @@ export default [
       injectDebugLog({ message: "PDFium ESM browser loaded" }),
       patchEsmPath(),
       setNotNodeEnvironment(),
-      rollupReplace({
-        preventAssignment: true,
-        values: {
-          // For properly tree-shaking the code
-          ENVIRONMENT_IS_NODE: "false",
-        },
-      }),
       resolve(),
       typescript(),
     ],

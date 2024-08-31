@@ -9,10 +9,10 @@ import vendor from "./vendor/pdfium.esm";
 
 // This global variable is defined by Rollup at build time
 declare const __PACKAGE_VERSION__: string;
-declare const __WASM_SHA265_B64__: string;
+declare const __WASM_SHA265_B64__: string | null;
 
 const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/pdfium.wasm`;
-const WASM_INTEGRITY = `sha256-${__WASM_SHA265_B64__}`;
+const WASM_INTEGRITY = __WASM_SHA265_B64__ ? `sha256-${__WASM_SHA265_B64__}` : null;
 
 const CDN_WARNING =
   "@hyzyla/pdfium: Fetching wasm binary from a CDN.\n" +
@@ -34,7 +34,8 @@ export class PDFiumLibrary extends _PDFiumLibrary {
         wasmBinary: PDFiumLibrary._cache,
       });
     }
-    const response = await fetch(CDN_WASM_LINK, { integrity: WASM_INTEGRITY });
+    const fetchOptions = WASM_INTEGRITY ? { integrity: WASM_INTEGRITY } : {};
+    const response = await fetch(CDN_WASM_LINK, fetchOptions);
     const wasmBinary = await response.arrayBuffer();
     return await _PDFiumLibrary.initBase({
       vendor: vendor,
