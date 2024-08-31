@@ -10,14 +10,18 @@
         "require": "./dist/index.cjs.js",
         "types": "./dist/index.d.ts"
       },
+      "browser": {
+        "default": "./dist/index.esm.browser.js",
+        "types": "./dist/index.esm.d.ts"
+      },
       "default": "./dist/index.esm.js",
       "types": "./dist/index.esm.d.ts"
     },
-    "./cdn": {
+    "./browser/cdn": {
       "default": "./dist/index.esm.cdn.js",
       "types": "./dist/index.esm.cdn.d.ts"
     },
-    "./base64": {
+    "./browser/base64": {
       "default": "./dist/index.esm.base64.js",
       "types": "./dist/index.esm.base64.d.ts"
     },

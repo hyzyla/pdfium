@@ -58,7 +58,6 @@ async function injectCdnVars() {
   // the wasm file in the dist folder
   const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${pkg.version}/dist/pdfium.wasm`;
   const response = await fetch(CDN_WASM_LINK);
-  console.log("Fetching wasm file from CDN");
   const wasmFileFromCDN = await response.arrayBuffer();
   const wasmSHA256B64 = sha256Base64(Buffer.from(wasmFileFromCDN));
   return rollupReplace({
@@ -66,6 +65,16 @@ async function injectCdnVars() {
     values: {
       __PACKAGE_VERSION__: JSON.stringify(pkg.version),
       __WASM_SHA265_B64__: JSON.stringify(wasmSHA256B64),
+    },
+  });
+}
+
+function setNotNodeEnvironment() {
+  return rollupReplace({
+    preventAssignment: true,
+    values: {
+      // This is helpefull for properly tree-shaking the node.js code
+      ENVIRONMENT_IS_NODE: "false",
     },
   });
 }
@@ -104,17 +113,33 @@ export default [
       format: "es",
       exports: "named",
     },
+    plugins: [injectDebugLog({ message: "PDFium ESM loaded" }), patchEsmPath(), resolve(), typescript()],
+  },
+  // ES (browser) build
+  {
+    input: "src/index.esm.ts",
+    output: {
+      name: "@hyzyla/pdfium",
+      file: `${DIST_FOLDER}/index.esm.browser.js`,
+      format: "es",
+      exports: "named",
+    },
     plugins: [
-      injectDebugLog({ message: "PDFium ESM loaded" }),
+      injectDebugLog({ message: "PDFium ESM browser loaded" }),
       patchEsmPath(),
+      setNotNodeEnvironment(),
+      rollupReplace({
+        preventAssignment: true,
+        values: {
+          // For properly tree-shaking the code
+          ENVIRONMENT_IS_NODE: "false",
+        },
+      }),
       resolve(),
       typescript(),
-      // commonjs({
-      //   strictRequires: false,
-      // }),
     ],
   },
-  // ES + CDN build
+  // ES (browser) + CDN build
   {
     input: "src/index.esm.cdn.ts",
     output: {
@@ -125,15 +150,13 @@ export default [
     plugins: [
       injectDebugLog({ message: "PDFium with CDN loaded" }),
       patchEsmPath(),
+      setNotNodeEnvironment(),
       await injectCdnVars(),
       resolve(),
       typescript(),
-      // commonjs({
-      //   strictRequires: false,
-      // }),
     ],
   },
-  // ES + Base64 build
+  // ES (browser) + Base64 build
   {
     input: "src/index.esm.base64.ts",
     output: {
@@ -142,8 +165,9 @@ export default [
       format: "es",
     },
     plugins: [
-      !IS_PROD && injectDebugLog({ message: "PDFium with Base64 loaded" }),
+      injectDebugLog({ message: "PDFium with Base64 loaded" }),
       patchEsmPath(),
+      setNotNodeEnvironment(),
       rollupReplace({
         preventAssignment: true,
         values: {
@@ -152,9 +176,6 @@ export default [
       }),
       resolve(),
       typescript(),
-      // commonjs({
-      //   strictRequires: false,
-      // }),
     ],
   },
 ];

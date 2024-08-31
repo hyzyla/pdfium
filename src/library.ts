@@ -7,7 +7,7 @@ import { lengthBytesUTF8, stringToUTF8 } from "./emscripten";
 const NO_OPTION_WARNING = `
 @hyzyla/pdfium: wasmUrl, wasmBinary is required for browser environment. 
 
-You can also use "@hyzyla/pdfium/base64" or "@hyzyla/pdfium/cdn" for quick setup, but keep in mind that it can lead to larger bundle size or slower load time.
+You can also use "@hyzyla/pdfium/browser/base64" or "@hyzyla/pdfium/browser/cdn" for quick setup, but keep in mind that it can lead to larger bundle size or slower load time.
 `;
 
 /**
@@ -47,7 +47,6 @@ export class PDFiumLibrary {
     } else if (wasmBinary) {
       loadOptions.wasmBinary = wasmBinary;
     } else {
-      console.warn("Options", loadOptions);
       // Node.js will use wasm binary from node_modules, but for browser environment,
       // user must provide the wasm binary or URL
       if (typeof window !== "undefined") {
