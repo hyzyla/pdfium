@@ -52,9 +52,7 @@
   },
   "author": "Yevhenii Hyzyla",
   "license": "MIT",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
     "@octokit/rest": "^19.0.13",
@@ -99,22 +97,12 @@
       "ecmaVersion": "latest",
       "sourceType": "module"
     },
-    "plugins": [
-      "@typescript-eslint",
-      "import"
-    ],
+    "plugins": ["@typescript-eslint", "import"],
     "rules": {
       "import/order": [
         "error",
         {
-          "groups": [
-            "builtin",
-            "external",
-            "internal",
-            "parent",
-            "sibling",
-            "index"
-          ],
+          "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
           "pathGroups": [
             {
               "pattern": "./vendor/**",
@@ -130,9 +118,7 @@
         }
       ]
     },
-    "ignorePatterns": [
-      "src/vendor/**/*"
-    ],
+    "ignorePatterns": ["src/vendor/**/*"],
     "settings": {
       "import/resolver": {
         "typescript": true,
