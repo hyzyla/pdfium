@@ -17,7 +17,7 @@ const CDN_WARNING = `
 @hyzyla/pdfium: The PDFium WASM binary is loaded from a CDN. This may be slower than loading the binary from the local server. You can disable this warning by setting the 'disableCDNWarning' option to 'true' when calling PDFiumLibrary.init().
 `;
 
-export class PDFiumLibrary {
+export class PDFiumLibrary extends _PDFiumLibrary {
   static _cache: ArrayBuffer | null = null;
 
   static async init(options?: { disableCDNWarning?: boolean }) {

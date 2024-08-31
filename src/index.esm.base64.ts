@@ -18,7 +18,7 @@ function base64ToUint8Array(base64: string) {
   return bytes;
 }
 
-export class PDFiumLibrary {
+export class PDFiumLibrary extends _PDFiumLibrary {
   static async init() {
     const base64 = await import("./vendor/pdfium.wasm.base64");
     const wasmBinary = base64ToUint8Array(base64.PDFIUM_WASM_BASE64);

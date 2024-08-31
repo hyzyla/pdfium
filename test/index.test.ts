@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { toMatchImageSnapshot } from "jest-image-snapshot";
 import { test, describe, expect, beforeAll, afterAll } from "vitest";
 
-import { type PDFiumDocument, PDFiumLibrary, PDFiumPage, PDFiumPageRenderOptions } from "../src/index";
+import { type PDFiumDocument, PDFiumLibrary, PDFiumPage, PDFiumPageRenderOptions } from "../src/index.esm";
 import type { PDFiumImageObject } from "../src/objects";
 
 
@@ -35,11 +35,13 @@ test("adds 1 + 2 to equal 3", () => {
 describe("PDFium", () => {
   let library: PDFiumLibrary;
   beforeAll(async () => {
-    library = await PDFiumLibrary.init();
+    library = await PDFiumLibrary.init({
+      wasmBinary: await fs.readFile("./src/vendor/pdfium.wasm"),
+    });
   });
 
   afterAll(() => {
-    library.destroy();
+    library?.destroy();
   });
 
   async function loadDocument(

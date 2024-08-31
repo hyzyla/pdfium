@@ -9,7 +9,7 @@ export * from "./index";
 import { PDFiumLibrary as _PDFiumLibrary } from "./library";
 import vendor from "./vendor/pdfium.esm";
 
-export class PDFiumLibrary {
+export class PDFiumLibrary extends _PDFiumLibrary {
   static async init(options?: {
     wasmBinary?: ArrayBuffer;
     wasmUrl?: string;
