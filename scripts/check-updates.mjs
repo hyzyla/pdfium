@@ -88,6 +88,7 @@ async function checkForUpdates() {
 
     // Copy files
     await fs.copyFile('src/vendor/release/node/pdfium.js', 'src/vendor/pdfium.js');
+    await fs.copyFile('src/vendor/release/node/pdfium.esm.js', 'src/vendor/pdfium.esm.js');
     await fs.copyFile('src/vendor/release/node/pdfium.wasm', 'src/vendor/pdfium.wasm');
     console.log('Copied files to src/vendor folder');
 

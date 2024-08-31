@@ -1,4 +1,4 @@
-import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium";
+import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium/cdn";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
@@ -20,9 +20,7 @@ function usePDFium() {
   return useQuery({
     queryKey: ["pdfium"],
     queryFn: async () => {
-      const pdfium = await PDFiumLibrary.init({
-        disableWarningAboutCDN: true,
-      });
+      const pdfium = await PDFiumLibrary.init();
       return pdfium;
     },
   });

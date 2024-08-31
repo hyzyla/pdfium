@@ -1,7 +1,7 @@
 var PDFiumModule = (() => {
-  var _scriptName = typeof document != "undefined" ? document.currentScript?.src : undefined;
-  if (typeof __filename != "undefined") _scriptName ||= __filename;
-  return function (moduleArg = {}) {
+  var _scriptName = import.meta.url;
+
+  return async function (moduleArg = {}) {
     var moduleRtn;
 
     var Module = moduleArg;
@@ -489,6 +489,8 @@ var PDFiumModule = (() => {
       );
     }
     if (ENVIRONMENT_IS_NODE) {
+      const { createRequire: createRequire } = await import("module");
+      var require = createRequire(import.meta.url);
     }
     var moduleOverrides = Object.assign({}, Module);
     var arguments_ = [];
@@ -517,7 +519,7 @@ var PDFiumModule = (() => {
       }
       var fs = require("fs");
       var nodePath = require("path");
-      scriptDirectory = __dirname + "/";
+      scriptDirectory = require("url").fileURLToPath(new URL("./", import.meta.url));
       readBinary = (filename) => {
         filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
         var ret = fs.readFileSync(filename);
@@ -872,11 +874,14 @@ var PDFiumModule = (() => {
       };
     }
     function findWasmBinary() {
-      var f = "pdfium.wasm";
-      if (!isDataURI(f)) {
-        return locateFile(f);
+      if (Module["locateFile"]) {
+        var f = "pdfium.esm.wasm";
+        if (!isDataURI(f)) {
+          return locateFile(f);
+        }
+        return f;
       }
-      return f;
+      return new URL("pdfium.esm.wasm", import.meta.url).href;
     }
     var wasmBinaryFile;
     function getBinarySync(file) {
@@ -931,7 +936,7 @@ var PDFiumModule = (() => {
       return instantiateArrayBuffer(binaryFile, imports, callback);
     }
     function getWasmImports() {
-      return { env: wasmImports, wasi_snapshot_preview1: wasmImports };
+      return { env: wasmImports, wasi_snapshot_preview1: wasmImports, abort: abort };
     }
     function createWasm() {
       var info = getWasmImports();
@@ -5845,5 +5850,4 @@ var PDFiumModule = (() => {
     return moduleRtn;
   };
 })();
-if (typeof exports === "object" && typeof module === "object") module.exports = PDFiumModule;
-else if (typeof define === "function" && define["amd"]) define([], () => PDFiumModule);
+export default PDFiumModule;

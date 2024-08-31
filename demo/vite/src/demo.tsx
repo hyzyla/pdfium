@@ -1,4 +1,4 @@
-import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium";
+import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium/cdn";
 import wasmUrl from "@hyzyla/pdfium/pdfium.wasm?url";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
@@ -72,8 +72,8 @@ function PDFPageDemo(props: { document: PDFiumDocument; pageNumber: number }) {
 }
 
 function PDFDocumentDemo() {
-  const { data, status } = useDocument();
-  console.log(data, status);
+  const { data, error, status } = useDocument();
+  console.log(data, error, status);
   if (status === "pending") {
     return <div>Loading...</div>;
   }

@@ -4,6 +4,7 @@
     "enabled": true
   },
   "files": {
+    "maxSize": 10485760, // 10mb in bytes
     "include": [
       "src/**/*.ts",
       "docs/**/*.tsx",
@@ -14,15 +15,21 @@
       "rollup.config.mjs",
       "tsconfig.json",
       "package.json",
-      "vite.config.ts"
+      "vite.config.ts",
+      "src/vendor/**/*.ts",
+      "src/vendor/**/*.js"
     ],
-    "ignore": ["src/vendor/**/*", "src/emscripten.ts"]
+    "ignore": ["src/emscripten.ts"]
   },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
-    }
+      "recommended": true,
+      "complexity": {
+        "noStaticOnlyClass": "off"
+      }
+    },
+    "ignore": ["src/vendor/**/*.js"]
   },
   "formatter": {
     "lineWidth": 120,

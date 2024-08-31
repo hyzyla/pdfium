@@ -7,11 +7,19 @@
     ".": {
       "node": {
         "module": "./dist/index.esm.js",
-        "require": "./dist/index.cjs",
+        "require": "./dist/index.cjs.js",
         "types": "./dist/index.d.ts"
       },
       "default": "./dist/index.esm.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.esm.d.ts"
+    },
+    "./cdn": {
+      "default": "./dist/index.esm.cdn.js",
+      "types": "./dist/index.esm.cdn.d.ts"
+    },
+    "./base64": {
+      "default": "./dist/index.esm.base64.js",
+      "types": "./dist/index.esm.base64.d.ts"
     },
     "./pdfium.wasm": "./dist/pdfium.wasm",
     "./dist/*": "./dist/*"
@@ -21,7 +29,8 @@
     "url": false,
     "node": false,
     "path": false,
-    "crypto": false
+    "crypto": false,
+    "module": false
   },
   "types": "dist/index.d.ts",
   "scripts": {
@@ -29,6 +38,7 @@
     "build:prod": "rollup --config rollup.config.mjs --environment NODE_ENV:production",
     "clean": "rm -rf dist",
     "check": "biome check --write",
+    "check:fix": "biome check --fix",
     "check:ci": "biome ci",
     "test": "vitest",
     "type-check": "tsc --noEmit"

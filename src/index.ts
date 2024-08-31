@@ -1,5 +1,7 @@
+/**
+ * All the exports from the PDFium module, never use it directly, re-export them in platform-specific index files
+ */
 export { PDFiumDocument } from "./document";
-export { PDFiumLibrary } from "./library";
 export { PDFiumPage } from "./page";
 export type {
   PDFiumPageRenderFunction,
