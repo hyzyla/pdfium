@@ -18,7 +18,8 @@ function base64ToUint8Array(base64: string) {
   return bytes;
 }
 
-const BASE64_WARNING = "@hyzyla/pdfium: Using base64-encoded WASM binary.\n" +
+const BASE64_WARNING =
+  "@hyzyla/pdfium: Using base64-encoded WASM binary.\n" +
   "\n" +
   `This can lead to larger bundle size or slower load time. Use "@hyzyla/pdfium" with a proper ` +
   "setup for better performance. You can also disable this warning by passing { disableBase64Warning: true } " +

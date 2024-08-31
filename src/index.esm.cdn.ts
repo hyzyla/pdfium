@@ -14,14 +14,14 @@ declare const __WASM_SHA265_B64__: string;
 const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/pdfium.wasm`;
 const WASM_INTEGRITY = `sha256-${__WASM_SHA265_B64__}`;
 
-const CDN_WARNING = "@hyzyla/pdfium: Fetching wasm binary from a CDN.\n" +
+const CDN_WARNING =
+  "@hyzyla/pdfium: Fetching wasm binary from a CDN.\n" +
   "\n" +
   `This can lead to slower load time or potential network issues. Use "@hyzyla/pdfium" with a local wasm binary ` +
   "for better performance and reliability. You can also disable this warning by passing { disableCDNWarning: true } " +
   "to PDFiumLibrary.init() method";
 
 export class PDFiumLibrary extends _PDFiumLibrary {
-
   static _cache: ArrayBuffer | null = null;
 
   static async init(options?: { disableCDNWarning?: boolean }) {
