@@ -80,7 +80,7 @@ export default [
     input: "src/index.cjs.ts",
     output: {
       name: "@hyzyla/pdfium",
-      file: `${DIST_FOLDER}/index.cjs.js`,
+      file: `${DIST_FOLDER}/index.cjs`,
       format: "cjs",
       exports: "named",
     },

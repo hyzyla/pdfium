@@ -1,13 +1,13 @@
 {
   "name": "@hyzyla/pdfium",
   "version": "2.1.1",
-  "description": "Universal wrapper for PDFium 2",
+  "description": "Universal wrapper for PDFium",
   "type": "module",
   "exports": {
     ".": {
       "node": {
-        "module": "./dist/index.esm.js",
-        "require": "./dist/index.cjs.js",
+        "import": "./dist/index.esm.js",
+        "require": "./dist/index.cjs",
         "types": "./dist/index.d.ts"
       },
       "browser": {
