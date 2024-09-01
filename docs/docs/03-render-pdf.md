@@ -1,18 +1,6 @@
 # Render PDF to image
 
-## Load PDFiumLibrary
 
-First of all, you need to create an instance of PDFiumLibrary. You can do this once for the whole application and reuse the library instance during the application lifetime.
-
-```typescript
-import { PDFiumLibrary } from '@hyzyla/pdfium';
-
-const library = await PDFiumLibrary.init();
-
-// ... do something with the library
-
-library.destroy();
-```
 
 ## Load PDF document
 

@@ -1,4 +1,5 @@
-import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium/browser/cdn";
+import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium";
+import wasmUrl from "@hyzyla/pdfium/pdfium.wasm?url";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
@@ -8,7 +9,9 @@ const useDocument = () => {
     queryFn: async () => {
       const response = await fetch("/sample.pdf");
       const arrayBuffer = await response.arrayBuffer();
-      const library = await PDFiumLibrary.init({});
+      const library = await PDFiumLibrary.init({
+        wasmUrl: wasmUrl,
+      });
       const document = await library.loadDocument(new Uint8Array(arrayBuffer));
       return document;
     },
