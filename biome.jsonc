@@ -14,7 +14,6 @@
       "biome.jsonc",
       "rollup.config.mjs",
       "tsconfig.json",
-      "package.json",
       "vite.config.ts",
       "src/vendor/**/*.ts",
       "src/vendor/**/*.js"
