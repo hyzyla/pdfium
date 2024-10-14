@@ -49,7 +49,7 @@ async function renderFunction(options: PDFiumPageRenderOptions) {
 }
 
 
-async main() {
+async function main() {
   const buff = await fs.readFile('test2.pdf');
 
   // Initialize the library, you can do this once for the whole application
