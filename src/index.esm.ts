@@ -4,10 +4,10 @@
  * to include the base64-encoded WASM binary in the main bundle when the user does not use the
  * base64-encoded WASM binary.
  */
-export * from "./index";
+export * from "./index.js";
 
-import { PDFiumLibrary as _PDFiumLibrary } from "./library";
-import vendor from "./vendor/pdfium.esm";
+import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
+import vendor from "./vendor/pdfium.esm.js";
 
 export class PDFiumLibrary extends _PDFiumLibrary {
   static async init(options?: {

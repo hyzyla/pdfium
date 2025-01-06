@@ -1,10 +1,10 @@
-import type * as t from "./vendor/pdfium";
+import type * as t from "./vendor/pdfium.js";
 
-import { BYTES_PER_PIXEL, FPDFBitmap, FPDFRenderFlag } from "./constants";
-import { type PDFiumObject, PDFiumObjectBase } from "./objects";
-import type { PDFiumPageRender, PDFiumPageRenderParams } from "./page.types";
-import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types";
-import { convertBitmapToImage } from "./utils";
+import { BYTES_PER_PIXEL, FPDFBitmap, FPDFRenderFlag } from "./constants.js";
+import { type PDFiumObject, PDFiumObjectBase } from "./objects.js";
+import type { PDFiumPageRender, PDFiumPageRenderParams } from "./page.types.js";
+import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types.js";
+import { convertBitmapToImage } from "./utils.js";
 
 export class PDFiumPage {
   private readonly module: t.PDFium;

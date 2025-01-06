@@ -1,8 +1,8 @@
-import type * as t from "./vendor/pdfium";
+import type * as t from "./vendor/pdfium.js";
 
-import { FPDFErrorCode } from "./constants";
-import { PDFiumDocument } from "./document";
-import { lengthBytesUTF8, stringToUTF8 } from "./emscripten";
+import { FPDFErrorCode } from "./constants.js";
+import { PDFiumDocument } from "./document.js";
+import { lengthBytesUTF8, stringToUTF8 } from "./emscripten.js";
 
 const NO_OPTION_WARNING =
   "@hyzyla/pdfium: wasmUrl, wasmBinary is required for browser environment. \n\n" +

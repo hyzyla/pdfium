@@ -1,4 +1,4 @@
-import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types";
+import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types.js";
 
 export async function convertBitmapToImage(
   options: {

@@ -87,7 +87,10 @@ export default [
     plugins: [
       deletePlugin({ targets: `${DIST_FOLDER}/*` }),
       copyPlugin({
-        targets: [{ src: "src/vendor/pdfium.wasm", dest: DIST_FOLDER }],
+        targets: [
+          { src: "src/vendor/pdfium.wasm", dest: DIST_FOLDER },
+          { src: "src/vendor/*.d.ts", dest: `${DIST_FOLDER}/vendor` }
+        ],
       }),
       injectDebugLog({ message: "PDFium CJS loaded" }),
       resolve(),

@@ -1,4 +1,4 @@
-import type { PDFiumRenderFunction } from "./types";
+import type { PDFiumRenderFunction } from "./types.js";
 
 export type PDFiumObjectType = "text" | "path" | "image" | "shading" | "form";
 
