@@ -4,10 +4,10 @@
  * to include the base64-encoded WASM binary in the main bundle when the user does not use the
  * base64-encoded WASM binary.
  */
-export * from "./index";
+export * from "./index.js";
 
-import { PDFiumLibrary as _PDFiumLibrary } from "./library";
-import vendor from "./vendor/pdfium.esm";
+import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
+import vendor from "./vendor/pdfium.esm.js";
 
 function base64ToUint8Array(base64: string) {
   const binaryString = atob(base64);
@@ -30,7 +30,7 @@ export class PDFiumLibrary extends _PDFiumLibrary {
     if (!options?.disableBase64Warning) {
       console.warn(BASE64_WARNING);
     }
-    const base64 = await import("./vendor/pdfium.wasm.base64");
+    const base64 = await import("./vendor/pdfium.wasm.base64.js");
     const wasmBinary = base64ToUint8Array(base64.PDFIUM_WASM_BASE64);
     return await _PDFiumLibrary.initBase({
       wasmBinary: wasmBinary.buffer,

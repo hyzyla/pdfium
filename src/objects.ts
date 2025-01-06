@@ -1,13 +1,13 @@
-import type * as t from "./vendor/pdfium";
+import type * as t from "./vendor/pdfium.js";
 
-import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType } from "./constants";
+import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType } from "./constants.js";
 import type {
   PDFiumImageObjectRaw,
   PDFiumImageObjectRender,
   PDFiumImageObjectRenderParams,
   PDFiumObjectType,
-} from "./objects.types";
-import { convertBitmapToImage, readUInt16LE } from "./utils";
+} from "./objects.types.js";
+import { convertBitmapToImage, readUInt16LE } from "./utils.js";
 
 export abstract class PDFiumObjectBase {
   public abstract readonly type: PDFiumObjectType;

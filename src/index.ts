@@ -1,19 +1,19 @@
 /**
  * All the exports from the PDFium module, never use it directly, re-export them in platform-specific index files
  */
-export { PDFiumDocument } from "./document";
-export { PDFiumPage } from "./page";
+export { PDFiumDocument } from "./document.js";
+export { PDFiumPage } from "./page.js";
 export type {
   PDFiumPageRenderFunction,
   PDFiumPageRenderOptions,
   PDFiumPageSize,
   PDFiumPageRender,
-} from "./page.types";
+} from "./page.types.js";
 export {
   PDFiumObjectType,
   PDFiumImageObjectRenderParams,
   PDFiumImageObjectRender,
-} from "./objects.types";
+} from "./objects.types.js";
 export {
   PDFiumTextObject,
   PDFiumPathObject,
@@ -21,4 +21,4 @@ export {
   PDFiumShadingObject,
   PDFiumFormObject,
   PDFiumObject,
-} from "./objects";
+} from "./objects.js";

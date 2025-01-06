@@ -1,2 +1,2 @@
-export * from "./pdfium";
-export { default } from "./pdfium";
+export * from "./pdfium.js";
+export { default } from "./pdfium.js";

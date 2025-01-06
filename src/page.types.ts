@@ -1,4 +1,4 @@
-import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types";
+import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types.js";
 
 export type PDFiumPageRenderFunction = PDFiumRenderFunction;
 export type PDFiumPageRenderOptions = PDFiumRenderOptions;

@@ -1,6 +1,6 @@
-import type * as t from "./vendor/pdfium";
+import type * as t from "./vendor/pdfium.js";
 
-import { PDFiumPage } from "./page";
+import { PDFiumPage } from "./page.js";
 
 export class PDFiumDocument {
   private readonly module: t.PDFium;

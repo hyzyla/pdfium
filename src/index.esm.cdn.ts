@@ -2,10 +2,10 @@
  * Export everything from index.ts, but override the PDFiumLibrary class with a new one that uses a
  * wasm binary from a CDN
  */
-export * from "./index";
+export * from "./index.js";
 
-import { PDFiumLibrary as _PDFiumLibrary } from "./library";
-import vendor from "./vendor/pdfium.esm";
+import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
+import vendor from "./vendor/pdfium.esm.js";
 
 // This global variable is defined by Rollup at build time
 declare const __PACKAGE_VERSION__: string;
