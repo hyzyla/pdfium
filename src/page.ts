@@ -42,6 +42,46 @@ export class PDFiumPage {
     };
   }
 
+  /**
+   * Extract text from the page
+   */
+  getText(): string {
+    const textPage = this.module._FPDFText_LoadPage(this.pageIdx);
+    if (!textPage) {
+      throw new Error("Failed to load text page");
+    }
+
+    try {
+      const charCount = this.module._FPDFText_CountChars(textPage);
+
+      if (charCount <= 0) {
+        return "";
+      }
+
+      const bufferSize = (charCount + 1) * 2;
+      const textPtr = this.module.wasmExports.malloc(bufferSize);
+
+      try {
+        const length = this.module._FPDFText_GetText(textPage, 0, charCount, textPtr);
+        
+        if (length <= 0) {
+          return "";
+        }
+
+        // Convert the UTF-16LE buffer to a JavaScript string
+        // Subtract 1 from length to remove the null terminator
+        const buffer = new Uint8Array(this.module.HEAPU8.buffer, textPtr, (length - 1) * 2);
+        const text = new TextDecoder("utf-16le").decode(buffer);
+        
+        return text;
+      } finally {
+        this.module.wasmExports.free(textPtr);
+      }
+    } finally {
+      this.module._FPDFText_ClosePage(textPage);
+    }
+  }
+
   async render(
     options: PDFiumPageRenderParams = {
       scale: 1,
