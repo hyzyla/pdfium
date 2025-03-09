@@ -63,7 +63,7 @@ export class PDFiumPage {
 
       try {
         const length = this.module._FPDFText_GetText(textPage, 0, charCount, textPtr);
-        
+
         if (length <= 0) {
           return "";
         }
@@ -72,7 +72,7 @@ export class PDFiumPage {
         // Subtract 1 from length to remove the null terminator
         const buffer = new Uint8Array(this.module.HEAPU8.buffer, textPtr, (length - 1) * 2);
         const text = new TextDecoder("utf-16le").decode(buffer);
-        
+
         return text;
       } finally {
         this.module.wasmExports.free(textPtr);
