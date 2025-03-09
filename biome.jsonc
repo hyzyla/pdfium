@@ -31,7 +31,7 @@
         "useImportExtensions": "error"
       }
     },
-    "ignore": ["src/vendor/**/*.js"]
+    "ignore": ["src/vendor/**/*.js", "docs/**/*.tsx"]
   },
   "formatter": {
     "lineWidth": 120,
