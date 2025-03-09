@@ -17,6 +17,11 @@ export declare type PDFium = {
   _FPDFImageObj_GetImageFilterCount(objectIdx: number): number;
   _FPDFImageObj_GetImageFilter(objectIdx: number, index: number, buffer: number, length: number): number;
 
+  _FPDFText_LoadPage: (page: number) => number;
+  _FPDFText_ClosePage: (textPage: number) => void;
+  _FPDFText_CountChars: (textPage: number) => number;
+  _FPDFText_GetText: (textPage: number, startIndex: number, count: number, buffer: number) => number;
+
   _FPDFBitmap_CreateEx: (width: number, height: number, format: number, ptr: number, stride: number) => number;
   _FPDFBitmap_FillRect: (
     bitmap: number,
