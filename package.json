@@ -1,6 +1,6 @@
 {
   "name": "@hyzyla/pdfium",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Universal wrapper for PDFium",
   "type": "module",
   "exports": {
