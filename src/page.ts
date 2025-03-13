@@ -129,7 +129,7 @@ export class PDFiumPage {
     this.module._FPDFBitmap_Destroy(bitmap);
     this.module._FPDF_ClosePage(this.pageIdx);
 
-    const data = this.module.HEAPU8.subarray(ptr, ptr + buffSize);
+    const data = this.module.HEAPU8.slice(ptr, ptr + buffSize);
     this.module.wasmExports.free(ptr);
 
     const image = await this.convertBitmapToImage({
