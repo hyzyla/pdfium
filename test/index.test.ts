@@ -397,4 +397,46 @@ describe("PDFium", () => {
       });
     });
   });
+
+  test("should render an image of a page without form elements", async () => {
+    await loadDocument("test_6_with_form.pdf", async (document) => {
+      const result = await document.getPage(0).render({
+        scale: 3,
+        render: renderFunction,
+      });
+      expect(result.data).toMatchImageSnapshot();
+    });
+  });
+
+  test("should render an image of a page with form fields enabled", async () => {
+    await loadDocument("test_6_with_form.pdf", async (document) => {
+      const result = await document.getPage(0).render({
+        scale: 3,
+        renderFormFields: true,
+        render: renderFunction,
+      });
+      expect(result.data).toMatchImageSnapshot();
+    });
+  });
+
+    test("should render an image of a page without form elements (2)", async () => {
+    await loadDocument("test_7_with_form.pdf", async (document) => {
+      const result = await document.getPage(0).render({
+        scale: 3,
+        render: renderFunction,
+      });
+      expect(result.data).toMatchImageSnapshot();
+    });
+  });
+
+  test("should render an image of a page with form fields enabled (2)", async () => {
+    await loadDocument("test_7_with_form.pdf", async (document) => {
+      const result = await document.getPage(0).render({
+        scale: 3,
+        renderFormFields: true,
+        render: renderFunction,
+      });
+      expect(result.data).toMatchImageSnapshot();
+    });
+  });
 });
