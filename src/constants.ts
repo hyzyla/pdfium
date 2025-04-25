@@ -20,7 +20,7 @@ export const FPDFBitmap = {
 
 // Page rendering flags. They can be combined with bit-wise OR.
 export const FPDFRenderFlag = {
-  // Set if annotations are to be rendered.
+  // Set if annotations are to be rendered (high-lights, sticky-notes, ink, etc.)
   ANNOT: 0x01,
   // Set if using text rendering optimized for LCD display. This flag will only
   // take effect if anti-aliasing is enabled for text.
@@ -47,7 +47,7 @@ export const FPDFRenderFlag = {
   // Set to disable anti-aliasing on paths.
   RENDER_NO_SMOOTHPATH: 0x4000,
   // Set whether to render in a reverse Byte order, this flag is only used when
-  // rendering to a bitmap.
+  // rendering to a bitmap. (what Canvas likes)
   REVERSE_BYTE_ORDER: 0x10,
   // Set whether fill paths need to be stroked. This flag is only used when
   // FPDF_COLORSCHEME is passed in, since with a single fill color for paths the

@@ -16,7 +16,21 @@ export declare type PDFium = {
   _FPDFImageObj_GetImagePixelSize: (objectIdx: number, width: number, height: number) => number;
   _FPDFImageObj_GetImageFilterCount(objectIdx: number): number;
   _FPDFImageObj_GetImageFilter(objectIdx: number, index: number, buffer: number, length: number): number;
-
+  _FPDF_FFLDraw: (
+    form_handle: number,
+    bitmap: number,
+    page: number,
+    start_x: number,
+    start_y: number,
+    size_x: number,
+    size_y: number,
+    rotate: number,
+    flags: number,
+  ) => void;
+  _FPDFDOC_InitFormFillEnvironment: (document: number, formHandle: number) => number;
+  _FPDFDOC_ExitFormFillEnvironment: (formHandle: number) => void;
+  _FORM_OnAfterLoadPage: (page: number, formHandle: number) => void;
+  _FORM_OnBeforeClosePage: (page: number, formHandle: number) => void;
   _FPDFText_LoadPage: (page: number) => number;
   _FPDFText_ClosePage: (textPage: number) => void;
   _FPDFText_CountChars: (textPage: number) => number;
@@ -54,6 +68,7 @@ export declare type PDFium = {
     free: (ptr: number) => void;
   };
   HEAPU8: Uint8Array;
+  HEAP32: Int32Array;
 };
 
 export declare type LoadPdfiumOptions = {

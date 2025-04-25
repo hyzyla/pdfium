@@ -32,11 +32,22 @@ Then you can render the page to an image by calling `render` method of the page 
 
 - `scale` - scale factor for the image (default is 1, which means 72 DPI, 3 almost always is enough for good quality)
 - `render` - render engine to use, can be either `sharp`, `bitmap` (default is `bitmap`) or custom render function. If you need to render to PNG, it's recommended to use `sharp` render function.
+- `renderFormFields` - whether to render interactive form fields (default is `false`). Form fields are interactive elements like text boxes, checkboxes, dropdown menus, and signature fields that users can fill out in PDF documents (like tax forms, applications, or contracts).
 
 ```typescript
 const image = await page.render({
   scale: 3,
   render: 'sharp',
+});
+```
+
+To render with form fields visible:
+
+```typescript
+const image = await page.render({
+  scale: 3,
+  render: 'sharp',
+  renderFormFields: true,
 });
 ```
 

@@ -6,6 +6,7 @@ export type PDFiumPageRenderOptions = PDFiumRenderOptions;
 export type PDFiumPageRenderCallback = (options: PDFiumPageRenderOptions) => Promise<Uint8Array>;
 export type PDFiumPageRenderParams = {
   render: PDFiumPageRenderFunction;
+  renderFormFields?: boolean;
 } & (
   | {
       scale: number;
