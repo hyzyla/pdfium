@@ -72,6 +72,31 @@ describe("PDFium", () => {
         }
       });
     });
+
+    test("should load document successfully even after a previous unrelated error", async () => {
+      let doc1: PDFiumDocument | undefined;
+      let doc2: PDFiumDocument | undefined;
+      try {
+        // Load the first document - it's not a PDF file, so it will throw an error
+        const buff1 = await fs.readFile("test/data/test_5.txt");
+        try {
+          doc1 = await library.loadDocument(buff1);
+        } catch {
+          // do nothing
+        }
+
+        // Now, try loading a second, different document
+        const buff2 = await fs.readFile("test/data/test_3_with_images.pdf");
+        doc2 = await library.loadDocument(buff2);
+
+        // Verify the second document loaded correctly despite the previous error
+        expect(doc2).toBeDefined();
+        expect(doc2.getPageCount()).toBe(1);
+      } finally {
+        doc1?.destroy();
+        doc2?.destroy();
+      }
+    });
   });
 
   describe("PDFiumPage", () => {
