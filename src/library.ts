@@ -99,8 +99,14 @@ export class PDFiumLibrary {
     const documentIdx = this.module._FPDF_LoadMemDocument(documentPtr, size, passwordPtr);
 
     // Handle error if the document could not be loaded
-    const lastError = this.module._FPDF_GetLastError();
-    if (lastError !== FPDFErrorCode.SUCCESS) {
+    if (!documentIdx) {
+      const lastError = this.module._FPDF_GetLastError();
+      // Free the allocated memory for the document and password before throwing
+      this.module.wasmExports.free(documentPtr);
+      if (passwordPtr !== 0) {
+        this.module.wasmExports.free(passwordPtr);
+      }
+
       switch (lastError) {
         case FPDFErrorCode.UNKNOWN:
           throw new Error("Unknown error");
