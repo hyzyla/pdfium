@@ -33,18 +33,24 @@ type PDFiumLibraryInitOptions = {
   vendor: (options: t.LoadPdfiumOptions) => Promise<t.PDFium>;
   wasmUrl?: string;
   wasmBinary?: ArrayBuffer;
+  instantiateWasm?: (
+    imports: WebAssembly.Imports,
+    successCallback: (module: WebAssembly.Module) => void,
+  ) => WebAssembly.Exports;
 };
 
 export class PDFiumLibrary {
   private readonly module: t.PDFium;
 
   static async initBase(options: PDFiumLibraryInitOptions) {
-    const { wasmUrl, wasmBinary } = options || {};
+    const { wasmUrl, wasmBinary, instantiateWasm } = options || {};
     const loadOptions: t.LoadPdfiumOptions = {};
     if (wasmUrl) {
       loadOptions.locateFile = (path: string) => wasmUrl;
     } else if (wasmBinary) {
       loadOptions.wasmBinary = wasmBinary;
+    } else if (instantiateWasm) {
+      loadOptions.instantiateWasm = instantiateWasm;
     } else {
       // Node.js will use wasm binary from node_modules, but for browser environment,
       // user must provide the wasm binary or URL

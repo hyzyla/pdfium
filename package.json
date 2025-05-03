@@ -6,24 +6,24 @@
   "exports": {
     ".": {
       "node": {
+        "types": "./dist/index.d.ts",
         "import": "./dist/index.esm.js",
-        "require": "./dist/index.cjs",
-        "types": "./dist/index.d.ts"
+        "require": "./dist/index.cjs"
       },
       "browser": {
-        "default": "./dist/index.esm.browser.js",
-        "types": "./dist/index.esm.d.ts"
+        "types": "./dist/index.esm.d.ts",
+        "default": "./dist/index.esm.browser.js"
       },
-      "default": "./dist/index.esm.js",
-      "types": "./dist/index.esm.d.ts"
+      "types": "./dist/index.esm.d.ts",
+      "default": "./dist/index.esm.js"
     },
     "./browser/cdn": {
-      "default": "./dist/index.esm.cdn.js",
-      "types": "./dist/index.esm.cdn.d.ts"
+      "types": "./dist/index.esm.cdn.d.ts",
+      "default": "./dist/index.esm.cdn.js"
     },
     "./browser/base64": {
-      "default": "./dist/index.esm.base64.js",
-      "types": "./dist/index.esm.base64.d.ts"
+      "types": "./dist/index.esm.base64.d.ts",
+      "default": "./dist/index.esm.base64.js"
     },
     "./pdfium.wasm": "./dist/pdfium.wasm",
     "./dist/*": "./dist/*"

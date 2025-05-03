@@ -7,7 +7,7 @@
 export * from "./index.js";
 
 import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
-import vendor from "./vendor/pdfium.esm.js";
+import PDFiumModule from "./vendor/pdfium.esm.js";
 
 function base64ToUint8Array(base64: string) {
   const binaryString = atob(base64);
@@ -34,7 +34,9 @@ export class PDFiumLibrary extends _PDFiumLibrary {
     const wasmBinary = base64ToUint8Array(base64.PDFIUM_WASM_BASE64);
     return await _PDFiumLibrary.initBase({
       wasmBinary: wasmBinary.buffer,
-      vendor: vendor,
+      vendor: PDFiumModule,
     });
   }
 }
+
+export { PDFiumModule };
