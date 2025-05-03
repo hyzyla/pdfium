@@ -59,6 +59,10 @@ export declare type PDFium = {
 export declare type LoadPdfiumOptions = {
   wasmBinary?: ArrayBuffer;
   locateFile?: (path: string) => string;
+  instantiateWasm?: (
+    imports: WebAssembly.Imports,
+    successCallback: (module: WebAssembly.Module) => void,
+  ) => WebAssembly.Exports;
 };
 
 export declare function loadPdfium(options: LoadPdfiumOptions): Promise<PDFium>;

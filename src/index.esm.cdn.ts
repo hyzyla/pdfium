@@ -5,7 +5,7 @@
 export * from "./index.js";
 
 import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
-import vendor from "./vendor/pdfium.esm.js";
+import PDFiumModule from "./vendor/pdfium.esm.js";
 
 // This global variable is defined by Rollup at build time
 declare const __PACKAGE_VERSION__: string;
@@ -30,7 +30,7 @@ export class PDFiumLibrary extends _PDFiumLibrary {
     }
     if (PDFiumLibrary._cache) {
       return await _PDFiumLibrary.initBase({
-        vendor: vendor,
+        vendor: PDFiumModule,
         wasmBinary: PDFiumLibrary._cache,
       });
     }
@@ -38,8 +38,10 @@ export class PDFiumLibrary extends _PDFiumLibrary {
     const response = await fetch(CDN_WASM_LINK, fetchOptions);
     const wasmBinary = await response.arrayBuffer();
     return await _PDFiumLibrary.initBase({
-      vendor: vendor,
+      vendor: PDFiumModule,
       wasmBinary: wasmBinary,
     });
   }
 }
+
+export { PDFiumModule };
