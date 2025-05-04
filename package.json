@@ -3,19 +3,21 @@
   "version": "2.1.6",
   "description": "Universal wrapper for PDFium",
   "type": "module",
+  "types": "dist/index.esm.d.ts",
   "exports": {
     ".": {
-      "node": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.esm.js",
-        "require": "./dist/index.cjs"
-      },
       "browser": {
         "types": "./dist/index.esm.d.ts",
         "default": "./dist/index.esm.browser.js"
       },
-      "types": "./dist/index.esm.d.ts",
-      "default": "./dist/index.esm.js"
+      "import": {
+        "types": "./dist/index.esm.d.ts",
+        "default": "./dist/index.esm.js"
+      },
+      "require": {
+        "types": "./dist/index.cjs.d.ts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./browser/cdn": {
       "types": "./dist/index.esm.cdn.d.ts",
@@ -36,7 +38,6 @@
     "crypto": false,
     "module": false
   },
-  "types": "dist/index.d.ts",
   "scripts": {
     "build:watch": "rollup --config rollup.config.mjs --watch",
     "build:prod": "rollup --config rollup.config.mjs --environment NODE_ENV:production",
