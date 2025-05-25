@@ -62,3 +62,10 @@ export const FPDFPageObjectType = {
   SHADING: 4,
   FORM: 5,
 };
+
+export const FPDFPathSegmentType = {
+  UNKNOWN: -1,
+  LINETO: 0,
+  BEZIERTO: 1,
+  MOVETO: 2,
+};

@@ -49,6 +49,14 @@ export declare type PDFium = {
   _FPDFBitmap_GetStride: (bitmap: number) => number;
   _FPDFBitmap_GetFormat: (bitmap: number) => number;
   _FPDF_CloseDocument(document: number): void;
+
+  // Path/Vector extraction APIs
+  _FPDFPath_CountSegments: (path: number) => number;
+  _FPDFPath_GetPathSegment: (path: number, index: number) => number;
+  _FPDFPathSegment_GetPoint: (segment: number, x: number, y: number) => number;
+  _FPDFPathSegment_GetType: (segment: number) => number;
+  _FPDFPathSegment_GetClose: (segment: number) => number;
+
   wasmExports: {
     malloc: (size: number) => number;
     free: (ptr: number) => void;

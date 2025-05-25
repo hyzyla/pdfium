@@ -18,3 +18,16 @@ export type PDFiumImageObjectRaw = {
   data: Uint8Array;
   filters: string[];
 };
+
+export type PDFiumPathSegmentType = "unknown" | "lineto" | "bezierto" | "moveto";
+
+export type PDFiumPathSegment = {
+  type: PDFiumPathSegmentType;
+  x: number;
+  y: number;
+  close: boolean;
+};
+
+export type PDFiumPathData = {
+  segments: PDFiumPathSegment[];
+};

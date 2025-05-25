@@ -1,11 +1,14 @@
 import type * as t from "./vendor/pdfium.js";
 
-import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType } from "./constants.js";
+import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType, FPDFPathSegmentType } from "./constants.js";
 import type {
   PDFiumImageObjectRaw,
   PDFiumImageObjectRender,
   PDFiumImageObjectRenderParams,
   PDFiumObjectType,
+  PDFiumPathData,
+  PDFiumPathSegment,
+  PDFiumPathSegmentType,
 } from "./objects.types.js";
 import { convertBitmapToImage, readUInt16LE } from "./utils.js";
 
@@ -59,6 +62,96 @@ export class PDFiumTextObject extends PDFiumObjectBase {
 
 export class PDFiumPathObject extends PDFiumObjectBase {
   type = "path" as const;
+
+  /**
+   * Convert numeric segment type to string representation
+   */
+  private segmentTypeToString(type: number): PDFiumPathSegmentType {
+    switch (type) {
+      case FPDFPathSegmentType.LINETO:
+        return "lineto";
+      case FPDFPathSegmentType.BEZIERTO:
+        return "bezierto";
+      case FPDFPathSegmentType.MOVETO:
+        return "moveto";
+      case FPDFPathSegmentType.UNKNOWN:
+      default:
+        return "unknown";
+    }
+  }
+
+  /**
+   * Get the number of segments in this path object
+   */
+  getSegmentCount(): number {
+    return this.module._FPDFPath_CountSegments(this.objectIdx);
+  }
+
+  /**
+   * Get a specific path segment by index
+   */
+  getSegment(index: number): PDFiumPathSegment | null {
+    const segmentCount = this.getSegmentCount();
+    if (index < 0 || index >= segmentCount) {
+      return null;
+    }
+
+    const segmentIdx = this.module._FPDFPath_GetPathSegment(this.objectIdx, index);
+    if (!segmentIdx) {
+      return null;
+    }
+
+    // Allocate memory for x and y coordinates (2 floats = 8 bytes)
+    const coordPtr = this.module.wasmExports.malloc(8);
+    const xPtr = coordPtr;
+    const yPtr = coordPtr + 4;
+
+    // Get the point coordinates
+    const success = this.module._FPDFPathSegment_GetPoint(segmentIdx, xPtr, yPtr);
+    if (!success) {
+      this.module.wasmExports.free(coordPtr);
+      return null;
+    }
+
+    // Read the float values from memory
+    const xBuffer = this.module.HEAPU8.slice(xPtr, xPtr + 4);
+    const yBuffer = this.module.HEAPU8.slice(yPtr, yPtr + 4);
+    this.module.wasmExports.free(coordPtr);
+
+    // Convert bytes to float32
+    const x = new Float32Array(xBuffer.buffer.slice(xBuffer.byteOffset, xBuffer.byteOffset + 4))[0];
+    const y = new Float32Array(yBuffer.buffer.slice(yBuffer.byteOffset, yBuffer.byteOffset + 4))[0];
+
+    // Get segment type
+    const type = this.module._FPDFPathSegment_GetType(segmentIdx);
+    
+    // Check if segment closes the subpath
+    const close = this.module._FPDFPathSegment_GetClose(segmentIdx) !== 0;
+
+    return {
+      type: this.segmentTypeToString(type),
+      x,
+      y,
+      close,
+    };
+  }
+
+  /**
+   * Get all path segments for this path object
+   */
+  getPathData(): PDFiumPathData {
+    const segmentCount = this.getSegmentCount();
+    const segments: PDFiumPathSegment[] = [];
+
+    for (let i = 0; i < segmentCount; i++) {
+      const segment = this.getSegment(i);
+      if (segment) {
+        segments.push(segment);
+      }
+    }
+
+    return { segments };
+  }
 }
 
 export class PDFiumImageObject extends PDFiumObjectBase {

@@ -13,6 +13,9 @@ export {
   PDFiumObjectType,
   PDFiumImageObjectRenderParams,
   PDFiumImageObjectRender,
+  PDFiumPathData,
+  PDFiumPathSegment,
+  PDFiumPathSegmentType,
 } from "./objects.types.js";
 export {
   PDFiumTextObject,
@@ -22,3 +25,4 @@ export {
   PDFiumFormObject,
   PDFiumObject,
 } from "./objects.js";
+export { FPDFPathSegmentType } from "./constants.js";

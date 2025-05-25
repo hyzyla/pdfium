@@ -5,7 +5,7 @@ import { toMatchImageSnapshot } from "jest-image-snapshot";
 import { test, describe, expect, beforeAll, afterAll } from "vitest";
 
 import { type PDFiumDocument, PDFiumLibrary, PDFiumPage, PDFiumPageRenderOptions } from "../src/index.esm";
-import type { PDFiumImageObject } from "../src/objects";
+import type { PDFiumImageObject, PDFiumPathObject } from "../src/objects";
 
 
 expect.extend({ toMatchImageSnapshot });
@@ -393,6 +393,80 @@ describe("PDFium", () => {
               expect(image.data).toBeDefined();
             }
           }
+        }
+      });
+    });
+  });
+
+  describe("PDFiumPathObject", () => {
+    test("should find path objects in a PDF", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const page = document.getPage(0);
+        const objects = Array.from(page.objects());
+        
+        // Find path objects
+        const pathObjects = objects.filter(obj => obj.type === "path");
+        
+        // test_1.pdf should contain some path objects (vector graphics)
+        expect(pathObjects.length).toBeGreaterThan(0);
+      });
+    });
+
+    test("should extract path data from path objects", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const page = document.getPage(0);
+        const objects = Array.from(page.objects());
+        
+        // Find the first path object
+        const pathObject = objects.find(obj => obj.type === "path") as PDFiumPathObject;
+        
+        if (pathObject) {
+          // Test segment count
+          const segmentCount = pathObject.getSegmentCount();
+          expect(segmentCount).toBeGreaterThanOrEqual(0);
+          
+          if (segmentCount > 0) {
+            // Test getting individual segments
+            const firstSegment = pathObject.getSegment(0);
+            expect(firstSegment).toBeDefined();
+            expect(firstSegment).toHaveProperty('type');
+            expect(firstSegment).toHaveProperty('x');
+            expect(firstSegment).toHaveProperty('y');
+            expect(firstSegment).toHaveProperty('close');
+            
+            // Verify segment type is one of the expected types
+            expect(['unknown', 'lineto', 'bezierto', 'moveto']).toContain(firstSegment.type);
+            
+            // Verify coordinates are numbers
+            expect(typeof firstSegment.x).toBe('number');
+            expect(typeof firstSegment.y).toBe('number');
+            expect(typeof firstSegment.close).toBe('boolean');
+          }
+          
+          // Test getting all path data
+          const pathData = pathObject.getPathData();
+          expect(pathData).toBeDefined();
+          expect(pathData).toHaveProperty('segments');
+          expect(Array.isArray(pathData.segments)).toBe(true);
+          expect(pathData.segments.length).toBe(segmentCount);
+        }
+      });
+    });
+
+    test("should handle invalid segment indices gracefully", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const page = document.getPage(0);
+        const objects = Array.from(page.objects());
+        
+        const pathObject = objects.find(obj => obj.type === "path") as PDFiumPathObject;
+        
+        if (pathObject) {
+          const segmentCount = pathObject.getSegmentCount();
+          
+          // Test out-of-bounds indices
+          expect(pathObject.getSegment(-1)).toBeNull();
+          expect(pathObject.getSegment(segmentCount)).toBeNull();
+          expect(pathObject.getSegment(segmentCount + 100)).toBeNull();
         }
       });
     });
