@@ -1,6 +1,6 @@
 {
   "name": "@hyzyla/pdfium",
-  "version": "2.1.8",
+  "version": "2.1.7",
   "description": "Universal wrapper for PDFium",
   "type": "module",
   "types": "dist/index.esm.d.ts",
