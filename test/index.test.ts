@@ -439,4 +439,15 @@ describe("PDFium", () => {
       expect(result.data).toMatchImageSnapshot();
     });
   });
+
+  test("should render with signature", async () => {
+    await loadDocument("test_8_with_signature.pdf", async (document) => {
+      const result = await document.getPage(0).render({
+        scale: 3,
+        render: renderFunction,
+        renderFormFields: true,
+      });
+      expect(result.data).toMatchImageSnapshot();
+    });
+  });
 });
