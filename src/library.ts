@@ -1,8 +1,7 @@
-import type * as t from "./vendor/pdfium.js";
-
 import { FPDFErrorCode } from "./constants.js";
 import { PDFiumDocument } from "./document.js";
 import { lengthBytesUTF8, stringToUTF8 } from "./emscripten.js";
+import type * as t from "./vendor/pdfium.js";
 
 const NO_OPTION_WARNING =
   "@hyzyla/pdfium: wasmUrl, wasmBinary is required for browser environment. \n\n" +
@@ -46,7 +45,7 @@ export class PDFiumLibrary {
     const { wasmUrl, wasmBinary, instantiateWasm } = options || {};
     const loadOptions: t.LoadPdfiumOptions = {};
     if (wasmUrl) {
-      loadOptions.locateFile = (path: string) => wasmUrl;
+      loadOptions.locateFile = (_path: string) => wasmUrl;
     } else if (wasmBinary) {
       loadOptions.wasmBinary = wasmBinary;
     } else if (instantiateWasm) {

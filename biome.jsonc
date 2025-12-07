@@ -1,11 +1,8 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "organizeImports": {
-    "enabled": true
-  },
   "files": {
     "maxSize": 10485760, // 10mb in bytes
-    "include": [
+    "includes": [
       "src/**/*.ts",
       "docs/**/*.tsx",
       "demo/**/*.js",
@@ -15,10 +12,8 @@
       "rollup.config.mjs",
       "tsconfig.json",
       "vite.config.ts",
-      "src/vendor/**/*.ts",
-      "src/vendor/**/*.js"
-    ],
-    "ignore": ["src/emscripten.ts"]
+      "!src/vendor/**/*.js"
+    ]
   },
   "linter": {
     "enabled": true,
@@ -28,13 +23,20 @@
         "noStaticOnlyClass": "off"
       },
       "correctness": {
-        "useImportExtensions": "error"
+        "useImportExtensions": "off"
       }
-    },
-    "ignore": ["src/vendor/**/*.js", "docs/**/*.tsx"]
+    }
   },
   "formatter": {
     "lineWidth": 120,
     "indentStyle": "space"
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/emscripten.ts", "src/vendor/**/*.js", "docs/**/*.tsx"],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
 }

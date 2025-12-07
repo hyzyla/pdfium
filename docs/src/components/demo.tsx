@@ -60,11 +60,7 @@ function useGetPageBitmap(
   });
 }
 
-export function PDFPageViwer(props: {
-  pdfiumDocument: PDFiumDocument;
-  pageNumber: number;
-  scale: number;
-}) {
+export function PDFPageViwer(props: { pdfiumDocument: PDFiumDocument; pageNumber: number; scale: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const result = useGetPageBitmap(props.pdfiumDocument, {

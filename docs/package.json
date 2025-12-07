@@ -15,20 +15,20 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.5.2",
-    "@docusaurus/preset-classic": "^3.5.2",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
     "@hyzyla/pdfium": "file:..",
-    "@mdx-js/react": "^3.0.1",
-    "@tanstack/react-query": "^5.51.23",
+    "@mdx-js/react": "^3.1.1",
+    "@tanstack/react-query": "^5.90.12",
     "clsx": "^2.1.1",
-    "prism-react-renderer": "^2.3.1",
+    "prism-react-renderer": "^2.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.5.2",
+    "@docusaurus/module-type-aliases": "3.9.2",
     "@tsconfig/docusaurus": "^2.0.3",
-    "typescript": "^5.5.4"
+    "typescript": "^5.7.3"
   },
   "browserslist": {
     "production": [

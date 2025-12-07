@@ -53,12 +53,7 @@ export function lengthBytesUTF8(str: string): number {
  *                                   terminator.
  * @return {number} The number of bytes written, EXCLUDING the null terminator.
  */
-export function stringToUTF8(
-  str: string,
-  heap: Uint8Array,
-  outIdx: number,
-  maxBytesToWrite: number,
-): number {
+export function stringToUTF8(str: string, heap: Uint8Array, outIdx: number, maxBytesToWrite: number): number {
   outIdx >>>= 0;
 
   // Parameter maxBytesToWrite is not optional. Negative values, 0, null,

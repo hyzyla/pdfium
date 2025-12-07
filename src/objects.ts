@@ -1,5 +1,3 @@
-import type * as t from "./vendor/pdfium.js";
-
 import { BYTES_PER_PIXEL, FPDFBitmap, FPDFPageObjectType } from "./constants.js";
 import type {
   PDFiumImageObjectRaw,
@@ -8,6 +6,7 @@ import type {
   PDFiumObjectType,
 } from "./objects.types.js";
 import { convertBitmapToImage, readUInt16LE } from "./utils.js";
+import type * as t from "./vendor/pdfium.js";
 
 export abstract class PDFiumObjectBase {
   public abstract readonly type: PDFiumObjectType;
@@ -29,12 +28,7 @@ export abstract class PDFiumObjectBase {
     this.pageIdx = options.pageIdx;
   }
 
-  static create(options: {
-    module: t.PDFium;
-    objectIdx: number;
-    documentIdx: number;
-    pageIdx: number;
-  }): PDFiumObject {
+  static create(options: { module: t.PDFium; objectIdx: number; documentIdx: number; pageIdx: number }): PDFiumObject {
     const type = options.module._FPDFPageObj_GetType(options.objectIdx);
     switch (type) {
       case FPDFPageObjectType.TEXT:
