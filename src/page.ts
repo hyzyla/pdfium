@@ -1,15 +1,11 @@
-import { FPDFBitmap, FPDFRenderFlag } from './constants.js';
-import { DEFAULT_PAGE_RENDER_OPTIONS } from './default.options.js';
-import type { PDFiumDocument } from './document.js';
-import { type PDFiumObject, PDFiumObjectBase } from './objects.js';
-import type {
-  PDFiumPageRender,
-  PDFiumPageRenderOptionsValidated,
-  PDFiumPageRenderParams,
-} from './page.types.js';
-import type { PDFiumRenderFunction, PDFiumRenderOptions } from './types.js';
-import { convertBitmapToImage } from './utils.js';
-import type * as t from './vendor/pdfium.js';
+import { FPDFBitmap, FPDFRenderFlag } from "./constants.js";
+import { DEFAULT_PAGE_RENDER_OPTIONS } from "./default.options.js";
+import type { PDFiumDocument } from "./document.js";
+import { type PDFiumObject, PDFiumObjectBase } from "./objects.js";
+import type { PDFiumPageRender, PDFiumPageRenderOptionsValidated, PDFiumPageRenderParams } from "./page.types.js";
+import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types.js";
+import { convertBitmapToImage } from "./utils.js";
+import type * as t from "./vendor/pdfium.js";
 
 export class PDFiumPage {
   private readonly module: t.PDFium;
@@ -68,14 +64,14 @@ export class PDFiumPage {
   getText(): string {
     const textPage = this.module._FPDFText_LoadPage(this.pageIdx);
     if (!textPage) {
-      throw new Error('Failed to load text page');
+      throw new Error("Failed to load text page");
     }
 
     try {
       const charCount = this.module._FPDFText_CountChars(textPage);
 
       if (charCount <= 0) {
-        return '';
+        return "";
       }
 
       const bufferSize = (charCount + 1) * 2;
@@ -85,13 +81,13 @@ export class PDFiumPage {
         const length = this.module._FPDFText_GetText(textPage, 0, charCount, textPtr);
 
         if (length <= 0) {
-          return '';
+          return "";
         }
 
         // Convert the UTF-16LE buffer to a JavaScript string
         // Subtract 1 from length to remove the null terminator
         const buffer = new Uint8Array(this.module.HEAPU8.buffer, textPtr, (length - 1) * 2);
-        const text = new TextDecoder('utf-16le').decode(buffer);
+        const text = new TextDecoder("utf-16le").decode(buffer);
 
         return text;
       } finally {
@@ -123,17 +119,11 @@ export class PDFiumPage {
     let bitmap: number | null = null;
 
     if (ptr === 0) {
-      throw new Error('Failed to allocate memory for bitmap');
+      throw new Error("Failed to allocate memory for bitmap");
     }
 
     try {
-      bitmap = this.module._FPDFBitmap_CreateEx(
-        width,
-        height,
-        bytesPerPixel,
-        ptr,
-        width * bytesPerPixel,
-      );
+      bitmap = this.module._FPDFBitmap_CreateEx(width, height, bytesPerPixel, ptr, width * bytesPerPixel);
 
       this.module._FPDFBitmap_FillRect(
         bitmap,
@@ -146,10 +136,7 @@ export class PDFiumPage {
 
       let flags = FPDFRenderFlag.ANNOT | FPDFRenderFlag.LCD_TEXT;
 
-      flags =
-        colorSpace === 'Gray'
-          ? flags | FPDFRenderFlag.GRAYSCALE
-          : flags | FPDFRenderFlag.REVERSE_BYTE_ORDER;
+      flags = colorSpace === "Gray" ? flags | FPDFRenderFlag.GRAYSCALE : flags | FPDFRenderFlag.REVERSE_BYTE_ORDER;
 
       this.module._FPDF_RenderPageBitmap(
         bitmap,

@@ -1,5 +1,5 @@
-import { PDFiumPage } from './page.js';
-import type * as t from './vendor/pdfium.js';
+import { PDFiumPage } from "./page.js";
+import type * as t from "./vendor/pdfium.js";
 
 export class PDFiumDocument {
   private readonly module: t.PDFium;
@@ -44,7 +44,7 @@ export class PDFiumDocument {
     const formSize = 256; // we need at least 140 bytes, but let's allocate 256 for safety
     this.formPtr = this.module.wasmExports.malloc(formSize);
     if (this.formPtr === 0) {
-      throw new Error('Failed to allocate memory for form fill environment');
+      throw new Error("Failed to allocate memory for form fill environment");
     }
 
     this.module.HEAPU8.fill(0, this.formPtr, this.formPtr + formSize);
@@ -56,7 +56,7 @@ export class PDFiumDocument {
     if (this.formIdx === 0) {
       this.module.wasmExports.free(this.formPtr);
       this.formPtr = null;
-      throw new Error('Failed to initialize form fill environment');
+      throw new Error("Failed to initialize form fill environment");
     }
 
     return this.formIdx;

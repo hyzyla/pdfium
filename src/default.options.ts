@@ -1,9 +1,9 @@
-import type { PDFiumScaleAndRender } from './page.types.js';
+import type { PDFiumScaleAndRender } from "./page.types.js";
 
 const DEFAULT_PAGE_RENDER_OPTIONS: PDFiumScaleAndRender = {
   scale: 1,
-  render: 'bitmap',
-  colorSpace: 'BGRA',
+  render: "bitmap",
+  colorSpace: "BGRA",
   renderFormFields: false,
 };
 

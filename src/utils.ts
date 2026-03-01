@@ -1,4 +1,4 @@
-import type { PDFiumRenderFunction, PDFiumRenderOptions } from './types.js';
+import type { PDFiumRenderFunction, PDFiumRenderOptions } from "./types.js";
 
 export async function convertBitmapToImage(
   options: {
@@ -7,7 +7,7 @@ export async function convertBitmapToImage(
 ): Promise<Uint8Array> {
   const { data, render } = options;
 
-  if (typeof render === 'function') {
+  if (typeof render === "function") {
     return await render(options);
   }
 
