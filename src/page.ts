@@ -105,7 +105,7 @@ export class PDFiumPage {
       ...options,
     };
 
-    const { colorSpace, render, renderFormFields } = renderOptions;
+    const { colorSpace, render, renderFormFields, transparent } = renderOptions;
     const { width, height, originalWidth, originalHeight } = this.getSize(renderOptions);
 
     if (renderFormFields) {
@@ -125,13 +125,15 @@ export class PDFiumPage {
     try {
       bitmap = this.module._FPDFBitmap_CreateEx(width, height, bytesPerPixel, ptr, width * bytesPerPixel);
 
+      // Gray bitmaps have no alpha channel, so transparency only applies to BGRA.
+      const fillColor = transparent && colorSpace === "BGRA" ? 0x00000000 : 0xffffffff;
       this.module._FPDFBitmap_FillRect(
         bitmap,
         0, // left
         0, // top
         width, // width
         height, // height
-        0xffffffff, // color (white)
+        fillColor, // 0xAARRGGBB: 0xFFFFFFFF = opaque white, 0x00000000 = transparent
       );
 
       let flags = FPDFRenderFlag.ANNOT | FPDFRenderFlag.LCD_TEXT;

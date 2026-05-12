@@ -12,6 +12,7 @@ export type PDFiumPageRenderParams = {
   scale?: number;
   width?: number;
   height?: number;
+  transparent?: boolean;
 };
 
 export type ColorSpace = "BGRA" | "Gray";
@@ -21,6 +22,7 @@ export type PDFiumScaleAndRender = {
   render: PDFiumPageRenderFunction;
   colorSpace: ColorSpace;
   renderFormFields: boolean;
+  transparent: boolean;
 };
 
 export type PDFiumPageRenderOptionsValidated = {
@@ -28,6 +30,7 @@ export type PDFiumPageRenderOptionsValidated = {
   render: PDFiumPageRenderFunction;
   colorSpace: ColorSpace;
   renderFormFields: boolean;
+  transparent: boolean;
   width?: number;
   height?: number;
 };

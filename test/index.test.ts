@@ -176,6 +176,40 @@ describe("PDFium", () => {
       });
     });
 
+    test("should render with a transparent background when transparent: true", async () => {
+      await loadDocument("test_9_transparent.pdf", async (document) => {
+        const result = await document.getPage(0).render({
+          scale: 1,
+          render: renderFunction,
+          transparent: true,
+        });
+
+        // Top-left corner pixel should be fully transparent (alpha = 0).
+        const { data: raw, info } = await sharp(result.data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+        expect(info.channels).toBe(4);
+        expect(raw[3]).toBe(0);
+
+        expect(result.data).toMatchImageSnapshot();
+      });
+    });
+
+    test("should render with a white background by default", async () => {
+      await loadDocument("test_9_transparent.pdf", async (document) => {
+        const result = await document.getPage(0).render({
+          scale: 1,
+          render: renderFunction,
+        });
+
+        // Top-left corner pixel should be fully opaque white (alpha = 255, RGB = 255,255,255).
+        const { data: raw, info } = await sharp(result.data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+        expect(info.channels).toBe(4);
+        expect(raw[0]).toBe(255);
+        expect(raw[1]).toBe(255);
+        expect(raw[2]).toBe(255);
+        expect(raw[3]).toBe(255);
+      });
+    });
+
     test("should call a custom render function", async () => {
       await loadDocument("test_1.pdf", async (document) => {
         const result = await document.getPage(0).render({

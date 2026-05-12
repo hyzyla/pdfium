@@ -5,6 +5,7 @@ const DEFAULT_PAGE_RENDER_OPTIONS: PDFiumScaleAndRender = {
   render: "bitmap",
   colorSpace: "BGRA",
   renderFormFields: false,
+  transparent: false,
 };
 
 export { DEFAULT_PAGE_RENDER_OPTIONS };

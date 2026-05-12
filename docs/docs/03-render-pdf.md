@@ -34,6 +34,7 @@ Then you can render the page to an image by calling `render` method of the page 
 - `render` - render engine to use, can be either `sharp`, `bitmap` (default is `bitmap`) or custom render function. If you need to render to PNG, it's recommended to use `sharp` render function.
 - `colorSpace` - color space to render to: `'BGRA'` (default, full color) or `'Gray'` (grayscale, useful for OCR)
 - `renderFormFields` - whether to render interactive form fields (default is `false`). Form fields are interactive elements like text boxes, checkboxes, dropdown menus, and signature fields that users can fill out in PDF documents (like tax forms, applications, or contracts).
+- `transparent` - render onto a transparent background instead of the default opaque white (default is `false`). Useful when you want to composite the rendered page over other content. Only applies to `colorSpace: 'BGRA'` (the default); ignored for `'Gray'` since grayscale bitmaps have no alpha channel.
 
 ```typescript
 const image = await page.render({
@@ -49,6 +50,16 @@ const image = await page.render({
   scale: 3,
   render: 'sharp',
   renderFormFields: true,
+});
+```
+
+To render onto a transparent background (e.g. for compositing as a layer):
+
+```typescript
+const image = await page.render({
+  scale: 3,
+  render: 'sharp',
+  transparent: true,
 });
 ```
 
