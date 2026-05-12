@@ -48,6 +48,11 @@ export class PDFiumLibrary {
       loadOptions.locateFile = (_path: string) => wasmUrl;
     } else if (wasmBinary) {
       loadOptions.wasmBinary = wasmBinary;
+      // Also set a no-op locateFile so the vendor's findWasmBinary short-circuits
+      // before its `new URL(..., import.meta.url)` call, which throws inside
+      // blob-based worker contexts (issue #40). The returned URL is never read
+      // because wasmBinary is provided.
+      loadOptions.locateFile = () => "";
     } else if (instantiateWasm) {
       loadOptions.instantiateWasm = instantiateWasm;
     } else {

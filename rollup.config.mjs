@@ -74,6 +74,22 @@ function setNotNodeEnvironment() {
   });
 }
 
+// Inlines the previously-built worker bundle into the worker client as a string
+// constant, so PDFiumWorkerClient.spawn() can construct a Worker from a Blob URL
+// with no extra files to ship.
+function injectWorkerBundle() {
+  return rollupReplace({
+    preventAssignment: true,
+    delimiters: ["", ""],
+    values: {
+      __WORKER_BUNDLE_SOURCE__: () => {
+        const source = fs.readFileSync(`${DIST_FOLDER}/worker.bundle.js`, "utf-8");
+        return JSON.stringify(source);
+      },
+    },
+  });
+}
+
 export default [
   // CommonJS build
   {
@@ -165,6 +181,37 @@ export default [
           __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")),
         },
       }),
+      resolve(),
+      typescript(),
+    ],
+  },
+  // Worker bundle — runs inside the spawned Web Worker. WASM is fetched from
+  // the user-provided `wasmUrl` at init time using
+  // `WebAssembly.instantiateStreaming` (with a fetch+compile fallback). Built
+  // BEFORE the client below so it can be inlined as a string.
+  {
+    input: "src/worker/worker-entry.ts",
+    output: {
+      file: `${DIST_FOLDER}/worker.bundle.js`,
+      format: "es",
+      inlineDynamicImports: true,
+    },
+    plugins: [patchEsmPath(), setNotNodeEnvironment(), resolve(), typescript()],
+  },
+  // Worker client — main-thread entrypoint. Inlines the worker bundle above so
+  // users get a single-import `PDFiumWorkerClient.spawn({ wasmUrl })`.
+  {
+    input: "src/index.esm.worker.ts",
+    output: {
+      name: "PDFium",
+      file: `${DIST_FOLDER}/index.esm.worker.js`,
+      format: "es",
+      exports: "named",
+    },
+    plugins: [
+      injectDebugLog({ message: "PDFium worker loaded" }),
+      setNotNodeEnvironment(),
+      injectWorkerBundle(),
       resolve(),
       typescript(),
     ],

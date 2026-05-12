@@ -27,6 +27,10 @@
       "types": "./dist/index.esm.base64.d.ts",
       "default": "./dist/index.esm.base64.js"
     },
+    "./worker": {
+      "types": "./dist/index.esm.worker.d.ts",
+      "default": "./dist/index.esm.worker.js"
+    },
     "./pdfium.wasm": "./dist/pdfium.wasm",
     "./dist/*": "./dist/*"
   },
