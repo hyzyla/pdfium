@@ -1,7 +1,7 @@
 name: Publish to NPM
 on:
   release:
-    types: [created]
+    types: [published]
   # also allow manual triggering of the workflow from the Actions tab
   # if for some reason the release doesn't need to be created first
   workflow_dispatch:
@@ -19,6 +19,16 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+      - name: Check the release tag matches the package version
+        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if [ "${TAG#v}" != "$version" ]; then
+            echo "::error::Release tag $TAG doesn't match package.json version $version"
+            exit 1
+          fi
       - run: npm ci && npm run build:prod
       - run: npm run check:package
       - run: npm publish --provenance
