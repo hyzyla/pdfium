@@ -3,23 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="src/style.css" />
-    <script type="importmap">
-      {
-        "imports": {
-          "@hyzyla/pdfium": "https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@2.0.1/dist/index.esm.js",
-          "path": {},
-          "fs": {}
-        }
-      }
-    </script>
-
-    <script type="module">
-      // todo: fix this, it doesn't work
-      import { PDFiumLibrary } from "@hyzyla/pdfium";
-    </script>
+    <title>@hyzyla/pdfium without a bundler</title>
   </head>
   <body>
-    <h1>Hi friend, try edit me!</h1>
+    <h1>@hyzyla/pdfium without a bundler</h1>
+    <p>Pick a PDF to render its first page. The library and its wasm load from jsDelivr.</p>
+    <input type="file" accept="application/pdf" />
+    <p id="status"></p>
+    <canvas></canvas>
+
+    <script type="module">
+      import { PDFiumLibrary } from "https://cdn.jsdelivr.net/npm/@hyzyla/pdfium/dist/index.esm.cdn.js";
+
+      const status = document.querySelector("#status");
+      const canvas = document.querySelector("canvas");
+      // Starts downloading the wasm right away, but a file can be picked before it's ready
+      const libraryPromise = PDFiumLibrary.init({ disableCDNWarning: true });
+
+      document.querySelector("input").addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+          const library = await libraryPromise;
+          const pdf = await library.loadDocument(new Uint8Array(await file.arrayBuffer()));
+          try {
+            const { width, height, data } = await pdf.getPage(0).render({ scale: 2 });
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(data), width, height), 0, 0);
+            status.textContent = `Page 1 of ${pdf.getPageCount()}`;
+          } finally {
+            pdf.destroy();
+          }
+        } catch (error) {
+          status.textContent = String(error);
+        }
+      });
+    </script>
   </body>
 </html>
