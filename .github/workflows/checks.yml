@@ -19,3 +19,23 @@ jobs:
       - run: npm run build:prod
       - run: npx playwright-core install --with-deps firefox webkit
       - run: npm run check:package
+
+  node-versions:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22, 26]
+    steps:
+      - uses: actions/checkout@v7
+      # The packed package runs on this version, the tooling on Node 24 below
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - run: echo "TEST_NODE=$(which node)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build:prod
+      - run: npx vitest run --project package test/package/node.test.ts
