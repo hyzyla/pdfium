@@ -2,12 +2,6 @@ import { Octokit } from '@octokit/rest';
 import { execSync } from 'child_process';
 import { promises as fs } from 'fs';
 import axios from 'axios';
-import { createGunzip } from 'zlib';
-import { extract, t } from 'tar';
-import { pipeline as _pipeline } from 'stream';
-import { promisify } from 'util';
-
-const pipeline = promisify(_pipeline);
 
 // eslint-disable-next-line no-undef
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -17,6 +11,7 @@ const octokit = new Octokit({
 });
 
 const VERSION_FILE = 'src/vendor/LAST_RELEASE.txt';
+const WASM_ARCHIVE = 'src/vendor/wasm.zip';
 
 /**
  * Check whether branch exists
@@ -72,18 +67,24 @@ async function checkForUpdates() {
 
   try {
     // Download wasm asset
-    const wasmAssetUrl = lastRelease.assets.find((asset) => asset.name === 'wasm.tgz').browser_download_url;
+    const wasmAsset = lastRelease.assets.find((asset) => asset.name === 'wasm.zip');
+    if (!wasmAsset) {
+      const assetNames = lastRelease.assets.map((asset) => asset.name).join(', ');
+      throw new Error(`No wasm.zip asset in release ${lastReleaseTag}, found: ${assetNames}`);
+    }
+    const wasmAssetUrl = wasmAsset.browser_download_url;
     console.log(`Downloading wasm asset: ${wasmAssetUrl}`);
 
     const response = await axios({
       url: wasmAssetUrl,
       method: 'GET',
-      responseType: 'stream',
+      responseType: 'arraybuffer',
     });
     console.log(`Downloaded wasm asset: ${response.status}`);
+    await fs.writeFile(WASM_ARCHIVE, response.data);
 
     // Unzip archive
-    await pipeline(response.data, createGunzip(), extract({ cwd: 'src/vendor' }));
+    execSync(`unzip -q -o ${WASM_ARCHIVE} -d src/vendor`);
     console.log('Unzipped wasm asset to src/vendor folder');
 
     // Copy files
@@ -92,7 +93,8 @@ async function checkForUpdates() {
     await fs.copyFile('src/vendor/release/node/pdfium.wasm', 'src/vendor/pdfium.wasm');
     console.log('Copied files to src/vendor folder');
 
-    execSync(`npx prettier --write src/vendor`);
+    // Only the generated JS goes through prettier; pdfium.d.ts is formatted by biome
+    execSync(`npx prettier --write src/vendor/pdfium.js src/vendor/pdfium.esm.js`);
     console.log('Formatted files');
 
     await fs.writeFile('src/vendor/LAST_RELEASE.txt', lastReleaseTag);
@@ -111,7 +113,8 @@ async function checkForUpdates() {
     });
     console.log('Created pull request');
   } finally {
-    // Remove archive folder
+    // Remove archive and its extracted folder
+    await fs.rm(WASM_ARCHIVE, { force: true });
     await fs.rm('src/vendor/release', {
       recursive: true,
       force: true,
