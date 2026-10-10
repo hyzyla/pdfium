@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "nodenext",
+    "module": "node16",
     "lib": ["es2022", "dom"],
     "types": [],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": false
   },
-  "files": ["types.ts"]
+  "files": ["types.ts", "types.cts"]
 }
