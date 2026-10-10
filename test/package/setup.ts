@@ -1,5 +1,4 @@
 import { execFileSync } from "node:child_process";
-import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -28,9 +27,8 @@ export default async function setup(project: TestProject) {
   if (!fs.existsSync("dist/index.esm.js")) {
     throw new Error("dist/ is missing, run `npm run build:prod` first");
   }
-  // Only production builds bake in the hash the CDN entry checks the wasm against
-  const wasmHash = crypto.createHash("sha256").update(fs.readFileSync("dist/pdfium.wasm")).digest("base64");
-  if (!fs.readFileSync("dist/index.esm.cdn.js", "utf-8").includes(wasmHash)) {
+  // Development builds log which entry point loaded
+  if (fs.readFileSync("dist/index.esm.js", "utf-8").includes('console.log("PDFium')) {
     throw new Error("dist/ is a development build, run `npm run build:prod` first");
   }
 

@@ -77,18 +77,8 @@ function injectDebugLog({ message }) {
   };
 }
 
-function injectCdnVars() {
-  return replacePlugin(
-    {
-      // For properly fetching the wasm file from CDN
-      __PACKAGE_VERSION__: JSON.stringify(pkg.version),
-      // For dev environment we don't care about integrity
-      __WASM_SHA256_B64__: JSON.stringify(IS_PROD ? sha256Base64(wasmFile) : null),
-    },
-    { preventAssignment: true },
-  );
-}
-
+// ENVIRONMENT_IS_NODE is a variable inside the vendor code, which
+// `transform.define` leaves alone, so it needs the replace plugin
 function setNotNodeEnvironment() {
   return replacePlugin(
     {
@@ -189,6 +179,13 @@ const builds = [
   {
     input: "src/index.esm.cdn.ts",
     platform: "browser",
+    transform: {
+      define: {
+        // The CDN entry downloads the wasm of this exact version and checks it against this hash
+        __PACKAGE_VERSION__: JSON.stringify(pkg.version),
+        __WASM_SHA256_B64__: JSON.stringify(sha256Base64(wasmFile)),
+      },
+    },
     output: {
       file: `${DIST_FOLDER}/index.esm.cdn.js`,
       format: "es",
@@ -197,13 +194,15 @@ const builds = [
       injectDebugLog({ message: "PDFium with CDN loaded" }),
       patchVendor({ dropWasmUrl: true, allowShell: true }),
       setNotNodeEnvironment(),
-      injectCdnVars(),
     ],
   },
   // ES (browser) + Base64 build
   {
     input: "src/index.esm.base64.ts",
     platform: "browser",
+    transform: {
+      define: { __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")) },
+    },
     output: {
       dir: DIST_FOLDER,
       format: "es",
@@ -212,10 +211,6 @@ const builds = [
       injectDebugLog({ message: "PDFium with Base64 loaded" }),
       patchVendor({ dropWasmUrl: true, allowShell: true }),
       setNotNodeEnvironment(),
-      replacePlugin(
-        { __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")) },
-        { preventAssignment: true },
-      ),
     ],
   },
   // Worker client, the main-thread entrypoint. The worker itself runs
