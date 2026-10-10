@@ -10,11 +10,12 @@ import pkg from "../../package.json" with { type: "json" };
 
 const dir = inject("packageDir");
 
-// Each bundler builds the fixture page into a folder that can be served as is
+// Each bundler builds the fixture page into a folder that can be served as is,
+// and returns that folder with the page to open in it
 const bundlers = {
   async vite() {
     await build({ root: dir, configFile: false, logLevel: "error", build: { outDir: "www-vite" } });
-    return path.join(dir, "www-vite");
+    return { outDir: path.join(dir, "www-vite"), page: "index.html" };
   },
   async webpack() {
     const outDir = path.join(dir, "www-webpack");
@@ -35,7 +36,11 @@ const bundlers = {
       throw new Error(stats.toString("errors-warnings"));
     }
     fs.writeFileSync(path.join(outDir, "index.html"), '<!doctype html><script src="main.js"></script>');
-    return outDir;
+    return { outDir, page: "index.html" };
+  },
+  // No bundler at all, the page loads the published files through an import map
+  async unbundled() {
+    return { outDir: dir, page: "unbundled.html" };
   },
 };
 
@@ -68,10 +73,12 @@ afterAll(async () => {
 // packed pdfium.wasm, which also checks the integrity hash baked into it.
 describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler) => {
   let server: PreviewServer;
+  let url: string;
 
   beforeAll(async () => {
-    const outDir = await bundlers[bundler]();
+    const { outDir, page } = await bundlers[bundler]();
     server = await preview({ root: dir, configFile: false, logLevel: "error", build: { outDir } });
+    url = new URL(page, server.resolvedUrls!.local[0]).href;
   });
 
   afterAll(async () => {
@@ -93,7 +100,7 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
           headers: { "access-control-allow-origin": "*" },
         });
       });
-      await page.goto(server.resolvedUrls!.local[0]);
+      await page.goto(url);
       const handle = await page.waitForFunction(() => (window as { results?: Record<string, unknown> }).results);
       results = (await handle.jsonValue())!;
       failures = await page.evaluate(() => (window as unknown as { failures: Record<string, string> }).failures);

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Loads the published files as they are, the way a CDN such as jsDelivr serves them -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@hyzyla/pdfium": "./node_modules/@hyzyla/pdfium/dist/index.esm.browser.js",
+          "@hyzyla/pdfium/browser/cdn": "./node_modules/@hyzyla/pdfium/dist/index.esm.cdn.js",
+          "@hyzyla/pdfium/browser/base64": "./node_modules/@hyzyla/pdfium/dist/index.esm.base64.js",
+          "@hyzyla/pdfium/worker": "./node_modules/@hyzyla/pdfium/dist/index.esm.worker.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import { probeBrowserEntries } from "./browser.js";
+
+      await probeBrowserEntries({
+        wasmUrl: "./node_modules/@hyzyla/pdfium/dist/pdfium.wasm",
+        pdfUrl: "./test.pdf",
+      });
+    </script>
+  </head>
+</html>
