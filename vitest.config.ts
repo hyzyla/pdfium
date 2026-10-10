@@ -24,5 +24,6 @@ export default defineConfig({
   },
   define: {
     __PACKAGE_VERSION__: JSON.stringify("0.0.1"),
+    __WASM_SHA265_B64__: "null",
   },
 });

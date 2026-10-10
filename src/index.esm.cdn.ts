@@ -21,25 +21,26 @@ const CDN_WARNING =
   "for better performance and reliability. You can also disable this warning by passing { disableCDNWarning: true } " +
   "to PDFiumLibrary.init() method";
 
+async function fetchWasmBinary(): Promise<ArrayBuffer> {
+  const response = await fetch(CDN_WASM_LINK, WASM_INTEGRITY ? { integrity: WASM_INTEGRITY } : {});
+  if (!response.ok) {
+    throw new Error(`@hyzyla/pdfium: Failed to fetch ${CDN_WASM_LINK} (HTTP ${response.status})`);
+  }
+  return await response.arrayBuffer();
+}
+
 export class PDFiumLibrary extends _PDFiumLibrary {
+  // The downloaded wasm, reused by later init() calls
   static _cache: ArrayBuffer | null = null;
 
   static async init(options?: { disableCDNWarning?: boolean }) {
     if (!options?.disableCDNWarning) {
       console.warn(CDN_WARNING);
     }
-    if (PDFiumLibrary._cache) {
-      return await PDFiumLibrary.initBase({
-        vendor: PDFiumModule,
-        wasmBinary: PDFiumLibrary._cache,
-      });
-    }
-    const fetchOptions = WASM_INTEGRITY ? { integrity: WASM_INTEGRITY } : {};
-    const response = await fetch(CDN_WASM_LINK, fetchOptions);
-    const wasmBinary = await response.arrayBuffer();
+    PDFiumLibrary._cache ??= await fetchWasmBinary();
     return await PDFiumLibrary.initBase({
       vendor: PDFiumModule,
-      wasmBinary: wasmBinary,
+      wasmBinary: PDFiumLibrary._cache,
     });
   }
 }
