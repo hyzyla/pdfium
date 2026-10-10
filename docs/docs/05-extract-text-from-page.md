@@ -37,3 +37,17 @@ async function main() {
 
 main();
 ```
+
+## Text of individual objects
+
+`page.objects()` returns the page's content as objects, and text objects have their own `getText` method. A text object usually holds a word or a line, not a whole paragraph.
+
+```ts
+for (const object of page.objects()) {
+  if (object.type === "text") {
+    console.log(object.getText());
+  }
+}
+```
+
+The first `getText` call on a text object loads the page's text data. It stays in memory until you close the page with `page.close()` or destroy the document.
