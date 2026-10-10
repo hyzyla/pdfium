@@ -42,6 +42,7 @@
       "default": "./dist/index.esm.worker.js"
     },
     "./pdfium.wasm": "./dist/pdfium.wasm",
+    "./package.json": "./package.json",
     "./dist/*": "./dist/*"
   },
   "publishConfig": {

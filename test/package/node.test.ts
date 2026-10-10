@@ -13,3 +13,11 @@ test.for([
   expect(path.basename(resolved)).toBe(entry);
   expect(result).toEqual(inject("expected"));
 });
+
+test("package.json can be resolved", () => {
+  const output = execFileSync(process.execPath, ["-p", 'require.resolve("@hyzyla/pdfium/package.json")'], {
+    cwd: inject("packageDir"),
+    encoding: "utf-8",
+  });
+  expect(output.trim()).toMatch(/node_modules\/@hyzyla\/pdfium\/package\.json$/);
+});
