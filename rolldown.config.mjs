@@ -34,8 +34,17 @@ function emitWasm() {
 // Each edit throws when its pattern is gone, so a vendor update can't quietly
 // undo it.
 function patchVendor({ dropWasmUrl = false, allowShell = false } = {}) {
-  // The package ships the wasm as pdfium.wasm
-  const edits = [[/pdfium\.esm\.wasm/g, "pdfium.wasm"]];
+  const edits = [
+    // The package ships the wasm as pdfium.wasm
+    [/pdfium\.esm\.wasm/g, "pdfium.wasm"],
+    // Older webpack runtimes, like the one inside Next.js, only expose the
+    // default export of a CommonJS module that is a function, as node:module is
+    [
+      /const \{ createRequire \} = await import\("node:module"\);/,
+      'const nodeModule = await import("node:module");\n' +
+        "const { createRequire } = nodeModule.createRequire ? nodeModule : nodeModule.default;",
+    ],
+  ];
   if (dropWasmUrl) {
     // The CDN and base64 entries always hand the wasm bytes to the vendor code,
     // so its fallback URL for pdfium.wasm is never used. Bundlers still see the
