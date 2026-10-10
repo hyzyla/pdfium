@@ -34,6 +34,19 @@ const library = await PDFiumLibrary.init({ disableBase64Warning: true });
 
 It adds about 7 MB of JavaScript to your server bundle.
 
+### Next.js
+
+Next.js bundles server code, and the bundled code looks for `pdfium.wasm` at a path that doesn't exist on the server. Tell Next.js not to bundle the package:
+
+```js
+// next.config.mjs
+export default {
+  serverExternalPackages: ["@hyzyla/pdfium"],
+};
+```
+
+In Next.js 14 this option is called `experimental.serverComponentsExternalPackages`. The `@hyzyla/pdfium/inline` entry point also works in Next.js, with no configuration.
+
 ## Browser
 
 In the browser, you need to provide the URL to the `.wasm` binary or the binary itself, as an `ArrayBuffer` or `Uint8Array`, as an argument to the init method. Typically, you will use a bundler like Webpack or Rollup, which allows you to import the `.wasm` file directly as an asset URL. Here is an example of how you can do this with Vite:
