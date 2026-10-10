@@ -3502,6 +3502,7 @@ var PDFiumModule = (() => {
       }
     };
     var _emscripten_date_now = () => Date.now();
+    var _emscripten_errn = (str, len) => err(UTF8ToString(str, len));
     var getHeapMax = () => 2147483648;
     var growMemory = (size) => {
       var oldHeapSize = wasmMemory.buffer.byteLength;
@@ -4534,6 +4535,12 @@ var PDFiumModule = (() => {
     var _FPDFAttachment_GetStringValue = (Module[
       "_FPDFAttachment_GetStringValue"
     ] = makeInvalidEarlyAccess("_FPDFAttachment_GetStringValue"));
+    var _FPDFAttachment_SetDescription = (Module[
+      "_FPDFAttachment_SetDescription"
+    ] = makeInvalidEarlyAccess("_FPDFAttachment_SetDescription"));
+    var _FPDFAttachment_GetDescription = (Module[
+      "_FPDFAttachment_GetDescription"
+    ] = makeInvalidEarlyAccess("_FPDFAttachment_GetDescription"));
     var _FPDFAttachment_SetFile = (Module["_FPDFAttachment_SetFile"] =
       makeInvalidEarlyAccess("_FPDFAttachment_SetFile"));
     var _FPDFAttachment_GetFile = (Module["_FPDFAttachment_GetFile"] =
@@ -4576,6 +4583,10 @@ var PDFiumModule = (() => {
       makeInvalidEarlyAccess("_FPDFBookmark_GetDest"));
     var _FPDFBookmark_GetAction = (Module["_FPDFBookmark_GetAction"] =
       makeInvalidEarlyAccess("_FPDFBookmark_GetAction"));
+    var _FPDFBookmark_GetColor = (Module["_FPDFBookmark_GetColor"] =
+      makeInvalidEarlyAccess("_FPDFBookmark_GetColor"));
+    var _FPDFBookmark_GetStyle = (Module["_FPDFBookmark_GetStyle"] =
+      makeInvalidEarlyAccess("_FPDFBookmark_GetStyle"));
     var _FPDFAction_GetType = (Module["_FPDFAction_GetType"] =
       makeInvalidEarlyAccess("_FPDFAction_GetType"));
     var _FPDFAction_GetDest = (Module["_FPDFAction_GetDest"] =
@@ -4804,6 +4815,9 @@ var PDFiumModule = (() => {
       makeInvalidEarlyAccess("_FPDFPath_LineTo"));
     var _FPDFPath_BezierTo = (Module["_FPDFPath_BezierTo"] =
       makeInvalidEarlyAccess("_FPDFPath_BezierTo"));
+    var _FPDFPath_GetBezierControlPoints = (Module[
+      "_FPDFPath_GetBezierControlPoints"
+    ] = makeInvalidEarlyAccess("_FPDFPath_GetBezierControlPoints"));
     var _FPDFPath_Close = (Module["_FPDFPath_Close"] =
       makeInvalidEarlyAccess("_FPDFPath_Close"));
     var _FPDFPath_SetDrawMode = (Module["_FPDFPath_SetDrawMode"] =
@@ -4976,6 +4990,10 @@ var PDFiumModule = (() => {
       makeInvalidEarlyAccess("_FORM_SetIndexSelected"));
     var _FORM_IsIndexSelected = (Module["_FORM_IsIndexSelected"] =
       makeInvalidEarlyAccess("_FORM_IsIndexSelected"));
+    var _FORM_GetTextDirection = (Module["_FORM_GetTextDirection"] =
+      makeInvalidEarlyAccess("_FORM_GetTextDirection"));
+    var _FORM_SetTextDirection = (Module["_FORM_SetTextDirection"] =
+      makeInvalidEarlyAccess("_FORM_SetTextDirection"));
     var _FPDFDoc_GetJavaScriptActionCount = (Module[
       "_FPDFDoc_GetJavaScriptActionCount"
     ] = makeInvalidEarlyAccess("_FPDFDoc_GetJavaScriptActionCount"));
@@ -5734,6 +5752,14 @@ var PDFiumModule = (() => {
         "missing Wasm export: FPDFAttachment_GetStringValue",
       );
       assert(
+        typeof wasmExports["FPDFAttachment_SetDescription"] != "undefined",
+        "missing Wasm export: FPDFAttachment_SetDescription",
+      );
+      assert(
+        typeof wasmExports["FPDFAttachment_GetDescription"] != "undefined",
+        "missing Wasm export: FPDFAttachment_GetDescription",
+      );
+      assert(
         typeof wasmExports["FPDFAttachment_SetFile"] != "undefined",
         "missing Wasm export: FPDFAttachment_SetFile",
       );
@@ -5816,6 +5842,14 @@ var PDFiumModule = (() => {
       assert(
         typeof wasmExports["FPDFBookmark_GetAction"] != "undefined",
         "missing Wasm export: FPDFBookmark_GetAction",
+      );
+      assert(
+        typeof wasmExports["FPDFBookmark_GetColor"] != "undefined",
+        "missing Wasm export: FPDFBookmark_GetColor",
+      );
+      assert(
+        typeof wasmExports["FPDFBookmark_GetStyle"] != "undefined",
+        "missing Wasm export: FPDFBookmark_GetStyle",
       );
       assert(
         typeof wasmExports["FPDFAction_GetType"] != "undefined",
@@ -6236,6 +6270,10 @@ var PDFiumModule = (() => {
         "missing Wasm export: FPDFPath_BezierTo",
       );
       assert(
+        typeof wasmExports["FPDFPath_GetBezierControlPoints"] != "undefined",
+        "missing Wasm export: FPDFPath_GetBezierControlPoints",
+      );
+      assert(
         typeof wasmExports["FPDFPath_Close"] != "undefined",
         "missing Wasm export: FPDFPath_Close",
       );
@@ -6550,6 +6588,14 @@ var PDFiumModule = (() => {
       assert(
         typeof wasmExports["FORM_IsIndexSelected"] != "undefined",
         "missing Wasm export: FORM_IsIndexSelected",
+      );
+      assert(
+        typeof wasmExports["FORM_GetTextDirection"] != "undefined",
+        "missing Wasm export: FORM_GetTextDirection",
+      );
+      assert(
+        typeof wasmExports["FORM_SetTextDirection"] != "undefined",
+        "missing Wasm export: FORM_SetTextDirection",
       );
       assert(
         typeof wasmExports["FPDFDoc_GetJavaScriptActionCount"] != "undefined",
@@ -7540,6 +7586,12 @@ var PDFiumModule = (() => {
       _FPDFAttachment_GetStringValue = Module[
         "_FPDFAttachment_GetStringValue"
       ] = createExportWrapper("FPDFAttachment_GetStringValue", 4);
+      _FPDFAttachment_SetDescription = Module[
+        "_FPDFAttachment_SetDescription"
+      ] = createExportWrapper("FPDFAttachment_SetDescription", 2);
+      _FPDFAttachment_GetDescription = Module[
+        "_FPDFAttachment_GetDescription"
+      ] = createExportWrapper("FPDFAttachment_GetDescription", 3);
       _FPDFAttachment_SetFile = Module["_FPDFAttachment_SetFile"] =
         createExportWrapper("FPDFAttachment_SetFile", 4);
       _FPDFAttachment_GetFile = Module["_FPDFAttachment_GetFile"] =
@@ -7588,6 +7640,10 @@ var PDFiumModule = (() => {
         createExportWrapper("FPDFBookmark_GetDest", 2);
       _FPDFBookmark_GetAction = Module["_FPDFBookmark_GetAction"] =
         createExportWrapper("FPDFBookmark_GetAction", 1);
+      _FPDFBookmark_GetColor = Module["_FPDFBookmark_GetColor"] =
+        createExportWrapper("FPDFBookmark_GetColor", 4);
+      _FPDFBookmark_GetStyle = Module["_FPDFBookmark_GetStyle"] =
+        createExportWrapper("FPDFBookmark_GetStyle", 1);
       _FPDFAction_GetType = Module["_FPDFAction_GetType"] = createExportWrapper(
         "FPDFAction_GetType",
         1,
@@ -7844,6 +7900,9 @@ var PDFiumModule = (() => {
         "FPDFPath_BezierTo",
         7,
       );
+      _FPDFPath_GetBezierControlPoints = Module[
+        "_FPDFPath_GetBezierControlPoints"
+      ] = createExportWrapper("FPDFPath_GetBezierControlPoints", 4);
       _FPDFPath_Close = Module["_FPDFPath_Close"] = createExportWrapper(
         "FPDFPath_Close",
         1,
@@ -8058,6 +8117,10 @@ var PDFiumModule = (() => {
         createExportWrapper("FORM_SetIndexSelected", 4);
       _FORM_IsIndexSelected = Module["_FORM_IsIndexSelected"] =
         createExportWrapper("FORM_IsIndexSelected", 3);
+      _FORM_GetTextDirection = Module["_FORM_GetTextDirection"] =
+        createExportWrapper("FORM_GetTextDirection", 2);
+      _FORM_SetTextDirection = Module["_FORM_SetTextDirection"] =
+        createExportWrapper("FORM_SetTextDirection", 3);
       _FPDFDoc_GetJavaScriptActionCount = Module[
         "_FPDFDoc_GetJavaScriptActionCount"
       ] = createExportWrapper("FPDFDoc_GetJavaScriptActionCount", 1);
@@ -8574,6 +8637,7 @@ var PDFiumModule = (() => {
       _munmap_js: __munmap_js,
       _tzset_js: __tzset_js,
       emscripten_date_now: _emscripten_date_now,
+      emscripten_errn: _emscripten_errn,
       emscripten_resize_heap: _emscripten_resize_heap,
       environ_get: _environ_get,
       environ_sizes_get: _environ_sizes_get,
