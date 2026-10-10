@@ -9,7 +9,8 @@
     "url": "git+https://github.com/hyzyla/pdfium"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "!dist/worker.bundle.js"
   ],
   "type": "module",
   "browser": {
@@ -56,7 +57,7 @@
   },
   "scripts": {
     "build:watch": "rolldown -c --watch",
-    "build:prod": "rolldown -c --environment NODE_ENV:production && tsc --emitDeclarationOnly && node scripts/build-cjs-types.mjs",
+    "build:prod": "rolldown -c --environment NODE_ENV:production && tsc --emitDeclarationOnly && node scripts/build-types.mjs",
     "clean": "rm -rf dist",
     "check:fix": "oxlint --fix && oxfmt",
     "check:ci": "oxlint && oxfmt --check",

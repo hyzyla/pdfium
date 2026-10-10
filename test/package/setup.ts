@@ -14,6 +14,7 @@ export type ProbeResult = { pageCount: number; text: string; width: number; heig
 declare module "vitest" {
   export interface ProvidedContext {
     packageDir: string;
+    packedFiles: string[];
     expected: ProbeResult;
   }
 }
@@ -31,7 +32,7 @@ export default async function setup(project: TestProject) {
   fs.cpSync("test/package/fixture", dir, { recursive: true });
   fs.copyFileSync("test/data/test_1.pdf", path.join(dir, "test.pdf"));
 
-  const [{ filename }] = JSON.parse(npm(["pack", "--json", "--pack-destination", dir], process.cwd()));
+  const [{ filename, files }] = JSON.parse(npm(["pack", "--json", "--pack-destination", dir], process.cwd()));
   npm(["install", "--no-audit", "--no-fund", path.join(dir, filename)], dir);
 
   const library = await PDFiumLibrary.init({ wasmBinary: fs.readFileSync("src/vendor/pdfium.wasm") });
@@ -39,6 +40,10 @@ export default async function setup(project: TestProject) {
   library.destroy();
 
   project.provide("packageDir", dir);
+  project.provide(
+    "packedFiles",
+    files.map((file: { path: string }) => file.path),
+  );
   project.provide("expected", expected);
 
   return () => fs.rmSync(dir, { recursive: true, force: true });
