@@ -28,6 +28,11 @@ function stringToCString(module: t.PDFium, str: string): number {
   return passwordPtr;
 }
 
+function isNode(): boolean {
+  const { process } = globalThis as { process?: { versions?: { node?: string } } };
+  return !!process?.versions?.node;
+}
+
 type PDFiumLibraryInitOptions = {
   vendor: (options: t.LoadPdfiumOptions) => Promise<t.PDFium>;
   wasmUrl?: string;
@@ -57,16 +62,25 @@ export class PDFiumLibrary {
       loadOptions.locateFile = () => "";
     } else if (instantiateWasm) {
       loadOptions.instantiateWasm = instantiateWasm;
-    } else {
-      // Node.js will use wasm binary from node_modules, but for browser environment,
-      // user must provide the wasm binary or URL
-      if (typeof window !== "undefined") {
-        console.error(NO_OPTION_WARNING);
-        throw new Error(NO_OPTION_WARNING);
-      }
+    } else if (typeof window !== "undefined") {
+      // Node.js reads pdfium.wasm from node_modules, but in the browser the user
+      // must provide the wasm binary or URL
+      console.error(NO_OPTION_WARNING);
+      throw new Error(NO_OPTION_WARNING);
     }
 
-    const module = await options.vendor(loadOptions);
+    let module: t.PDFium;
+    try {
+      module = await options.vendor(loadOptions);
+    } catch (error) {
+      // Workers have no `window`, so they get past the check above. Outside Node,
+      // the vendor code then looks for pdfium.wasm next to the bundle, which only
+      // some bundler setups support. When that fails, name the missing option.
+      if (!wasmUrl && !wasmBinary && !instantiateWasm && !isNode()) {
+        throw new Error(`${NO_OPTION_WARNING}\n\nCaused by: ${String(error)}`);
+      }
+      throw error;
+    }
     module._FPDF_InitLibraryWithConfig({
       version: 2,
       m_pIsolate: null,

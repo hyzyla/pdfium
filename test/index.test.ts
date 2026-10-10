@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import { type PDFiumDocument, PDFiumLibrary, PDFiumPage, type PDFiumPageRenderOptions } from "../src/index.esm";
+import { PDFiumLibrary as PDFiumLibraryBase } from "../src/library";
 import type { PDFiumImageObject } from "../src/objects";
 
 expect.extend({ toMatchImageSnapshot });
@@ -617,5 +618,31 @@ describe("PDFium", () => {
 
     document.destroy();
     customLibrary.destroy();
+  });
+});
+
+describe("PDFiumLibrary.initBase", () => {
+  test("names the missing wasm option when loading fails outside Node", async () => {
+    const versions = Object.getOwnPropertyDescriptor(process, "versions")!;
+    Object.defineProperty(process, "versions", { ...versions, value: {} });
+    try {
+      const init = PDFiumLibraryBase.initBase({
+        vendor: async () => {
+          throw new Error("pdfium.wasm not found");
+        },
+      });
+      await expect(init).rejects.toThrow(/wasmUrl, wasmBinary is required[\s\S]*pdfium\.wasm not found/);
+    } finally {
+      Object.defineProperty(process, "versions", versions);
+    }
+  });
+
+  test("keeps the original error in Node", async () => {
+    const init = PDFiumLibraryBase.initBase({
+      vendor: async () => {
+        throw new Error("pdfium.wasm not found");
+      },
+    });
+    await expect(init).rejects.toThrow(/^pdfium\.wasm not found$/);
   });
 });
