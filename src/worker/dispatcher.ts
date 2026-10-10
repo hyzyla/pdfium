@@ -2,7 +2,6 @@ import type { PDFiumDocument } from "../document.js";
 import type { PDFiumLibrary } from "../library.js";
 import type { PDFiumPage } from "../page.js";
 import type { PDFiumPageRenderParams } from "../page.types.js";
-
 import type {
   GetOriginalSizeResult,
   GetPageResult,
@@ -117,7 +116,7 @@ export class WorkerDispatcher {
         return { value, transfer: [result.data.buffer] };
       }
       case "destroy": {
-        for (const handle of [...this.documents.keys()]) this.disposeDocument(handle);
+        for (const handle of this.documents.keys()) this.disposeDocument(handle);
         this.library?.destroy();
         this.library = null;
         this.initPromise = null;
