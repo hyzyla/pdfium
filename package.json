@@ -2,7 +2,24 @@
   "name": "@hyzyla/pdfium",
   "version": "2.1.13",
   "description": "Universal wrapper for PDFium",
+  "license": "MIT",
+  "author": "Yevhenii Hyzyla",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyzyla/pdfium"
+  },
+  "files": [
+    "dist/**/*"
+  ],
   "type": "module",
+  "browser": {
+    "fs": false,
+    "url": false,
+    "node": false,
+    "path": false,
+    "crypto": false,
+    "module": false
+  },
   "types": "dist/index.esm.d.ts",
   "exports": {
     ".": {
@@ -34,35 +51,20 @@
     "./pdfium.wasm": "./dist/pdfium.wasm",
     "./dist/*": "./dist/*"
   },
-  "browser": {
-    "fs": false,
-    "url": false,
-    "node": false,
-    "path": false,
-    "crypto": false,
-    "module": false
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build:watch": "rollup --config rollup.config.mjs --watch",
     "build:prod": "rollup --config rollup.config.mjs --environment NODE_ENV:production",
     "clean": "rm -rf dist",
-    "check:fix": "biome check --write",
-    "check:ci": "biome ci",
+    "check:fix": "oxlint --fix && oxfmt",
+    "check:ci": "oxlint && oxfmt --check",
     "check:test": "vitest",
     "check:types": "tsc --noEmit",
     "update:pdfium": "node scripts/update-pdfium.mjs"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hyzyla/pdfium"
-  },
-  "author": "Yevhenii Hyzyla",
-  "license": "MIT",
-  "files": [
-    "dist/**/*"
-  ],
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-replace": "^6.0.3",
@@ -70,7 +72,8 @@
     "@types/jest-image-snapshot": "^6.4.0",
     "@types/node": "^20.19.25",
     "jest-image-snapshot": "^6.5.1",
-    "prettier": "^3.7.4",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
     "rollup": "^4.53.3",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-delete": "^3.0.1",
@@ -79,67 +82,5 @@
     "tslib": "^2.8.1",
     "unzipper": "^0.12.3",
     "vitest": "^2.1.9"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "========== Tools ==========": "",
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "es2021": true
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:import/recommended",
-      "plugin:import/typescript"
-    ],
-    "overrides": [],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module"
-    },
-    "plugins": [
-      "@typescript-eslint",
-      "import"
-    ],
-    "rules": {
-      "import/order": [
-        "error",
-        {
-          "groups": [
-            "builtin",
-            "external",
-            "internal",
-            "parent",
-            "sibling",
-            "index"
-          ],
-          "pathGroups": [
-            {
-              "pattern": "./vendor/**",
-              "group": "external",
-              "position": "after"
-            }
-          ],
-          "newlines-between": "always",
-          "alphabetize": {
-            "order": "asc",
-            "caseInsensitive": true
-          }
-        }
-      ]
-    },
-    "ignorePatterns": [
-      "src/vendor/**/*"
-    ],
-    "settings": {
-      "import/resolver": {
-        "typescript": true,
-        "node": true
-      }
-    }
   }
 }

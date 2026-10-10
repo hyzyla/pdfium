@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 120,
+  "sortImports": true,
+  "overrides": [
+    {
+      "files": ["src/vendor/**/*.js"],
+      "options": { "printWidth": 80 }
+    }
+  ]
+}

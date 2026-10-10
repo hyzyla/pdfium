@@ -9,9 +9,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: biomejs/setup-biome@v2
-        with:
-          version: 1.9.4
       - run: npm ci
       - run: cat package.json
       - run: npm run check:ci
