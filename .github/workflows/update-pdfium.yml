@@ -6,6 +6,9 @@ on:
     # This will run at 10:00 every Saturday
     - cron: '0 10 * * 6'
 
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   check-for-updates:
@@ -15,15 +18,23 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-
-      - name: Install dependencies
-        run: npm clean-install
-
-      - name: Check for updates and create PR
+      - name: Open an issue if a new release is available
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node ./scripts/check-updates.mjs
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          latest=$(gh release view --repo paulocoutinhox/pdfium-lib --json tagName --jq .tagName)
+          current=$(cat src/vendor/LAST_RELEASE.txt)
+          echo "Latest release: $latest, current: $current"
+          if [ "$latest" = "$current" ]; then
+            exit 0
+          fi
+
+          title="Update PDFium to $latest"
+          if gh issue list --state all --search "in:title \"$title\"" --json title --jq '.[].title' | grep -qxF "$title"; then
+            echo "Issue \"$title\" already exists"
+            exit 0
+          fi
+
+          gh issue create --title "$title" --body "PDFium $latest is out: https://github.com/paulocoutinhox/pdfium-lib/releases/tag/$latest
+
+          We're on $current. Run \`npm run update:pdfium\` to update src/vendor, then run the checks and commit."
