@@ -473,6 +473,21 @@ describe("PDFium", () => {
       });
     });
 
+    test("should extract text from text objects", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const page = document.getPage(0);
+        const objects = [...page.objects()].filter((object) => object.type === "text");
+        const texts = objects.map((object) => object.getText());
+        expect(texts[0]).toBe("Результат діяльності ");
+        // The page text adds its own spaces and line breaks between objects
+        const withoutSpaces = (text: string) => text.replace(/\s/g, "");
+        expect(withoutSpaces(texts.join(""))).toBe(withoutSpaces(page.getText()));
+
+        page.close();
+        expect(() => objects[0].getText()).toThrow("Page is closed");
+      });
+    });
+
     test("raw data of a DCTDecode image is the JPEG file", async () => {
       await loadDocument("test_4_with_images.pdf", async (document) => {
         const jpegs = [];

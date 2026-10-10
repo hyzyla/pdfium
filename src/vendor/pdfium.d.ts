@@ -35,6 +35,7 @@ export declare type PDFium = {
   _FPDFText_ClosePage: (textPage: number) => void;
   _FPDFText_CountChars: (textPage: number) => number;
   _FPDFText_GetText: (textPage: number, startIndex: number, count: number, buffer: number) => number;
+  _FPDFTextObj_GetText: (textObject: number, textPage: number, buffer: number, length: number) => number;
 
   _FPDFBitmap_CreateEx: (width: number, height: number, format: number, ptr: number, stride: number) => number;
   _FPDFBitmap_FillRect: (

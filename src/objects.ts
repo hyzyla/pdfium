@@ -8,6 +8,15 @@ import type {
 import { convertBitmapToImage, readUInt16LE } from "./utils.js";
 import type * as t from "./vendor/pdfium.js";
 
+type PDFiumObjectOptions = {
+  module: t.PDFium;
+  objectIdx: number;
+  documentIdx: number;
+  pageIdx: number;
+  // Returns the page's text page, loading it on first use
+  loadTextPage: () => number;
+};
+
 export abstract class PDFiumObjectBase {
   public abstract readonly type: PDFiumObjectType;
 
@@ -16,14 +25,14 @@ export abstract class PDFiumObjectBase {
   protected readonly pageIdx: number;
   protected readonly objectIdx: number;
 
-  constructor(options: { module: t.PDFium; objectIdx: number; documentIdx: number; pageIdx: number }) {
+  constructor(options: PDFiumObjectOptions) {
     this.module = options.module;
     this.objectIdx = options.objectIdx;
     this.documentIdx = options.documentIdx;
     this.pageIdx = options.pageIdx;
   }
 
-  static create(options: { module: t.PDFium; objectIdx: number; documentIdx: number; pageIdx: number }): PDFiumObject {
+  static create(options: PDFiumObjectOptions): PDFiumObject {
     const type = options.module._FPDFPageObj_GetType(options.objectIdx);
     switch (type) {
       case FPDFPageObjectType.TEXT:
@@ -44,6 +53,33 @@ export abstract class PDFiumObjectBase {
 
 export class PDFiumTextObject extends PDFiumObjectBase {
   type = "text" as const;
+  private readonly loadTextPage: () => number;
+
+  constructor(options: PDFiumObjectOptions) {
+    super(options);
+    this.loadTextPage = options.loadTextPage;
+  }
+
+  /**
+   * Extract the text of this text object. A text object often holds a single word or line, so join
+   * the text of several objects for longer text. The first call on a page loads the page's text
+   * data, which the page keeps until you close it.
+   */
+  getText(): string {
+    const textPage = this.loadTextPage();
+    // Without a buffer it returns the size the text needs in bytes, UTF-16LE with a null terminator
+    const size = this.module._FPDFTextObj_GetText(this.objectIdx, textPage, 0, 0);
+    if (size <= 2) {
+      return "";
+    }
+    const ptr = this.module.wasmExports.malloc(size);
+    try {
+      this.module._FPDFTextObj_GetText(this.objectIdx, textPage, ptr, size);
+      return new TextDecoder("utf-16le").decode(this.module.HEAPU8.subarray(ptr, ptr + size - 2));
+    } finally {
+      this.module.wasmExports.free(ptr);
+    }
+  }
 }
 
 export class PDFiumPathObject extends PDFiumObjectBase {

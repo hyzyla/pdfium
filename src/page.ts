@@ -14,6 +14,9 @@ export class PDFiumPage {
   private readonly document: PDFiumDocument;
   private readonly onClose: () => void;
   private closed = false;
+  // Loaded on first use by text objects and kept until the page is closed, since loading it takes
+  // about as long as extracting the text of the whole page
+  private textPage: number | null = null;
   readonly number: number; // zero based index of the page
 
   constructor(options: {
@@ -42,6 +45,10 @@ export class PDFiumPage {
       return;
     }
     this.closed = true;
+    if (this.textPage !== null) {
+      this.module._FPDFText_ClosePage(this.textPage);
+      this.textPage = null;
+    }
     this.module._FPDF_ClosePage(this.pageIdx);
     this.onClose();
   }
@@ -50,6 +57,18 @@ export class PDFiumPage {
     if (this.closed) {
       throw new Error("Page is closed");
     }
+  }
+
+  private loadTextPage(): number {
+    this.ensureOpen();
+    if (this.textPage === null) {
+      const textPage = this.module._FPDFText_LoadPage(this.pageIdx);
+      if (!textPage) {
+        throw new Error("Failed to load text page");
+      }
+      this.textPage = textPage;
+    }
+    return this.textPage;
   }
 
   getOriginalSize() {
@@ -246,6 +265,7 @@ export class PDFiumPage {
       objectIdx: object,
       documentIdx: this.documentIdx,
       pageIdx: this.pageIdx,
+      loadTextPage: () => this.loadTextPage(),
     });
   }
 
