@@ -1,12 +1,8 @@
-import { webcrypto } from "node:crypto";
 import fs from "node:fs";
 
 import { PDFiumLibrary } from "@hyzyla/pdfium/inline";
 
 import { probe } from "./probe.js";
-
-// Node.js 18 has no global crypto, which probe.js hashes with
-globalThis.crypto ??= webcrypto;
 
 // The wasm is inside the JavaScript, so this keeps working after a bundler
 // moves the code and leaves pdfium.wasm behind

@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [18, 20, 22, 26]
+        node: [22, 26]
     steps:
       - uses: actions/checkout@v7
       # The packed package runs on this version, the tooling on Node 24 below
