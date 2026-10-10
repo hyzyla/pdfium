@@ -1,18 +1,18 @@
 /**
- * Export everything from index.ts, but override the PDFiumLibrary class with a new one that uses a
- * wasm binary from a CDN
+ * Browser entry point that downloads pdfium.wasm for this package version from jsDelivr. Exports
+ * everything from index.ts plus a PDFiumLibrary that needs no options.
  */
 export * from "./index.js";
 
 import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
 import PDFiumModule from "./vendor/pdfium.esm.js";
 
-// This global variable is defined by Rollup at build time
+// Replaced at build time, see rolldown.config.mjs
 declare const __PACKAGE_VERSION__: string;
-declare const __WASM_SHA265_B64__: string | null;
+declare const __WASM_SHA256_B64__: string | null;
 
 const CDN_WASM_LINK = `https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${__PACKAGE_VERSION__}/dist/pdfium.wasm`;
-const WASM_INTEGRITY = __WASM_SHA265_B64__ ? `sha256-${__WASM_SHA265_B64__}` : null;
+const WASM_INTEGRITY = __WASM_SHA256_B64__ ? `sha256-${__WASM_SHA256_B64__}` : null;
 
 const CDN_WARNING =
   "@hyzyla/pdfium: Fetching wasm binary from a CDN.\n" +

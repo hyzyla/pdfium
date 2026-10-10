@@ -75,7 +75,7 @@ function injectCdnVars() {
       // For properly fetching the wasm file from CDN
       __PACKAGE_VERSION__: JSON.stringify(pkg.version),
       // For dev environment we don't care about integrity
-      __WASM_SHA265_B64__: JSON.stringify(IS_PROD ? sha256Base64(wasmFile) : null),
+      __WASM_SHA256_B64__: JSON.stringify(IS_PROD ? sha256Base64(wasmFile) : null),
     },
     { preventAssignment: true },
   );
@@ -84,7 +84,7 @@ function injectCdnVars() {
 function setNotNodeEnvironment() {
   return replacePlugin(
     {
-      // This is helpefull for properly tree-shaking the node.js code
+      // Lets the bundler drop the Node.js code paths
       ENVIRONMENT_IS_NODE: "false",
     },
     { preventAssignment: true },
@@ -181,8 +181,8 @@ export default defineConfig([
       ),
     ],
   },
-  // Worker bundle — runs inside the spawned Web Worker. WASM is fetched from
-  // the user-provided `wasmUrl` at init time using
+  // Worker bundle — runs inside the spawned Web Worker. It instantiates the
+  // wasm passed as `wasmBinary`, or fetches it from `wasmUrl` using
   // `WebAssembly.instantiateStreaming` (with a fetch+compile fallback). Built
   // BEFORE the client below so it can be inlined as a string.
   {

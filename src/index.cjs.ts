@@ -1,5 +1,6 @@
 /**
- * Export everything from index.ts, but add
+ * CommonJS entry point for Node.js. Exports everything from index.ts plus a PDFiumLibrary that reads
+ * pdfium.wasm from next to this file, unless the wasm or its URL is passed to init().
  */
 export * from "./index.js";
 

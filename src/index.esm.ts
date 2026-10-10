@@ -1,8 +1,7 @@
 /**
- * Export everything from index.ts, but override the PDFiumLibrary class with a new one that uses a
- * base64-encoded WASM binary. Having a separate file for this is useful because bundlers do not need
- * to include the base64-encoded WASM binary in the main bundle when the user does not use the
- * base64-encoded WASM binary.
+ * ES module entry point, built once for Node.js and once for browsers. Exports everything from
+ * index.ts plus a PDFiumLibrary that reads pdfium.wasm from node_modules in Node.js. Browsers have to
+ * pass the wasm or its URL to init().
  */
 export * from "./index.js";
 

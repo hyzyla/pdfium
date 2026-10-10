@@ -100,9 +100,9 @@ export class PDFiumLibrary {
     const size = buff.length;
 
     // This line allocates a block of memory of size bytes and returns a pointer to the first byte of the block.
-    //  The malloc function is a standard C library function for memory allocation, and here it's exposed via
-    // this.module.asm, which likely represents the compiled WebAssembly module. The returned pointer (ptr) is
-    // an integer value representing the memory location within the WebAssembly module's memory space.
+    // The malloc function is a standard C library function for memory allocation, exported by the WebAssembly
+    // module through wasmExports. The returned pointer (ptr) is an integer value representing the memory
+    // location within the WebAssembly module's memory space.
     const documentPtr = this.module.wasmExports.malloc(size);
 
     // This line copies the content of buff into the WebAssembly module's memory starting at the address specified by ptr.
