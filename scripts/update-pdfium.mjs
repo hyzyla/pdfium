@@ -58,4 +58,4 @@ async function updatePDFium() {
   );
 }
 
-updatePDFium();
+await updatePDFium();

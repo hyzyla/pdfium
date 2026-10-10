@@ -24,4 +24,4 @@ async function testPdfiumPackage() {
   console.log("=> library destroyed");
 }
 
-testPdfiumPackage();
+await testPdfiumPackage();
