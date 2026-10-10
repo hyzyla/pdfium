@@ -20,4 +20,5 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: npm ci && npm run build:prod
+      - run: npm run check:package
       - run: npm publish --provenance
