@@ -99,6 +99,19 @@ function setNotNodeEnvironment() {
   );
 }
 
+// Settings every build shares, the inlined worker's included
+function withDefaults(options) {
+  return {
+    ...options,
+    transform: { target: TARGET, ...options.transform },
+    // A new warning usually means the vendor code changed in a way the patches
+    // above don't expect, so it fails the build
+    onLog(level, log, handler) {
+      handler(level === "warn" ? "error" : level, log);
+    },
+  };
+}
+
 // Builds the worker and inlines it into the worker client as a string constant,
 // so PDFiumWorkerClient.spawn() can construct a Worker from a Blob URL with no
 // extra files to ship. Building it here instead of in a separate config lets
@@ -108,14 +121,15 @@ function inlineWorker(input) {
   return {
     name: "inline-worker",
     async buildStart() {
-      const { output } = await build({
-        input,
-        platform: "browser",
-        transform: { target: TARGET },
-        write: false,
-        output: { format: "es", codeSplitting: false },
-        plugins: [patchVendor(), setNotNodeEnvironment()],
-      });
+      const { output } = await build(
+        withDefaults({
+          input,
+          platform: "browser",
+          write: false,
+          output: { format: "es", codeSplitting: false },
+          plugins: [patchVendor(), setNotNodeEnvironment()],
+        }),
+      );
       source = output[0].code;
       for (const id of output[0].moduleIds) {
         if (path.isAbsolute(id)) {
@@ -132,12 +146,11 @@ function inlineWorker(input) {
   };
 }
 
-export default defineConfig([
+const builds = [
   // CommonJS build
   {
     input: "src/index.cjs.ts",
     platform: "node",
-    transform: { target: TARGET },
     output: {
       file: `${DIST_FOLDER}/index.cjs`,
       format: "cjs",
@@ -150,7 +163,6 @@ export default defineConfig([
     input: "src/index.esm.ts",
     platform: "neutral",
     external: [/^node:/],
-    transform: { target: TARGET },
     output: {
       file: `${DIST_FOLDER}/index.esm.js`,
       format: "es",
@@ -162,7 +174,6 @@ export default defineConfig([
   {
     input: "src/index.esm.ts",
     platform: "browser",
-    transform: { target: TARGET },
     output: {
       file: `${DIST_FOLDER}/index.esm.browser.js`,
       format: "es",
@@ -178,7 +189,6 @@ export default defineConfig([
   {
     input: "src/index.esm.cdn.ts",
     platform: "browser",
-    transform: { target: TARGET },
     output: {
       file: `${DIST_FOLDER}/index.esm.cdn.js`,
       format: "es",
@@ -194,7 +204,6 @@ export default defineConfig([
   {
     input: "src/index.esm.base64.ts",
     platform: "browser",
-    transform: { target: TARGET },
     output: {
       dir: DIST_FOLDER,
       format: "es",
@@ -216,7 +225,6 @@ export default defineConfig([
   {
     input: "src/index.esm.worker.ts",
     platform: "browser",
-    transform: { target: TARGET },
     output: {
       file: `${DIST_FOLDER}/index.esm.worker.js`,
       format: "es",
@@ -228,4 +236,6 @@ export default defineConfig([
       inlineWorker("src/worker/worker-entry.ts"),
     ],
   },
-]);
+];
+
+export default defineConfig(builds.map(withDefaults));
