@@ -27,51 +27,40 @@ function sha256Base64(buffer) {
   return crypto.createHash("sha256").update(buffer).digest("base64");
 }
 
-function patchEsmPath() {
-  // replace string like this "pdfium.esm.wasm" with "pdfium.wasm"
+// Edits the emscripten-generated vendor code before it's bundled, so the
+// patterns match src/vendor/pdfium.esm.js as `npm run update:pdfium` writes it.
+// Each edit throws when its pattern is gone, so a vendor update can't quietly
+// undo it.
+function patchVendor({ dropWasmUrl = false, allowShell = false } = {}) {
+  // The package ships the wasm as pdfium.wasm
+  const edits = [[/pdfium\.esm\.wasm/g, "pdfium.wasm"]];
+  if (dropWasmUrl) {
+    // The CDN and base64 entries always hand the wasm bytes to the vendor code,
+    // so its fallback URL for pdfium.wasm is never used. Bundlers still see the
+    // `new URL(..., import.meta.url)` pattern and copy pdfium.wasm into apps
+    // that never load it, so swap it for a plain string.
+    edits.push([/new URL\("pdfium\.wasm", import\.meta\.url\)\.href/, '"pdfium.wasm"']);
+  }
+  if (allowShell) {
+    // The browser builds see any runtime without `window` or a worker scope as
+    // an emscripten "shell" and refuse to start there. Given the wasm bytes,
+    // they run fine in Node.js, Bun, Deno and Cloudflare Workers, so drop that
+    // check.
+    edits.push([/assert\(\s*!ENVIRONMENT_IS_SHELL,\s*"shell environment detected[^"]*",?\s*\);/, ""]);
+  }
   return {
-    name: "patch-esm-path",
-    renderChunk(code) {
-      return code.replace(/pdfium\.esm\.wasm/g, "pdfium.wasm");
-    },
-  };
-}
-
-// The CDN and base64 entries always hand the wasm bytes to the vendor code, so
-// its fallback URL for pdfium.wasm is never used. Bundlers still see the
-// `new URL(..., import.meta.url)` pattern and copy pdfium.wasm into apps that
-// never load it, so swap it for a plain string.
-function dropWasmUrl() {
-  const pattern = 'new URL("pdfium.wasm", import.meta.url).href';
-  return {
-    name: "drop-wasm-url",
-    renderChunk(code, chunk) {
-      if (!chunk.isEntry) {
-        return null;
-      }
-      if (!code.includes(pattern)) {
-        throw new Error(`Expected ${pattern} in ${chunk.fileName}, the vendor code has changed`);
-      }
-      return code.replace(pattern, '"pdfium.wasm"');
-    },
-  };
-}
-
-// The browser builds see any runtime without `window` or a worker scope as an
-// emscripten "shell" and refuse to start there. Given the wasm bytes, they run
-// fine in Node.js, Bun, Deno and Cloudflare Workers, so drop that check.
-function allowShellEnvironment() {
-  const pattern = /assert\(\s*!ENVIRONMENT_IS_SHELL,\s*"shell environment detected[^"]*"\s*\);/;
-  return {
-    name: "allow-shell-environment",
-    renderChunk(code, chunk) {
-      if (!chunk.isEntry) {
-        return null;
-      }
-      if (!pattern.test(code)) {
-        throw new Error(`Expected the shell environment check in ${chunk.fileName}, the vendor code has changed`);
-      }
-      return code.replace(pattern, "");
+    name: "patch-vendor",
+    transform: {
+      filter: { id: /[\\/]vendor[\\/]pdfium\.esm\.js$/ },
+      handler(code, id) {
+        for (const [pattern, replacement] of edits) {
+          if (code.search(pattern) === -1) {
+            throw new Error(`Expected ${pattern} in ${id}, the vendor code has changed`);
+          }
+          code = code.replace(pattern, replacement);
+        }
+        return code;
+      },
     },
   };
 }
@@ -125,7 +114,7 @@ function inlineWorker(input) {
         transform: { target: TARGET },
         write: false,
         output: { format: "es", codeSplitting: false },
-        plugins: [patchEsmPath(), setNotNodeEnvironment()],
+        plugins: [patchVendor(), setNotNodeEnvironment()],
       });
       source = output[0].code;
       for (const id of output[0].moduleIds) {
@@ -167,7 +156,7 @@ export default defineConfig([
       format: "es",
       exports: "named",
     },
-    plugins: [injectDebugLog({ message: "PDFium ESM loaded" }), patchEsmPath()],
+    plugins: [injectDebugLog({ message: "PDFium ESM loaded" }), patchVendor()],
   },
   // ES (browser) build
   {
@@ -181,9 +170,8 @@ export default defineConfig([
     },
     plugins: [
       injectDebugLog({ message: "PDFium ESM browser loaded" }),
-      patchEsmPath(),
+      patchVendor({ allowShell: true }),
       setNotNodeEnvironment(),
-      allowShellEnvironment(),
     ],
   },
   // ES (browser) + CDN build
@@ -197,10 +185,8 @@ export default defineConfig([
     },
     plugins: [
       injectDebugLog({ message: "PDFium with CDN loaded" }),
-      patchEsmPath(),
-      dropWasmUrl(),
+      patchVendor({ dropWasmUrl: true, allowShell: true }),
       setNotNodeEnvironment(),
-      allowShellEnvironment(),
       injectCdnVars(),
     ],
   },
@@ -215,10 +201,8 @@ export default defineConfig([
     },
     plugins: [
       injectDebugLog({ message: "PDFium with Base64 loaded" }),
-      patchEsmPath(),
-      dropWasmUrl(),
+      patchVendor({ dropWasmUrl: true, allowShell: true }),
       setNotNodeEnvironment(),
-      allowShellEnvironment(),
       replacePlugin(
         { __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")) },
         { preventAssignment: true },
