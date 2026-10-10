@@ -29,18 +29,21 @@ async function fetchWasmBinary(): Promise<ArrayBuffer> {
   return await response.arrayBuffer();
 }
 
-export class PDFiumLibrary extends _PDFiumLibrary {
-  // The downloaded wasm, reused by later init() calls
-  static _cache: ArrayBuffer | null = null;
+// One download shared by every init() call. After a failure the next call tries again.
+let wasmDownload: Promise<ArrayBuffer> | null = null;
 
+export class PDFiumLibrary extends _PDFiumLibrary {
   static async init(options?: { disableCDNWarning?: boolean }) {
     if (!options?.disableCDNWarning) {
       console.warn(CDN_WARNING);
     }
-    PDFiumLibrary._cache ??= await fetchWasmBinary();
+    wasmDownload ??= fetchWasmBinary().catch((error: unknown) => {
+      wasmDownload = null;
+      throw error;
+    });
     return await PDFiumLibrary.initBase({
       vendor: PDFiumModule,
-      wasmBinary: PDFiumLibrary._cache,
+      wasmBinary: await wasmDownload,
     });
   }
 }
