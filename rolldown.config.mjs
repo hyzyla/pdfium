@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import { defineConfig } from "rolldown";
+import { build, defineConfig } from "rolldown";
 import { replacePlugin } from "rolldown/plugins";
 
 const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
@@ -110,16 +110,34 @@ function setNotNodeEnvironment() {
   );
 }
 
-// Inlines the previously-built worker bundle into the worker client as a string
-// constant, so PDFiumWorkerClient.spawn() can construct a Worker from a Blob URL
-// with no extra files to ship. Runs on the rendered chunk, after TypeScript
-// declarations are gone, and reads the bundle lazily because it's built by the
-// previous config.
-function injectWorkerBundle() {
+// Builds the worker and inlines it into the worker client as a string constant,
+// so PDFiumWorkerClient.spawn() can construct a Worker from a Blob URL with no
+// extra files to ship. Building it here instead of in a separate config lets
+// watch mode rebuild the client whenever a worker source changes.
+function inlineWorker(input) {
+  let source;
   return {
-    name: "inject-worker-bundle",
-    renderChunk(code) {
-      const source = fs.readFileSync(`${DIST_FOLDER}/worker.bundle.js`, "utf-8");
+    name: "inline-worker",
+    async buildStart() {
+      const { output } = await build({
+        input,
+        platform: "browser",
+        transform: { target: TARGET },
+        write: false,
+        output: { format: "es", codeSplitting: false },
+        plugins: [patchEsmPath(), setNotNodeEnvironment()],
+      });
+      source = output[0].code;
+      for (const id of output[0].moduleIds) {
+        if (path.isAbsolute(id)) {
+          this.addWatchFile(id);
+        }
+      }
+    },
+    renderChunk(code, chunk) {
+      if (!code.includes("__WORKER_BUNDLE_SOURCE__")) {
+        throw new Error(`Expected __WORKER_BUNDLE_SOURCE__ in ${chunk.fileName}`);
+      }
       return code.replaceAll("__WORKER_BUNDLE_SOURCE__", () => JSON.stringify(source));
     },
   };
@@ -207,23 +225,10 @@ export default defineConfig([
       ),
     ],
   },
-  // Worker bundle — runs inside the spawned Web Worker. It instantiates the
-  // wasm passed as `wasmBinary`, or fetches it from `wasmUrl` using
-  // `WebAssembly.instantiateStreaming` (with a fetch+compile fallback). Built
-  // BEFORE the client below so it can be inlined as a string.
-  {
-    input: "src/worker/worker-entry.ts",
-    platform: "browser",
-    transform: { target: TARGET },
-    output: {
-      file: `${DIST_FOLDER}/worker.bundle.js`,
-      format: "es",
-      codeSplitting: false,
-    },
-    plugins: [patchEsmPath(), setNotNodeEnvironment()],
-  },
-  // Worker client — main-thread entrypoint. Inlines the worker bundle above so
-  // users get a single-import `PDFiumWorkerClient.spawn({ wasmUrl })`.
+  // Worker client, the main-thread entrypoint. The worker itself runs
+  // src/worker/worker-entry.ts, which instantiates the wasm passed as
+  // `wasmBinary`, or fetches it from `wasmUrl` using
+  // `WebAssembly.instantiateStreaming` (with a fetch+compile fallback).
   {
     input: "src/index.esm.worker.ts",
     platform: "browser",
@@ -233,6 +238,10 @@ export default defineConfig([
       format: "es",
       exports: "named",
     },
-    plugins: [injectDebugLog({ message: "PDFium worker loaded" }), setNotNodeEnvironment(), injectWorkerBundle()],
+    plugins: [
+      injectDebugLog({ message: "PDFium worker loaded" }),
+      setNotNodeEnvironment(),
+      inlineWorker("src/worker/worker-entry.ts"),
+    ],
   },
 ]);

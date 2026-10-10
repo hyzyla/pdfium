@@ -9,8 +9,7 @@
     "url": "git+https://github.com/hyzyla/pdfium"
   },
   "files": [
-    "dist/**/*",
-    "!dist/worker.bundle.js"
+    "dist/**/*"
   ],
   "type": "module",
   "types": "dist/index.esm.d.ts",
