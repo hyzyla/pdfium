@@ -73,6 +73,9 @@ async function main() {
 
     // Save the PNG image to the output folder
     await fs.writeFile(`output/${page.number}.png`, Buffer.from(image.data));
+
+    // Free the page before moving on to the next one
+    page.close();
   }
 
   // Do not forget to destroy the document and the library

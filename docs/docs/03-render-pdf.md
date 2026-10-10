@@ -149,6 +149,20 @@ const image = await page.render({
 });
 ```
 
+## Close the page
+
+A page stays loaded until you call `page.close()` or destroy the document. Until then you can render it, extract its text and read its objects as often as you need. When you process a large document page by page, close each page when you're done with it so memory doesn't keep growing:
+
+```typescript
+for (const page of document.pages()) {
+  const image = await page.render({ scale: 3, render: "sharp" });
+  // ... save the image
+  page.close();
+}
+```
+
+After `close()`, you can't use the page or any objects you got from it.
+
 ## Full example
 
 ```typescript
@@ -198,6 +212,9 @@ async main() {
 
     // Save the PNG image to the output folder
     await fs.writeFile(`output/${page.number}.png`, Buffer.from(image.data));
+
+    // Free the page before moving on to the next one
+    page.close();
   }
 
   // Do not forget to destroy the document and the library

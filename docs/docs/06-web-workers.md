@@ -235,7 +235,7 @@ WASM compilation is the expensive part of cold start (~100s of ms). Compiling on
 
 **`Refused to create a worker from 'blob:...'`** — Strict CSP. `spawn()` builds its worker from a `Blob` URL; if your CSP forbids that, either add `blob:` to `worker-src`, or [write your own worker](#custom-worker-patterns) loaded from a real file under your origin.
 
-**Worker memory keeps growing** — `PDFiumDocument` and pages hold native memory inside WASM. Always `await doc.destroy()` when done; `pdfium.destroy()` only tears down the library and active documents at terminate time. Long-running apps that load many PDFs without destroying them will leak.
+**Worker memory keeps growing** — `PDFiumDocument` and pages hold native memory inside WASM. Always `await doc.destroy()` when done; `pdfium.destroy()` only tears down the library and active documents at terminate time. Long-running apps that load many PDFs without destroying them will leak. If you render a large document page by page, also `await page.close()` after each page. Pages stay loaded until you close them or destroy the document.
 
 **Server-side rendering (Node.js)** — The worker entrypoint targets browser `Worker`, not Node's `worker_threads` — different message protocols and globals. To keep the Node event loop responsive while rendering, spawn a `worker_threads` worker yourself and use `@hyzyla/pdfium` inside it. The simple in-process `PDFiumLibrary.init()` works there.
 

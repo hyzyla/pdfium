@@ -14,6 +14,9 @@ export class PDFiumDocument {
   private formIdx: number | null = null;
   private formPtr: number | null = null;
 
+  // Pages that haven't been closed yet; they must be closed before the document
+  private readonly openPages = new Set<PDFiumPage>();
+
   constructor(options: { module: t.PDFium; documentIdx: number; documentPtr: number }) {
     this.module = options.module;
     this.documentPtr = options.documentPtr;
@@ -67,13 +70,16 @@ export class PDFiumDocument {
    */
   getPage(pageIndex: number): PDFiumPage {
     const pageIdx = this.module._FPDF_LoadPage(this.documentIdx, pageIndex);
-    return new PDFiumPage({
+    const page = new PDFiumPage({
       module: this.module,
       pageIdx: pageIdx,
       documentIdx: this.documentIdx,
       pageIndex: pageIndex,
       document: this,
+      onClose: () => this.openPages.delete(page),
     });
+    this.openPages.add(page);
+    return page;
   }
 
   /**
@@ -99,6 +105,9 @@ export class PDFiumDocument {
    * Otherwise, you'll be fired from your job for causing a memory leak. 😱
    */
   destroy(): void {
+    for (const page of this.openPages) {
+      page.close();
+    }
     if (this.formIdx) {
       this.module._FPDFDOC_ExitFormFillEnvironment(this.formIdx);
       this.formIdx = null;

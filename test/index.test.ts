@@ -232,6 +232,49 @@ describe("PDFium", () => {
       });
     });
 
+    test("should extract text after rendering the same page", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const expected = document.getPage(0).getText();
+        expect(expected.length).toBeGreaterThan(0);
+
+        const page = document.getPage(0);
+        await page.render({ scale: 1, render: "bitmap" });
+        expect(page.getText()).toBe(expected);
+
+        await page.render({ scale: 1, render: "bitmap", renderFormFields: true });
+        expect(page.getText()).toBe(expected);
+      });
+    });
+
+    test("should render the same page more than once", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const page = document.getPage(0);
+        const first = await page.render({ scale: 1, render: "bitmap" });
+        const second = await page.render({ scale: 1, render: "bitmap" });
+        expect(second.data).toEqual(first.data);
+        expect(page.getObjectCount()).toBe(182);
+      });
+    });
+
+    test("should throw when using a closed page", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const page = document.getPage(0);
+        page.close();
+        page.close(); // closing twice is a no-op
+        expect(() => page.getText()).toThrow("Page is closed");
+        await expect(page.render()).rejects.toThrow("Page is closed");
+      });
+    });
+
+    test("should close open pages when the document is destroyed", async () => {
+      const buff = await fs.readFile("test/data/test_1.pdf");
+      const document = await library.loadDocument(buff);
+      const page = document.getPage(0);
+      document.getPage(1).close();
+      document.destroy();
+      expect(() => page.getText()).toThrow("Page is closed");
+    });
+
     test("should open a PDF with password", async () => {
       const buff = await fs.readFile("test/data/test_1_pass_12345678.pdf");
       const password = "12345678";

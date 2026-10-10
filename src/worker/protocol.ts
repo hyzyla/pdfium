@@ -28,6 +28,7 @@ export type RPCRequest =
   | { id: number; type: "page.getText"; page: Handle }
   | { id: number; type: "page.getOriginalSize"; page: Handle }
   | { id: number; type: "page.render"; page: Handle; options: SerializableRenderParams }
+  | { id: number; type: "page.close"; page: Handle }
   | { id: number; type: "destroy" };
 
 export type RPCResponse =

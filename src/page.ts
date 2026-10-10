@@ -12,6 +12,8 @@ export class PDFiumPage {
   private readonly pageIdx: number;
   private readonly documentIdx: number;
   private readonly document: PDFiumDocument;
+  private readonly onClose: () => void;
+  private closed = false;
   readonly number: number; // zero based index of the page
 
   constructor(options: {
@@ -20,15 +22,38 @@ export class PDFiumPage {
     documentIdx: number;
     document: PDFiumDocument;
     pageIndex: number;
+    onClose: () => void;
   }) {
     this.module = options.module;
     this.pageIdx = options.pageIdx;
     this.documentIdx = options.documentIdx;
     this.document = options.document;
     this.number = options.pageIndex;
+    this.onClose = options.onClose;
+  }
+
+  /**
+   * Free the page's memory in PDFium. Pages stay loaded until you close them or
+   * destroy the document, so close pages you no longer need when processing large
+   * documents. You can't use the page or its objects after closing it.
+   */
+  close(): void {
+    if (this.closed) {
+      return;
+    }
+    this.closed = true;
+    this.module._FPDF_ClosePage(this.pageIdx);
+    this.onClose();
+  }
+
+  private ensureOpen(): void {
+    if (this.closed) {
+      throw new Error("Page is closed");
+    }
   }
 
   getOriginalSize() {
+    this.ensureOpen();
     const originalWidth = this.module._FPDF_GetPageWidth(this.pageIdx);
     const originalHeight = this.module._FPDF_GetPageHeight(this.pageIdx);
 
@@ -62,6 +87,7 @@ export class PDFiumPage {
    * Extract text from the page
    */
   getText(): string {
+    this.ensureOpen();
     const textPage = this.module._FPDFText_LoadPage(this.pageIdx);
     if (!textPage) {
       throw new Error("Failed to load text page");
@@ -99,6 +125,7 @@ export class PDFiumPage {
   }
 
   async render(options: PDFiumPageRenderParams = {}): Promise<PDFiumPageRender> {
+    this.ensureOpen();
     let formIdx: number | null = null;
     const renderOptions: PDFiumPageRenderOptionsValidated = {
       ...DEFAULT_PAGE_RENDER_OPTIONS,
@@ -191,8 +218,6 @@ export class PDFiumPage {
         this.module._FPDFBitmap_Destroy(bitmap);
       }
 
-      // TODO: consider to create a separate function for closing the page and free resources only when needed, not after every render
-      this.module._FPDF_ClosePage(this.pageIdx);
       this.module.wasmExports.free(ptr);
     }
   }
@@ -206,10 +231,12 @@ export class PDFiumPage {
   }
 
   getObjectCount(): number {
+    this.ensureOpen();
     return this.module._FPDFPage_CountObjects(this.pageIdx);
   }
 
   getObject(i: number): PDFiumObject {
+    this.ensureOpen();
     const object = this.module._FPDFPage_GetObject(this.pageIdx, i);
     return PDFiumObjectBase.create({
       module: this.module,

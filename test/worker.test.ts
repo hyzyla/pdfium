@@ -94,6 +94,27 @@ describe("WorkerDispatcher", () => {
     expect(dispatcher.livePageCount()).toBe(0);
   });
 
+  test("extracts text after rendering and closes the page handle", async () => {
+    const bytes = await fs.readFile("./test/data/test_1.pdf");
+    const docHandle = (
+      (await dispatcher.dispatch({ id: id++, type: "loadDocument", bytes })).value as LoadDocumentResult
+    ).doc;
+    const pageHandle = (
+      (await dispatcher.dispatch({ id: id++, type: "doc.getPage", doc: docHandle, pageIndex: 0 }))
+        .value as GetPageResult
+    ).page;
+
+    await dispatcher.dispatch({ id: id++, type: "page.render", page: pageHandle, options: { scale: 1 } });
+    const text = await dispatcher.dispatch({ id: id++, type: "page.getText", page: pageHandle });
+    expect((text.value as string).length).toBeGreaterThan(0);
+
+    await dispatcher.dispatch({ id: id++, type: "page.close", page: pageHandle });
+    expect(dispatcher.livePageCount()).toBe(0);
+    await expect(dispatcher.dispatch({ id: id++, type: "page.getText", page: pageHandle })).rejects.toThrow(
+      /Unknown page handle/,
+    );
+  });
+
   test("rejects calls referencing unknown handles", async () => {
     await expect(dispatcher.dispatch({ id: id++, type: "doc.getPageCount", doc: "d_999" })).rejects.toThrow(
       /Unknown document handle/,

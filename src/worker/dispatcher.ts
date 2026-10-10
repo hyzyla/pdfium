@@ -115,6 +115,16 @@ export class WorkerDispatcher {
         };
         return { value, transfer: [result.data.buffer] };
       }
+      case "page.close": {
+        // Closing an unknown handle is a no-op, same as closing a page twice in-process.
+        const page = this.pages.get(req.page);
+        if (page) {
+          page.close();
+          this.pages.delete(req.page);
+          for (const docPages of this.pagesByDoc.values()) docPages.delete(req.page);
+        }
+        return { value: null, transfer: [] };
+      }
       case "destroy": {
         for (const handle of this.documents.keys()) this.disposeDocument(handle);
         this.library?.destroy();

@@ -96,6 +96,10 @@ export class PDFiumWorkerPage {
       options,
     });
   }
+
+  async close(): Promise<void> {
+    await this.channel.call<null>({ type: "page.close", page: this.handle });
+  }
 }
 
 export class PDFiumWorkerDocument {
