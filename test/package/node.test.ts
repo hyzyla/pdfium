@@ -9,7 +9,8 @@ const node = process.env.TEST_NODE ?? process.execPath;
 test.for([
   { format: "ESM", script: "node.mjs", entry: "index.esm.js" },
   { format: "CommonJS", script: "node.cjs", entry: "index.cjs" },
-])("$format loads the wasm from the package and matches the source build", ({ script, entry }) => {
+  { format: "Base64", script: "node-base64.mjs", entry: "index.esm.base64.js" },
+])("$format entry runs in Node.js and matches the source build", ({ script, entry }) => {
   const output = execFileSync(node, [script], { cwd: inject("packageDir"), encoding: "utf-8" });
   const { entry: resolved, ...result } = JSON.parse(output.trim().split("\n").at(-1)!);
 

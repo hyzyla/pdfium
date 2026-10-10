@@ -22,6 +22,18 @@ import { PDFiumLibrary } from "@hyzyla/pdfium";
 const library = await PDFiumLibrary.init();
 ```
 
+## Node.js with a bundler
+
+The Node.js build reads `pdfium.wasm` from its own folder in `node_modules`. When a bundler moves your server code, as Next.js or esbuild can, that file may be left behind. The base64 entry point avoids this: it also runs in Node.js, and the wasm is part of its JavaScript.
+
+```typescript
+import { PDFiumLibrary } from "@hyzyla/pdfium/browser/base64";
+
+const library = await PDFiumLibrary.init({ disableBase64Warning: true });
+```
+
+It adds about 7 MB of JavaScript to your server bundle.
+
 ## Browser
 
 In the browser, you need to provide the URL to the `.wasm` binary or the binary itself, as an `ArrayBuffer` or `Uint8Array`, as an argument to the init method. Typically, you will use a bundler like Webpack or Rollup, which allows you to import the `.wasm` file directly as an asset URL. Here is an example of how you can do this with Vite:

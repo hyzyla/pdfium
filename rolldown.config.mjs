@@ -57,6 +57,25 @@ function dropWasmUrl() {
   };
 }
 
+// The browser builds see any runtime without `window` or a worker scope as an
+// emscripten "shell" and refuse to start there. Given the wasm bytes, they run
+// fine in Node.js, Bun, Deno and Cloudflare Workers, so drop that check.
+function allowShellEnvironment() {
+  const pattern = /assert\(\s*!ENVIRONMENT_IS_SHELL,\s*"shell environment detected[^"]*"\s*\);/;
+  return {
+    name: "allow-shell-environment",
+    renderChunk(code, chunk) {
+      if (!chunk.isEntry) {
+        return null;
+      }
+      if (!pattern.test(code)) {
+        throw new Error(`Expected the shell environment check in ${chunk.fileName}, the vendor code has changed`);
+      }
+      return code.replace(pattern, "");
+    },
+  };
+}
+
 function injectDebugLog({ message }) {
   if (IS_PROD) {
     return null;
@@ -142,7 +161,12 @@ export default defineConfig([
       format: "es",
       exports: "named",
     },
-    plugins: [injectDebugLog({ message: "PDFium ESM browser loaded" }), patchEsmPath(), setNotNodeEnvironment()],
+    plugins: [
+      injectDebugLog({ message: "PDFium ESM browser loaded" }),
+      patchEsmPath(),
+      setNotNodeEnvironment(),
+      allowShellEnvironment(),
+    ],
   },
   // ES (browser) + CDN build
   {
@@ -158,6 +182,7 @@ export default defineConfig([
       patchEsmPath(),
       dropWasmUrl(),
       setNotNodeEnvironment(),
+      allowShellEnvironment(),
       injectCdnVars(),
     ],
   },
@@ -175,6 +200,7 @@ export default defineConfig([
       patchEsmPath(),
       dropWasmUrl(),
       setNotNodeEnvironment(),
+      allowShellEnvironment(),
       replacePlugin(
         { __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")) },
         { preventAssignment: true },
