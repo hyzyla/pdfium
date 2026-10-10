@@ -12,16 +12,24 @@ const initReady = new Promise<InitData>((resolve) => {
 
 const dispatcher = new WorkerDispatcher(async () => {
   const init = await initReady;
-  return PDFiumLibrary.initBase({
+  // Emscripten gives instantiateWasm no way to report a failure, so initBase
+  // would wait forever if instantiation fails. Racing it against this promise
+  // turns the failure into an error for the caller.
+  let fail: (error: unknown) => void = () => {};
+  const failed = new Promise<never>((_, reject) => {
+    fail = reject;
+  });
+  const library = PDFiumLibrary.initBase({
     vendor: PDFiumModule,
     // instantiateWasm bypasses the vendor's findWasmBinary URL resolution,
     // which would otherwise crash inside a blob worker. We do our own
     // streaming instantiation here, with a fetch+compile fallback for servers
     // that serve pdfium.wasm with the wrong Content-Type.
     instantiateWasm: (imports, success) => {
-      void instantiate(init, imports).then(({ instance, module }) => success(instance, module));
+      instantiate(init, imports).then(({ instance, module }) => success(instance, module), fail);
     },
   });
+  return Promise.race([library, failed]);
 });
 
 async function instantiate(

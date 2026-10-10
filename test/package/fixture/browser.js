@@ -5,6 +5,17 @@ import { PDFiumWorkerClient } from "@hyzyla/pdfium/worker";
 
 import { probe } from "./probe.js";
 
+// Resolves to the error a call fails with. Gives up after a few seconds, so a
+// call that never settles shows up as "timed out" instead of hanging the test.
+function failure(call) {
+  const timeout = new Promise((resolve) => setTimeout(resolve, 5000, "timed out"));
+  const outcome = call().then(
+    () => "resolved",
+    (error) => String(error),
+  );
+  return Promise.race([outcome, timeout]);
+}
+
 // Probes every browser entry point and leaves the results on window for the
 // test to read. Bundlers differ in how they turn assets into URLs, so each
 // bundler's entry file resolves those and passes them in.
@@ -30,5 +41,15 @@ export async function probeBrowserEntries({ wasmUrl, pdfUrl }) {
       results[name] = { error: String(error?.stack ?? error) };
     }
   }
+
+  // Loading the wasm can fail, and that has to reach the caller as an error
+  const missingWasmUrl = new URL("missing.wasm", location.href).href;
+  window.failures = {
+    "@hyzyla/pdfium": await failure(() => PDFiumLibrary.init({ wasmUrl: missingWasmUrl })),
+    "@hyzyla/pdfium/worker": await failure(async () => {
+      const client = await PDFiumWorkerClient.spawn({ wasmUrl: missingWasmUrl });
+      await client.loadDocument(bytes.slice());
+    }),
+  };
   window.results = results;
 }

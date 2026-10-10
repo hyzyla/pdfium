@@ -55,6 +55,7 @@ afterAll(async () => {
 describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler) => {
   let server: PreviewServer;
   let results: Record<string, unknown>;
+  let failures: Record<string, string>;
   const cdnRequests: string[] = [];
 
   beforeAll(async () => {
@@ -72,6 +73,7 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
     });
     await page.goto(server.resolvedUrls!.local[0]);
     results = await page.waitForFunction(() => (window as { results?: unknown }).results).then((r) => r.jsonValue());
+    failures = await page.evaluate(() => (window as unknown as { failures: Record<string, string> }).failures);
     await page.close();
   });
 
@@ -85,6 +87,11 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
       expect(results[entry]).toEqual(inject("expected"));
     },
   );
+
+  test.for(["@hyzyla/pdfium", "@hyzyla/pdfium/worker"])("%s fails with an error when the wasm is missing", (entry) => {
+    // Not "timed out" or "resolved", but the error from compiling the wasm
+    expect(failures[entry]).toMatch(/WebAssembly/);
+  });
 
   test("CDN entry fetches the wasm of this package version", () => {
     expect(cdnRequests).toEqual([`https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${pkg.version}/dist/pdfium.wasm`]);
