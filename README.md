@@ -16,6 +16,14 @@ TypeScript/JavaScript wrapper for the PDFium library:
 - 🔒 Type-safe - TypeScript definitions are included.
 - 🗼 Works in browser and Node.js
 
+## Supported environments
+
+- Node.js 18.3 or newer, tested on 18, 20, 22, 24 and 26.
+- Chrome and Edge 85+, Firefox 79+ and Safari 15+. The tests run in Chrome, Firefox and WebKit, with the package bundled by Vite, bundled by webpack, and loaded without a bundler.
+- `@hyzyla/pdfium/worker` starts a module worker, which Firefox supports from version 114.
+
+On older versions the library throws an error when it loads, because PDFium's WebAssembly build checks the runtime version.
+
 ## Installation
 
 ```sh
