@@ -133,36 +133,42 @@ export class PDFiumImageObject extends PDFiumObjectBase {
       render: "bitmap",
     },
   ): Promise<PDFiumImageObjectRender> {
+    // The caller owns this bitmap and has to destroy it, which also frees its buffer
     const bitmapIdx = this.module._FPDFImageObj_GetBitmap(this.objectIdx);
     if (!bitmapIdx) {
       throw new Error("Failed to get bitmap from image object.");
     }
 
-    const bufferPtr = this.module._FPDFBitmap_GetBuffer(bitmapIdx);
-    if (!bufferPtr) {
-      throw new Error("Failed to get bitmap buffer.");
+    let stride: number;
+    let width: number;
+    let height: number;
+    let format: number;
+    let oData: Uint8Array;
+    try {
+      const bufferPtr = this.module._FPDFBitmap_GetBuffer(bitmapIdx);
+      if (!bufferPtr) {
+        throw new Error("Failed to get bitmap buffer.");
+      }
+
+      // Stride is the number of bytes per row, it might be larger than width * bytesPerPixel
+      // and is used for alignment in the bitmap buffer (e.g. 4-byte alignment)
+      stride = this.module._FPDFBitmap_GetStride(bitmapIdx);
+
+      // Width and height of the image in pixels
+      width = this.module._FPDFBitmap_GetWidth(bitmapIdx);
+      height = this.module._FPDFBitmap_GetHeight(bitmapIdx);
+
+      // Format of the image: 1 - Gray, 2 - BGR, 3 - BGRx, 4 - BGRA
+      format = this.module._FPDFBitmap_GetFormat(bitmapIdx);
+
+      // Copy the buffer from the WASM heap to a JS Uint8Array
+      oData = this.module.HEAPU8.slice(bufferPtr, bufferPtr + height * stride);
+    } finally {
+      this.module._FPDFBitmap_Destroy(bitmapIdx);
     }
-
-    // Stride is the number of bytes per row, it might be larger than width * bytesPerPixel
-    // and is used for alignment in the bitmap buffer (e.g. 4-byte alignment)
-    const stride = this.module._FPDFBitmap_GetStride(bitmapIdx);
-
-    // Width and height of the image in pixels
-    const width = this.module._FPDFBitmap_GetWidth(bitmapIdx);
-    const height = this.module._FPDFBitmap_GetHeight(bitmapIdx);
-
-    // Format of the image: 1 - Gray, 2 - BGR, 3 - BGRx, 4 - BGRA
-    const format = this.module._FPDFBitmap_GetFormat(bitmapIdx);
 
     // Here is BBP (bytes per pixel) for the original image
     const oBPP = PDFiumImageObject.formatToBPP(format);
-
-    // Calculate the buffer size of the original image, stored in the WASM heap
-    const bufferSize = height * stride;
-
-    // Get the buffer from the WASM heap to a JS Uint8Array
-    const oData = this.module.HEAPU8.slice(bufferPtr, bufferPtr + bufferSize);
-    this.module.wasmExports.free(bufferPtr);
 
     // Currently we only support converting to RGBA (4 bytes per pixel)
     const tBPP = BYTES_PER_PIXEL;
