@@ -36,7 +36,7 @@ function isNode(): boolean {
 type PDFiumLibraryInitOptions = {
   vendor: (options: t.LoadPdfiumOptions) => Promise<t.PDFium>;
   wasmUrl?: string;
-  wasmBinary?: ArrayBuffer;
+  wasmBinary?: ArrayBuffer | Uint8Array;
   instantiateWasm?: t.InstantiateWasm;
 };
 

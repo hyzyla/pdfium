@@ -8,7 +8,11 @@ import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
 import PDFiumModule, { type InstantiateWasm } from "./vendor/pdfium.js";
 
 export class PDFiumLibrary extends _PDFiumLibrary {
-  static async init(options?: { wasmBinary?: ArrayBuffer; wasmUrl?: string; instantiateWasm?: InstantiateWasm }) {
+  static async init(options?: {
+    wasmBinary?: ArrayBuffer | Uint8Array;
+    wasmUrl?: string;
+    instantiateWasm?: InstantiateWasm;
+  }) {
     return await PDFiumLibrary.initBase({
       vendor: PDFiumModule,
       wasmBinary: options?.wasmBinary,

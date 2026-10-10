@@ -81,7 +81,7 @@ export declare type InstantiateWasm = (
 ) => void;
 
 export declare type LoadPdfiumOptions = {
-  wasmBinary?: ArrayBuffer;
+  wasmBinary?: ArrayBuffer | Uint8Array;
   locateFile?: (path: string) => string;
   instantiateWasm?: InstantiateWasm;
 };

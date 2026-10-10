@@ -11,6 +11,7 @@ const text: string = page.getText();
 // @ts-expect-error the page count is a number, which proves the types aren't `any`
 const pageCount: string = document.getPageCount();
 
+await PDFiumLibrary.init({ wasmBinary: new Uint8Array() });
 await PDFiumLibrary.init({
   instantiateWasm: (imports, successCallback) => {
     void WebAssembly.instantiate(new Uint8Array(), imports).then(({ instance, module }) =>

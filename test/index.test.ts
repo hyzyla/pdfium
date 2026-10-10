@@ -37,7 +37,7 @@ describe("PDFium", () => {
   let library: PDFiumLibrary;
   beforeAll(async () => {
     library = await PDFiumLibrary.init({
-      wasmBinary: new Uint8Array(await fs.readFile("./src/vendor/pdfium.wasm")).buffer,
+      wasmBinary: await fs.readFile("./src/vendor/pdfium.wasm"),
     });
   });
 
