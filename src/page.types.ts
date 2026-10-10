@@ -15,7 +15,11 @@ export type PDFiumPageRenderParams = {
   transparent?: boolean;
 };
 
-export type ColorSpace = "BGRA" | "Gray";
+/**
+ * `"RGBA"`: 4 bytes per pixel in red, green, blue, alpha order. `"Gray"`: 1 byte per pixel.
+ * `"BGRA"` is a deprecated alias of `"RGBA"` and returns the same RGBA bytes.
+ */
+export type ColorSpace = "RGBA" | "Gray" | "BGRA";
 
 export type PDFiumScaleAndRender = {
   scale: number;

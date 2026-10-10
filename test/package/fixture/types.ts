@@ -6,7 +6,7 @@ import { PDFiumWorkerClient, type PDFiumWorkerRenderResult } from "@hyzyla/pdfiu
 const library = await PDFiumLibrary.init({ wasmUrl: "/pdfium.wasm" });
 const document = await library.loadDocument(new Uint8Array());
 const page = document.getPage(0);
-const render: PDFiumPageRender = await page.render({ scale: 2, render: "bitmap" });
+const render: PDFiumPageRender = await page.render({ scale: 2, render: "bitmap", colorSpace: "RGBA" });
 const text: string = page.getText();
 // @ts-expect-error the page count is a number, which proves the types aren't `any`
 const pageCount: string = document.getPageCount();

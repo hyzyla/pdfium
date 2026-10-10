@@ -30,9 +30,9 @@ Then you can render the page to an image by calling `render` method of the page 
 
 - `scale` - scale factor for the image (default is 1, which means 72 DPI, 3 almost always is enough for good quality)
 - `render` - what to return: `'bitmap'` (default) returns the raw pixels. To convert them, for example to PNG, pass your own function (see below).
-- `colorSpace` - color space to render to: `'BGRA'` (default, full color, 4 bytes per pixel in RGBA order despite the name) or `'Gray'` (grayscale, useful for OCR)
+- `colorSpace` - color space to render to: `'RGBA'` (default, full color, 4 bytes per pixel) or `'Gray'` (grayscale, useful for OCR). `'BGRA'` still works as a deprecated alias of `'RGBA'` and returns the same bytes.
 - `renderFormFields` - whether to render interactive form fields (default is `false`). Form fields are interactive elements like text boxes, checkboxes, dropdown menus, and signature fields that users can fill out in PDF documents (like tax forms, applications, or contracts).
-- `transparent` - render onto a transparent background instead of the default opaque white (default is `false`). Useful when you want to composite the rendered page over other content. Only applies to `colorSpace: 'BGRA'` (the default); ignored for `'Gray'` since grayscale bitmaps have no alpha channel.
+- `transparent` - render onto a transparent background instead of the default opaque white (default is `false`). Useful when you want to composite the rendered page over other content. Only applies to `colorSpace: 'RGBA'` (the default); ignored for `'Gray'` since grayscale bitmaps have no alpha channel.
 
 ```typescript
 const image = await page.render({

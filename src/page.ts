@@ -140,7 +140,10 @@ export class PDFiumPage {
       this.module._FORM_OnAfterLoadPage(this.pageIdx, formIdx);
     }
 
-    const bytesPerPixel = FPDFBitmap[colorSpace];
+    const gray = colorSpace === "Gray";
+    // PDFium draws color as BGRA, and the REVERSE_BYTE_ORDER flag below turns that into RGBA
+    const format = gray ? FPDFBitmap.Gray : FPDFBitmap.BGRA;
+    const bytesPerPixel = gray ? 1 : 4;
     const buffSize = width * height * bytesPerPixel;
     const ptr = this.module.wasmExports.malloc(buffSize);
     let bitmap: number | null = null;
@@ -150,10 +153,10 @@ export class PDFiumPage {
     }
 
     try {
-      bitmap = this.module._FPDFBitmap_CreateEx(width, height, bytesPerPixel, ptr, width * bytesPerPixel);
+      bitmap = this.module._FPDFBitmap_CreateEx(width, height, format, ptr, width * bytesPerPixel);
 
-      // Gray bitmaps have no alpha channel, so transparency only applies to BGRA.
-      const fillColor = transparent && colorSpace === "BGRA" ? 0x00000000 : 0xffffffff;
+      // Gray bitmaps have no alpha channel, so transparency only applies to RGBA.
+      const fillColor = transparent && !gray ? 0x00000000 : 0xffffffff;
       this.module._FPDFBitmap_FillRect(
         bitmap,
         0, // left
@@ -165,7 +168,7 @@ export class PDFiumPage {
 
       let flags = FPDFRenderFlag.ANNOT | FPDFRenderFlag.LCD_TEXT;
 
-      flags = colorSpace === "Gray" ? flags | FPDFRenderFlag.GRAYSCALE : flags | FPDFRenderFlag.REVERSE_BYTE_ORDER;
+      flags = gray ? flags | FPDFRenderFlag.GRAYSCALE : flags | FPDFRenderFlag.REVERSE_BYTE_ORDER;
 
       this.module._FPDF_RenderPageBitmap(
         bitmap,

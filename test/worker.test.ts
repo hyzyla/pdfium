@@ -70,7 +70,7 @@ describe("WorkerDispatcher", () => {
       id: id++,
       type: "page.render",
       page: pageHandle,
-      options: { scale: 1, colorSpace: "BGRA" },
+      options: { scale: 1, colorSpace: "RGBA" },
     });
     const value = renderResult.value as RenderResult;
     expect(value.width).toBeGreaterThan(0);

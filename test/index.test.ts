@@ -598,7 +598,16 @@ describe("PDFium", () => {
     document.destroy();
   });
 
-  test("scale should be 1 by default, colorSpace to BGRA and render function to bitmap (thus no arguments needed)", async () => {
+  test("BGRA is an alias of RGBA", async () => {
+    const document = await library.loadDocument(await fs.readFile("test/data/test_1.pdf"));
+    const page = document.getPage(0);
+    const rgba = await page.render({ colorSpace: "RGBA" });
+    const bgra = await page.render({ colorSpace: "BGRA" });
+    expect(bgra.data).toEqual(rgba.data);
+    document.destroy();
+  });
+
+  test("scale should be 1 by default, colorSpace to RGBA and render function to bitmap (thus no arguments needed)", async () => {
     const buff = await fs.readFile(`test/data/test_3_with_images.pdf`);
     const document = await library.loadDocument(buff);
 
