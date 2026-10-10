@@ -25,3 +25,9 @@ test("package.json can be resolved", () => {
   });
   expect(output.trim()).toMatch(/node_modules\/@hyzyla\/pdfium\/package\.json$/);
 });
+
+test("built files can't be imported directly", () => {
+  const script = 'try { require.resolve("@hyzyla/pdfium/dist/index.cjs") } catch (e) { console.log(e.code) }';
+  const output = execFileSync(node, ["-e", script], { cwd: inject("packageDir"), encoding: "utf-8" });
+  expect(output.trim()).toBe("ERR_PACKAGE_PATH_NOT_EXPORTED");
+});
