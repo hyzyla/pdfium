@@ -54,9 +54,9 @@ const image = await object.render({
 });
 ```
 
-## Extract raw uncompressed image data
+## Extract raw image data
 
-You can also extract the raw uncompressed image data from the PDF page objects using the `getImageDataRaw` method of the `PDFiumImageObject` class. The getImageDataRaw method returns the raw uncompressed image data as a buffer, along with the image's width, height, and the filters/decoders used to decode the image data.
+The `getImageDataRaw` method of `PDFiumImageObject` returns the image data as it's stored in the PDF, along with the image's width and height and the filters the data is encoded with.
 
 ```typescript
 const document = await library.loadDocument(buff);
@@ -68,12 +68,35 @@ const { data, width, height, filters } = await object.getImageDataRaw();
 /*
 Example output:
   {
-    data: [...], // Raw uncompressed image data
+    data: [...], // Image data as stored in the PDF, still encoded
     width: 100, // Image width
     height: 100, // Image height
-    filters: ["DCTDecode"], // Filters/decoders used to decode the image data
+    filters: ["DCTDecode"], // Filters the data is encoded with
   }
 */
 ```
 
-> :warning: Images in PDF documents are not stored in specific image formats like PNG or JPEG. Instead, image bitmaps are stored in compressed formats such as DCTDecode and FlateDecode. You need to decode the image data using the appropriate decoder/filter to obtain the raw uncompressed image data. You can also use the `render` method with a render function, for example one based on sharp, to convert the image to PNG or JPEG.
+PDF doesn't store images as PNG files. Most images are pixels compressed with a filter such as `FlateDecode`, and you have to decode them yourself or use `render`. JPEG images are the exception: when `filters` is `["DCTDecode"]`, the data is a complete JPEG file. You can save it as is, which keeps the original quality and is usually much smaller than a PNG from `render`:
+
+```typescript
+let index = 0;
+
+for (const page of document.pages()) {
+  for (const object of page.objects()) {
+    if (object.type !== "image") {
+      continue;
+    }
+    const { data, filters } = await object.getImageDataRaw();
+    if (filters.length === 1 && filters[0] === "DCTDecode") {
+      // A JPEG image, saved without re-encoding
+      await fs.writeFile(`output/${index}.jpg`, data);
+    } else {
+      const { data: png } = await object.render({ render: renderFunction });
+      await fs.writeFile(`output/${index}.png`, png);
+    }
+    index++;
+  }
+}
+```
+
+The JPEG is the image exactly as stored, so anything the PDF applies on top of it, such as a transparency mask, isn't included.
