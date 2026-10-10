@@ -74,6 +74,7 @@
     "jest-image-snapshot": "^6.5.1",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0",
+    "oxlint-tsgolint": "^7.0.2003",
     "rollup": "^4.53.3",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-delete": "^3.0.1",
