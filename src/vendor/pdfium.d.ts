@@ -71,13 +71,19 @@ export declare type PDFium = {
   HEAP32: Int32Array;
 };
 
+/**
+ * Emscripten's `Module.instantiateWasm` hook: instantiate the wasm with the given imports, then
+ * pass the resulting instance to `successCallback`. It can finish asynchronously.
+ */
+export declare type InstantiateWasm = (
+  imports: WebAssembly.Imports,
+  successCallback: (instance: WebAssembly.Instance, module?: WebAssembly.Module) => void,
+) => void;
+
 export declare type LoadPdfiumOptions = {
   wasmBinary?: ArrayBuffer;
   locateFile?: (path: string) => string;
-  instantiateWasm?: (
-    imports: WebAssembly.Imports,
-    successCallback: (module: WebAssembly.Module) => void,
-  ) => WebAssembly.Exports;
+  instantiateWasm?: InstantiateWasm;
 };
 
 export declare function loadPdfium(options: LoadPdfiumOptions): Promise<PDFium>;

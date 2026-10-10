@@ -599,4 +599,19 @@ describe("PDFium", () => {
 
     document.destroy();
   });
+
+  test("should init with a custom instantiateWasm", async () => {
+    const wasm = await fs.readFile("./src/vendor/pdfium.wasm");
+    const customLibrary = await PDFiumLibrary.init({
+      instantiateWasm: (imports, successCallback) => {
+        void WebAssembly.instantiate(wasm, imports).then(({ instance, module }) => successCallback(instance, module));
+      },
+    });
+
+    const document = await customLibrary.loadDocument(await fs.readFile("test/data/test_1.pdf"));
+    expect(document.getPageCount()).toBe(4);
+
+    document.destroy();
+    customLibrary.destroy();
+  });
 });

@@ -7,17 +7,10 @@
 export * from "./index.js";
 
 import { PDFiumLibrary as _PDFiumLibrary } from "./library.js";
-import PDFiumModule from "./vendor/pdfium.esm.js";
+import PDFiumModule, { type InstantiateWasm } from "./vendor/pdfium.esm.js";
 
 export class PDFiumLibrary extends _PDFiumLibrary {
-  static async init(options?: {
-    wasmBinary?: ArrayBuffer;
-    wasmUrl?: string;
-    instantiateWasm?: (
-      imports: WebAssembly.Imports,
-      successCallback: (module: WebAssembly.Module) => void,
-    ) => WebAssembly.Exports;
-  }) {
+  static async init(options?: { wasmBinary?: ArrayBuffer; wasmUrl?: string; instantiateWasm?: InstantiateWasm }) {
     return await _PDFiumLibrary.initBase({
       vendor: PDFiumModule,
       wasmBinary: options?.wasmBinary,

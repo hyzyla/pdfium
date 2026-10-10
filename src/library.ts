@@ -32,10 +32,7 @@ type PDFiumLibraryInitOptions = {
   vendor: (options: t.LoadPdfiumOptions) => Promise<t.PDFium>;
   wasmUrl?: string;
   wasmBinary?: ArrayBuffer;
-  instantiateWasm?: (
-    imports: WebAssembly.Imports,
-    successCallback: (module: WebAssembly.Module) => void,
-  ) => WebAssembly.Exports;
+  instantiateWasm?: t.InstantiateWasm;
 };
 
 export class PDFiumLibrary {

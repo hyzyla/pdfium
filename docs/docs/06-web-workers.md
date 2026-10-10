@@ -212,12 +212,11 @@ let libPromise: Promise<PDFiumLibrary> | null = null;
 self.addEventListener("message", async (event) => {
   if (event.data.type === "init") {
     libPromise = PDFiumLibrary.init({
-      instantiateWasm: ((imports, success) => {
-        WebAssembly.instantiate(event.data.wasmModule, imports).then((inst) => {
-          success(inst, event.data.wasmModule);
+      instantiateWasm: (imports, success) => {
+        WebAssembly.instantiate(event.data.wasmModule, imports).then((instance) => {
+          success(instance, event.data.wasmModule);
         });
-        return {};
-      }) as never,
+      },
     });
     return;
   }

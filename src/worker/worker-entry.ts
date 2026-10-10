@@ -18,11 +18,9 @@ const dispatcher = new WorkerDispatcher(async () => {
     // which would otherwise crash inside a blob worker. We do our own
     // streaming instantiation here, with a fetch+compile fallback for servers
     // that serve pdfium.wasm with the wrong Content-Type.
-    instantiateWasm: ((imports: WebAssembly.Imports, success: unknown) => {
-      const cb = success as (instance: WebAssembly.Instance, module: WebAssembly.Module) => void;
-      void instantiate(init, imports).then(({ instance, module }) => cb(instance, module));
-      return {} as WebAssembly.Exports;
-    }) as never,
+    instantiateWasm: (imports, success) => {
+      void instantiate(init, imports).then(({ instance, module }) => success(instance, module));
+    },
   });
 });
 
