@@ -1,6 +1,6 @@
 {
   "name": "@hyzyla/pdfium",
-  "version": "2.1.13",
+  "version": "3.0.0",
   "description": "Universal wrapper for PDFium",
   "license": "MIT",
   "author": "Yevhenii Hyzyla",
