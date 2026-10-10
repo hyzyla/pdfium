@@ -98,6 +98,13 @@ export class PDFiumLibrary {
 
   async loadDocument(buff: Uint8Array, password = "") {
     const size = buff.length;
+    if (size === 0) {
+      // A view on a buffer that was transferred (to a worker, for example) also has no bytes left
+      throw new Error(
+        "@hyzyla/pdfium: The PDF data is empty. If the same buffer was passed to a worker or another " +
+          "library before, it may have been transferred there. Pass a copy instead, e.g. bytes.slice().",
+      );
+    }
 
     // This line allocates a block of memory of size bytes and returns a pointer to the first byte of the block.
     // The malloc function is a standard C library function for memory allocation, exported by the WebAssembly

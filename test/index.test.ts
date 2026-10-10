@@ -57,6 +57,16 @@ describe("PDFium", () => {
   });
 
   describe("PDFiumDocument", () => {
+    test("should explain empty or detached input", async () => {
+      const message = /The PDF data is empty/;
+      await expect(library.loadDocument(new Uint8Array())).rejects.toThrow(message);
+
+      // Transferring a buffer to a worker detaches it and leaves the view empty
+      const bytes = new Uint8Array(await fs.readFile("test/data/test_1.pdf"));
+      structuredClone(bytes.buffer, { transfer: [bytes.buffer] });
+      await expect(library.loadDocument(bytes)).rejects.toThrow(message);
+    });
+
     test("should load a document from a buffer and return the number of pages", async () => {
       await loadDocument("test_1.pdf", async (document) => {
         const numOfPages = document.getPageCount();
