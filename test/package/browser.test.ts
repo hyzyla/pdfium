@@ -73,7 +73,7 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
     await page.goto(server.resolvedUrls!.local[0]);
     results = await page.waitForFunction(() => (window as { results?: unknown }).results).then((r) => r.jsonValue());
     await page.close();
-  }, 60000);
+  });
 
   afterAll(async () => {
     await server?.close();

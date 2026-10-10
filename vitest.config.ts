@@ -16,6 +16,8 @@ export default defineConfig({
           include: ["test/package/*.test.ts"],
           globalSetup: ["test/package/setup.ts"],
           testTimeout: 30000,
+          // Launching Chrome and bundling the fixture page are slow on CI runners
+          hookTimeout: 60000,
         },
       },
     ],
