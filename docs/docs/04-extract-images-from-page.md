@@ -9,13 +9,10 @@ let index = 0;
 
 // Iterate over pages in the document
 for (const page of document.pages()) {
-
   // Iterate over objects in the page
   for (const object of page.objects()) {
-
     // We are interested only in image objects
     if (object.type === "image") {
-
       // Render the image using the sharp rendering engine
       const { data: image } = await object.render({
         render: renderFunction,
@@ -23,21 +20,20 @@ for (const page of document.pages()) {
 
       // Save the PNG image to the output folder
       await fs.writeFile(`output/${index}.png`, Buffer.from(image.data));
-      
+
       index++;
     }
   }
 }
 ```
 
-
 ## Reduce image size of extracted images
 
 When images are extracted from the PDF page objects, they are rendered without any compression by default. You can use sharp and custom render function to compress the extracted images and reduce their size.
 
 ```typescript
-import sharp from 'sharp';
-import { PDFiumPageRenderOptions } from '@hyzyla/pdfium';
+import { PDFiumPageRenderOptions } from "@hyzyla/pdfium";
+import sharp from "sharp";
 
 const document = await library.loadDocument(buff);
 const page = document.getPage(0);
@@ -58,7 +54,6 @@ const image = await object.render({
 });
 ```
 
-
 ## Extract raw uncompressed image data
 
 You can also extract the raw uncompressed image data from the PDF page objects using the `getImageDataRaw` method of the `PDFiumImageObject` class. The getImageDataRaw method returns the raw uncompressed image data as a buffer, along with the image's width, height, and the filters/decoders used to decode the image data.
@@ -75,14 +70,14 @@ cosnt {
   height,
   filters,
 } = object.getImageDataRaw();
-/* 
+/*
 Example output:
   {
     data: [...], // Raw uncompressed image data
     width: 100, // Image width
     height: 100, // Image height
     filters: ["DCTDecode"], // Filters/decoders used to decode the image data
-  } 
+  }
 */
 ```
 

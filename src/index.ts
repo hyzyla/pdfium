@@ -10,11 +10,7 @@ export {
   PDFiumShadingObject,
   PDFiumTextObject,
 } from "./objects.js";
-export {
-  PDFiumImageObjectRender,
-  PDFiumImageObjectRenderParams,
-  PDFiumObjectType,
-} from "./objects.types.js";
+export { PDFiumImageObjectRender, PDFiumImageObjectRenderParams, PDFiumObjectType } from "./objects.types.js";
 export { PDFiumPage } from "./page.js";
 export type {
   PDFiumPageRender,

@@ -16,12 +16,7 @@ export abstract class PDFiumObjectBase {
   protected readonly pageIdx: number;
   protected readonly objectIdx: number;
 
-  constructor(options: {
-    module: t.PDFium;
-    objectIdx: number;
-    documentIdx: number;
-    pageIdx: number;
-  }) {
+  constructor(options: { module: t.PDFium; objectIdx: number; documentIdx: number; pageIdx: number }) {
     this.module = options.module;
     this.objectIdx = options.objectIdx;
     this.documentIdx = options.documentIdx;

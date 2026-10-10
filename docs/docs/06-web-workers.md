@@ -7,8 +7,8 @@ Rendering PDFs is CPU-heavy. Doing it on the main thread freezes the UI for the 
 ## 60-second start
 
 ```typescript
-import { PDFiumWorkerClient } from "@hyzyla/pdfium/worker";
 import wasmUrl from "@hyzyla/pdfium/pdfium.wasm?url"; // Vite
+import { PDFiumWorkerClient } from "@hyzyla/pdfium/worker";
 
 const pdfium = await PDFiumWorkerClient.spawn({ wasmUrl });
 
@@ -99,8 +99,8 @@ Workers and `Worker` only exist in the browser, so this has to live in a `"use c
 ### esbuild
 
 ```typescript
-import { PDFiumWorkerClient } from "@hyzyla/pdfium/worker";
 import wasmUrl from "@hyzyla/pdfium/pdfium.wasm";
+import { PDFiumWorkerClient } from "@hyzyla/pdfium/worker";
 
 const pdfium = await PDFiumWorkerClient.spawn({ wasmUrl });
 ```
@@ -188,7 +188,7 @@ When rendering many pages in parallel (PDF viewer thumbnails, batch processing),
 // main.ts
 import wasmUrl from "@hyzyla/pdfium/pdfium.wasm?url";
 
-const wasmBytes = await fetch(wasmUrl).then(r => r.arrayBuffer());
+const wasmBytes = await fetch(wasmUrl).then((r) => r.arrayBuffer());
 const wasmModule = await WebAssembly.compile(wasmBytes); // compile ONCE
 
 const workers: Worker[] = Array.from({ length: 4 }, () => {
@@ -199,9 +199,7 @@ const workers: Worker[] = Array.from({ length: 4 }, () => {
 
 // Distribute pages round-robin across workers
 const renders = await Promise.all(
-  pageIndexes.map((pageIndex, i) =>
-    sendRenderJob(workers[i % workers.length], pageIndex, bytes)
-  )
+  pageIndexes.map((pageIndex, i) => sendRenderJob(workers[i % workers.length], pageIndex, bytes)),
 );
 ```
 
@@ -215,7 +213,7 @@ self.addEventListener("message", async (event) => {
   if (event.data.type === "init") {
     libPromise = PDFiumLibrary.init({
       instantiateWasm: ((imports, success) => {
-        WebAssembly.instantiate(event.data.wasmModule, imports).then(inst => {
+        WebAssembly.instantiate(event.data.wasmModule, imports).then((inst) => {
           success(inst, event.data.wasmModule);
         });
         return {};
@@ -241,7 +239,7 @@ WASM compilation is the expensive part of cold start (~100s of ms). Compiling on
 
 **Server-side rendering (Node.js)** — The worker entrypoint targets browser `Worker`, not Node's `worker_threads` — different message protocols and globals. To keep the Node event loop responsive while rendering, spawn a `worker_threads` worker yourself and use `@hyzyla/pdfium` inside it. The simple in-process `PDFiumLibrary.init()` works there.
 
-## When *not* to use a worker
+## When _not_ to use a worker
 
 - **One-off renders.** If you render one page once at app startup, the worker spin-up and postMessage round-trip outweigh the benefit.
 - **Trivial documents.** A 2-page document at default scale renders in tens of milliseconds — under the threshold where blocking is noticeable.

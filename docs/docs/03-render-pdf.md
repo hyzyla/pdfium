@@ -1,7 +1,5 @@
 # Render PDF to image
 
-
-
 ## Load PDF document
 
 ```typescript
@@ -39,7 +37,7 @@ Then you can render the page to an image by calling `render` method of the page 
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: 'sharp',
+  render: "sharp",
 });
 ```
 
@@ -48,7 +46,7 @@ To render with form fields visible:
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: 'sharp',
+  render: "sharp",
   renderFormFields: true,
 });
 ```
@@ -58,7 +56,7 @@ To render onto a transparent background (e.g. for compositing as a layer):
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: 'sharp',
+  render: "sharp",
   transparent: true,
 });
 ```
@@ -94,7 +92,7 @@ Example:
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: 'sharp',
+  render: "sharp",
 });
 
 console.log(image.data); // PNG image data as a buffer
@@ -109,7 +107,7 @@ Example:
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: 'bitmap',
+  render: "bitmap",
 });
 
 console.log(image.data); // Bitmap image data as a buffer
@@ -120,8 +118,8 @@ console.log(image.data); // Bitmap image data as a buffer
 You can also pass a custom render function as the `render` option. It should be a function that accepts a `RenderPageOptions` object and returns a `Promise<Uint8Array>` object. You can use it to render to any image format:
 
 ```typescript
-import sharp from 'sharp';
-import { type PDFiumPageRenderOptions } from '@hyzyla/pdfium';
+import { type PDFiumPageRenderOptions } from "@hyzyla/pdfium";
+import sharp from "sharp";
 
 const image = await page.render({
   scale: 3,
@@ -143,12 +141,11 @@ const image = await page.render({
 
 You can use the `width` and `height` options instead of scale to specify the exact image size in points that you want to render. In this case, the aspect ratio will not be preserved, and the image will be stretched to the specified size. If you want to preserve the aspect ratio, you can manually calculate the width and height based on the original image size and the desired scale.
 
-
 ```typescript
 const image = await page.render({
   width: 800,
   height: 600,
-  render: 'sharp',
+  render: "sharp",
 });
 ```
 
@@ -196,7 +193,7 @@ async main() {
     // Render PDF page to PNG image
     const image = await page.render({
       scale: 3, // 3x scale (72 DPI is the default)
-      render: renderFunction, 
+      render: renderFunction,
     });
 
     // Save the PNG image to the output folder

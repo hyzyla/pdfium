@@ -1,4 +1,5 @@
 import { promises as fs } from "node:fs";
+
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { PDFiumLibrary } from "../src/index.esm";

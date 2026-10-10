@@ -1,4 +1,5 @@
 import fs from "node:fs";
+
 import { PDFiumLibrary } from "@hyzyla/pdfium";
 
 async function testPdfiumPackage() {

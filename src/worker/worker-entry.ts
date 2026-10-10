@@ -1,6 +1,5 @@
 import { PDFiumLibrary } from "../library.js";
 import PDFiumModule from "../vendor/pdfium.esm.js";
-
 import { WorkerDispatcher } from "./dispatcher.js";
 import type { RPCRequest, RPCResponse } from "./protocol.js";
 

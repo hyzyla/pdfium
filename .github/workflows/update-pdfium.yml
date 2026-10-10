@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # This will run at 10:00 every Saturday
-    - cron: '0 10 * * 6'
+    - cron: "0 10 * * 6"
 
 permissions:
   contents: read
@@ -14,7 +14,6 @@ jobs:
   check-for-updates:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout the repository
         uses: actions/checkout@v4
 

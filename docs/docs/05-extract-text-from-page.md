@@ -2,13 +2,13 @@
 
 You can extract text from the PDF page objects using the `getText` method of the `PDFiumPage` object
 
-
 ```ts
+import { promises as fs } from "fs";
+
 import { PDFiumLibrary } from "@hyzyla/pdfium";
-import { promises as fs } from 'fs';
 
 async function main() {
-  const buff = await fs.readFile('document.pdf');
+  const buff = await fs.readFile("document.pdf");
 
   // Initialize the library
   const library = await PDFiumLibrary.init();
@@ -21,13 +21,13 @@ async function main() {
     console.log(`Page ${page.number + 1}:`);
     const text = page.getText();
     console.log(text);
-    console.log('-------------------');
+    console.log("-------------------");
   }
 
   // Save text from a specific page to a file
   const page = document.getPage(0);
   const text = page.getText();
-  await fs.writeFile('page1.txt', text);
+  await fs.writeFile("page1.txt", text);
 
   // Do not forget to destroy the document and the library
   // when you are done.
