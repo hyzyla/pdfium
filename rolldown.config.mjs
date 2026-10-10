@@ -15,16 +15,18 @@ const TARGET = "es2020";
 
 const wasmFile = fs.readFileSync("src/vendor/pdfium.wasm");
 
-// Start from a clean dist folder with the files that bundles don't produce
-fs.rmSync(DIST_FOLDER, { recursive: true, force: true });
-fs.mkdirSync(`${DIST_FOLDER}/vendor`, { recursive: true });
-fs.copyFileSync("src/vendor/pdfium.wasm", `${DIST_FOLDER}/pdfium.wasm`);
-for (const file of fs.globSync("src/vendor/*.d.ts")) {
-  fs.copyFileSync(file, `${DIST_FOLDER}/vendor/${path.basename(file)}`);
-}
-
 function sha256Base64(buffer) {
   return crypto.createHash("sha256").update(buffer).digest("base64");
+}
+
+// Puts pdfium.wasm next to the entries that load it from their own folder
+function emitWasm() {
+  return {
+    name: "emit-wasm",
+    buildStart() {
+      this.emitFile({ type: "asset", fileName: "pdfium.wasm", source: wasmFile });
+    },
+  };
 }
 
 // Edits the emscripten-generated vendor code before it's bundled, so the
@@ -146,7 +148,7 @@ const builds = [
       format: "cjs",
       exports: "named",
     },
-    plugins: [injectDebugLog({ message: "PDFium CJS loaded" })],
+    plugins: [injectDebugLog({ message: "PDFium CJS loaded" }), emitWasm()],
   },
   // ES module build
   {
@@ -156,7 +158,6 @@ const builds = [
     output: {
       file: `${DIST_FOLDER}/index.esm.js`,
       format: "es",
-      exports: "named",
     },
     plugins: [injectDebugLog({ message: "PDFium ESM loaded" }), patchVendor()],
   },
@@ -167,7 +168,6 @@ const builds = [
     output: {
       file: `${DIST_FOLDER}/index.esm.browser.js`,
       format: "es",
-      exports: "named",
     },
     plugins: [
       injectDebugLog({ message: "PDFium ESM browser loaded" }),
@@ -223,7 +223,6 @@ const builds = [
     output: {
       file: `${DIST_FOLDER}/index.esm.worker.js`,
       format: "es",
-      exports: "named",
     },
     plugins: [
       injectDebugLog({ message: "PDFium worker loaded" }),

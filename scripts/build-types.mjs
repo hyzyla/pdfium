@@ -4,6 +4,12 @@ import path from "node:path";
 // Runs after `tsc --emitDeclarationOnly`, which writes a .d.ts for every source
 // file, including ones that only run inside the worker.
 
+// tsc doesn't copy the hand-written declarations of the vendor code
+fs.mkdirSync("dist/vendor", { recursive: true });
+for (const file of fs.globSync("src/vendor/*.d.ts")) {
+  fs.copyFileSync(file, path.join("dist/vendor", path.basename(file)));
+}
+
 const IMPORT = /((?:from |import\()")(\.{1,2}\/[^"]+)\.(c?)js"/g;
 
 // Calls `visit` for every declaration file reachable from `entry`

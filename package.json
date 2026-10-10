@@ -48,8 +48,8 @@
     "access": "public"
   },
   "scripts": {
-    "build:watch": "rolldown -c --watch",
-    "build:prod": "rolldown -c --environment NODE_ENV:production && tsc --emitDeclarationOnly && node scripts/build-types.mjs",
+    "build:watch": "npm run clean && rolldown -c --watch",
+    "build:prod": "npm run clean && rolldown -c --environment NODE_ENV:production && tsc --emitDeclarationOnly && node scripts/build-types.mjs",
     "clean": "rm -rf dist",
     "check:fix": "oxlint --fix && oxfmt",
     "check:ci": "oxlint && oxfmt --check",
