@@ -83,3 +83,15 @@ import { PDFiumLibrary } from "@hyzyla/pdfium/inline";
 
 const library = await PDFiumLibrary.init();
 ```
+
+## Electron
+
+In the main process, use the package as in Node.js:
+
+```typescript
+import { PDFiumLibrary } from "@hyzyla/pdfium";
+
+const library = await PDFiumLibrary.init();
+```
+
+A renderer counts as a browser, even with Node.js integration turned on, so pass the wasm as described in [Browser](#browser), or use `@hyzyla/pdfium/inline`.
