@@ -24,10 +24,10 @@ const library = await PDFiumLibrary.init();
 
 ## Browser
 
-In the browser, you need to provide the URL to the `.wasm` binary or an `ArrayBuffer` of the `.wasm` binary as an argument to the init method. Typically, you will use a bundler like Webpack or Rollup, which allows you to import the `.wasm` file directly as an asset URL. Here is an example of how you can do this with Rollup:
+In the browser, you need to provide the URL to the `.wasm` binary or an `ArrayBuffer` of the `.wasm` binary as an argument to the init method. Typically, you will use a bundler like Webpack or Rollup, which allows you to import the `.wasm` file directly as an asset URL. Here is an example of how you can do this with Vite:
 
 ```typescript
-import { PDFiumLibrary } from "@hyzyla/pdfium/browser/cdn";
+import { PDFiumLibrary } from "@hyzyla/pdfium";
 import wasmUrl from "@hyzyla/pdfium/pdfium.wasm?url"; // URL to the .wasm file
 
 const library = await PDFiumLibrary.init({
