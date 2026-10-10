@@ -88,6 +88,7 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
   describe.for(browserNames)("%s", (browserName) => {
     let results: Record<string, unknown>;
     let failures: Record<string, string>;
+    let workerView: unknown;
     const cdnRequests: string[] = [];
 
     beforeAll(async () => {
@@ -104,6 +105,7 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
       const handle = await page.waitForFunction(() => (window as { results?: Record<string, unknown> }).results);
       results = (await handle.jsonValue())!;
       failures = await page.evaluate(() => (window as unknown as { failures: Record<string, string> }).failures);
+      workerView = await page.evaluate(() => (window as unknown as { workerView: unknown }).workerView);
       await page.close();
     });
 
@@ -123,6 +125,10 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
         expect(failures[entry]).toMatch(/^\w*Error\b/);
       },
     );
+
+    test("worker client leaves the rest of a shared buffer alone", () => {
+      expect(workerView).toEqual({ pageCount: 4, sharedBufferDetached: false });
+    });
 
     test("CDN entry fetches the wasm of this package version", () => {
       expect(cdnRequests).toEqual([`https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${pkg.version}/dist/pdfium.wasm`]);

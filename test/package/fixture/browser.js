@@ -51,5 +51,17 @@ export async function probeBrowserEntries({ wasmUrl, pdfUrl }) {
       await client.loadDocument(bytes.slice());
     }),
   };
+
+  // A view into a larger buffer goes to the worker without detaching that buffer
+  const client = await PDFiumWorkerClient.spawn({ wasmUrl: new URL(wasmUrl, location.href).href });
+  const shared = new Uint8Array(bytes.length + 8);
+  shared.set(bytes, 4);
+  const document = await client.loadDocument(shared.subarray(4, 4 + bytes.length));
+  window.workerView = {
+    pageCount: await document.getPageCount(),
+    sharedBufferDetached: shared.buffer.byteLength === 0,
+  };
+  await client.destroy();
+
   window.results = results;
 }

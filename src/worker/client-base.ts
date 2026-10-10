@@ -144,10 +144,14 @@ export class PDFiumWorkerClientBase {
   }
 
   async loadDocument(bytes: Uint8Array, password?: string): Promise<PDFiumWorkerDocument> {
-    // Transfer the bytes' underlying buffer to avoid a copy when it's exclusive
-    // to this call. Callers passing a shared/view buffer should clone first.
-    const transferable = bytes.buffer instanceof ArrayBuffer ? [bytes.buffer] : [];
-    const result = await this.channel.call<LoadDocumentResult>({ type: "loadDocument", bytes, password }, transferable);
+    // Transferring moves the whole underlying buffer to the worker without a
+    // copy. When the bytes are only part of a larger or shared buffer, copy
+    // them instead, so the rest of that buffer stays usable.
+    const whole = bytes.buffer instanceof ArrayBuffer && bytes.byteLength === bytes.buffer.byteLength;
+    const payload = whole ? bytes : bytes.slice();
+    const result = await this.channel.call<LoadDocumentResult>({ type: "loadDocument", bytes: payload, password }, [
+      payload.buffer as ArrayBuffer,
+    ]);
     return new PDFiumWorkerDocument(this.channel, result.doc);
   }
 
