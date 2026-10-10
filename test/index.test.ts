@@ -473,6 +473,25 @@ describe("PDFium", () => {
       });
     });
 
+    test("raw data of a DCTDecode image is the JPEG file", async () => {
+      await loadDocument("test_4_with_images.pdf", async (document) => {
+        const jpegs = [];
+        for (const object of document.getPage(0).objects()) {
+          if (object.type === "image") {
+            const image = await object.getImageDataRaw();
+            if (image.filters.join() === "DCTDecode") {
+              const { format, width, height } = await sharp(image.data).metadata();
+              jpegs.push({ format, width, height });
+            }
+          }
+        }
+        expect(jpegs).toEqual([
+          { format: "jpeg", width: 313, height: 234 },
+          { format: "jpeg", width: 313, height: 234 },
+        ]);
+      });
+    });
+
     test("get page object image jpeg", async () => {
       await loadDocument("test_4_with_images.pdf", async (document) => {
         for (const page of document.pages()) {
