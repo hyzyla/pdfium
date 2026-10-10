@@ -72,7 +72,8 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
       });
     });
     await page.goto(server.resolvedUrls!.local[0]);
-    results = await page.waitForFunction(() => (window as { results?: unknown }).results).then((r) => r.jsonValue());
+    const handle = await page.waitForFunction(() => (window as { results?: Record<string, unknown> }).results);
+    results = (await handle.jsonValue())!;
     failures = await page.evaluate(() => (window as unknown as { failures: Record<string, string> }).failures);
     await page.close();
   });

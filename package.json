@@ -56,7 +56,7 @@
     "check:ci": "oxlint && oxfmt --check",
     "check:package": "vitest run --project package",
     "check:test": "vitest --project unit",
-    "check:types": "tsc --noEmit",
+    "check:types": "tsc --noEmit && tsc -p test",
     "update:pdfium": "node scripts/update-pdfium.mjs"
   },
   "devDependencies": {

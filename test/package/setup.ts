@@ -35,7 +35,9 @@ export default async function setup(project: TestProject) {
   const [{ filename, files }] = JSON.parse(npm(["pack", "--json", "--pack-destination", dir], process.cwd()));
   npm(["install", "--no-audit", "--no-fund", path.join(dir, filename)], dir);
 
-  const library = await PDFiumLibrary.init({ wasmBinary: fs.readFileSync("src/vendor/pdfium.wasm") });
+  const library = await PDFiumLibrary.init({
+    wasmBinary: new Uint8Array(fs.readFileSync("src/vendor/pdfium.wasm")).buffer,
+  });
   const expected: ProbeResult = await probe(library, fs.readFileSync("test/data/test_1.pdf"));
   library.destroy();
 

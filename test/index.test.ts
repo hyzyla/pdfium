@@ -1,6 +1,6 @@
 import { promises as fs, promises } from "node:fs";
 
-import { toMatchImageSnapshot } from "jest-image-snapshot";
+import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from "jest-image-snapshot";
 import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
@@ -9,6 +9,12 @@ import { PDFiumLibrary as PDFiumLibraryBase } from "../src/library";
 import type { PDFiumImageObject } from "../src/objects";
 
 expect.extend({ toMatchImageSnapshot });
+
+declare module "vitest" {
+  interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown> {
+    toMatchImageSnapshot(options?: MatchImageSnapshotOptions): R;
+  }
+}
 
 const A4_SIZE = {
   width: 595, // px = 210 mm ~ 8.27 inches => 72 DPI
@@ -31,7 +37,7 @@ describe("PDFium", () => {
   let library: PDFiumLibrary;
   beforeAll(async () => {
     library = await PDFiumLibrary.init({
-      wasmBinary: await fs.readFile("./src/vendor/pdfium.wasm"),
+      wasmBinary: new Uint8Array(await fs.readFile("./src/vendor/pdfium.wasm")).buffer,
     });
   });
 

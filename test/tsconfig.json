@@ -1,0 +1,15 @@
+{
+  // Type-checks the tests the way Vitest runs them: bundled by Vite, in Node.js
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "rootDir": "..",
+    "noEmit": true
+  },
+  "include": ["**/*.ts", "../src/**/*"],
+  "exclude": ["package/fixture"]
+}
