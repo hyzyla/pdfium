@@ -30,6 +30,9 @@ function useLoadDocument(pdfium?: PDFiumLibrary) {
   return useQuery({
     queryKey: ["document"],
     queryFn: async () => {
+      if (!pdfium) {
+        throw new Error("PDFium is not initialized");
+      }
       const response = await fetch("/sample.pdf");
       const buff = new Uint8Array(await response.arrayBuffer());
       return pdfium.loadDocument(buff);
@@ -50,13 +53,16 @@ function useGetPageBitmap(
   return useQuery({
     queryKey: ["page", pageNumber, scale],
     queryFn: async () => {
-      const page = document.getPage(options.pageNumber);
+      if (!document) {
+        throw new Error("Document is not loaded");
+      }
+      const page = document.getPage(pageNumber);
       return page.render({
         render: "bitmap",
-        scale: options.scale,
+        scale,
       });
     },
-    enabled: !!document || !!scale,
+    enabled: !!document,
   });
 }
 
@@ -109,11 +115,11 @@ export function PDFDocumentViewer() {
     [],
   );
 
-  if (pdfiumResult.isLoading || documentResult.isLoading) {
-    return <div>Loading...</div>;
-  }
   if (pdfiumResult.isError || documentResult.isError) {
     return <div>Error</div>;
+  }
+  if (!documentResult.data) {
+    return <div>Loading...</div>;
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", margin: "20px", gap: "10px" }}>
