@@ -11,5 +11,5 @@
   "env": {
     "builtin": true
   },
-  "ignorePatterns": ["src/vendor/**/*.js", "src/emscripten.ts", "docs/**/*.tsx"]
+  "ignorePatterns": ["src/vendor/**/*.js", "src/emscripten.ts", "docs/**"]
 }
