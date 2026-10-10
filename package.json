@@ -55,8 +55,8 @@
     "access": "public"
   },
   "scripts": {
-    "build:watch": "rollup --config rollup.config.mjs --watch",
-    "build:prod": "rollup --config rollup.config.mjs --environment NODE_ENV:production",
+    "build:watch": "rolldown -c --watch",
+    "build:prod": "rolldown -c --environment NODE_ENV:production && tsc --emitDeclarationOnly",
     "clean": "rm -rf dist",
     "check:fix": "oxlint --fix && oxfmt",
     "check:ci": "oxlint && oxfmt --check",
@@ -65,23 +65,17 @@
     "update:pdfium": "node scripts/update-pdfium.mjs"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
-    "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-replace": "^6.0.3",
-    "@rollup/plugin-typescript": "^12.3.0",
     "@types/jest-image-snapshot": "^6.4.0",
-    "@types/node": "^20.19.25",
+    "@types/node": "^24.19.2",
     "jest-image-snapshot": "^6.5.1",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0",
     "oxlint-tsgolint": "^7.0.2003",
-    "rollup": "^4.53.3",
-    "rollup-plugin-copy": "^3.5.0",
-    "rollup-plugin-delete": "^3.0.1",
+    "rolldown": "^1.2.13",
     "sharp": "^0.34.5",
     "ts-node": "^10.9.1",
-    "tslib": "^2.8.1",
     "unzipper": "^0.12.3",
-    "vitest": "^2.1.9"
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
   }
 }

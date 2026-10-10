@@ -1,20 +1,27 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
+import path from "node:path";
 
-import commonjs from "@rollup/plugin-commonjs";
-import resolve from "@rollup/plugin-node-resolve";
-import rollupReplace from "@rollup/plugin-replace";
-import typescript from "@rollup/plugin-typescript";
-import copyPlugin from "rollup-plugin-copy";
-import deletePlugin from "rollup-plugin-delete";
+import { defineConfig } from "rolldown";
+import { replacePlugin } from "rolldown/plugins";
 
 const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
 
 const DIST_FOLDER = "dist";
-const EXTERNAL_NODE_PACKAGES = ["fs", "path", "crypto"];
 const IS_PROD = process.env.NODE_ENV === "production";
 
+// Matches the syntax already required by the emscripten-generated vendor code
+const TARGET = "es2020";
+
 const wasmFile = fs.readFileSync("src/vendor/pdfium.wasm");
+
+// Start from a clean dist folder with the files that bundles don't produce
+fs.rmSync(DIST_FOLDER, { recursive: true, force: true });
+fs.mkdirSync(`${DIST_FOLDER}/vendor`, { recursive: true });
+fs.copyFileSync("src/vendor/pdfium.wasm", `${DIST_FOLDER}/pdfium.wasm`);
+for (const file of fs.globSync("src/vendor/*.d.ts")) {
+  fs.copyFileSync(file, `${DIST_FOLDER}/vendor/${path.basename(file)}`);
+}
 
 function sha256Base64(buffer) {
   return crypto.createHash("sha256").update(buffer).digest("base64");
@@ -42,116 +49,87 @@ function injectDebugLog({ message }) {
   };
 }
 
-async function injectCdnVars() {
-  if (IS_PROD) {
-    const wasmSHA256B64 = sha256Base64(wasmFile);
-    return rollupReplace({
-      preventAssignment: true,
-      values: {
-        // For properly fetching the wasm file from CDN
-        __PACKAGE_VERSION__: JSON.stringify(pkg.version),
-        __WASM_SHA265_B64__: JSON.stringify(wasmSHA256B64),
-      },
-    });
-  }
-
-  // For dev environent we don't care about integrity
-  return rollupReplace({
-    preventAssignment: true,
-    values: {
+function injectCdnVars() {
+  return replacePlugin(
+    {
+      // For properly fetching the wasm file from CDN
       __PACKAGE_VERSION__: JSON.stringify(pkg.version),
-      __WASM_SHA265_B64__: JSON.stringify(null),
+      // For dev environment we don't care about integrity
+      __WASM_SHA265_B64__: JSON.stringify(IS_PROD ? sha256Base64(wasmFile) : null),
     },
-  });
+    { preventAssignment: true },
+  );
 }
 
 function setNotNodeEnvironment() {
-  return rollupReplace({
-    preventAssignment: true,
-    values: {
+  return replacePlugin(
+    {
       // This is helpefull for properly tree-shaking the node.js code
       ENVIRONMENT_IS_NODE: "false",
     },
-  });
+    { preventAssignment: true },
+  );
 }
 
 // Inlines the previously-built worker bundle into the worker client as a string
 // constant, so PDFiumWorkerClient.spawn() can construct a Worker from a Blob URL
-// with no extra files to ship.
+// with no extra files to ship. Runs on the rendered chunk, after TypeScript
+// declarations are gone, and reads the bundle lazily because it's built by the
+// previous config.
 function injectWorkerBundle() {
-  return rollupReplace({
-    preventAssignment: true,
-    delimiters: ["", ""],
-    values: {
-      __WORKER_BUNDLE_SOURCE__: () => {
-        const source = fs.readFileSync(`${DIST_FOLDER}/worker.bundle.js`, "utf-8");
-        return JSON.stringify(source);
-      },
+  return {
+    name: "inject-worker-bundle",
+    renderChunk(code) {
+      const source = fs.readFileSync(`${DIST_FOLDER}/worker.bundle.js`, "utf-8");
+      return code.replaceAll("__WORKER_BUNDLE_SOURCE__", () => JSON.stringify(source));
     },
-  });
+  };
 }
 
-export default [
+export default defineConfig([
   // CommonJS build
   {
     input: "src/index.cjs.ts",
+    platform: "node",
+    transform: { target: TARGET },
     output: {
-      name: "@hyzyla/pdfium",
       file: `${DIST_FOLDER}/index.cjs`,
       format: "cjs",
       exports: "named",
     },
-    plugins: [
-      deletePlugin({ targets: `${DIST_FOLDER}/*` }),
-      copyPlugin({
-        targets: [
-          { src: "src/vendor/pdfium.wasm", dest: DIST_FOLDER },
-          { src: "src/vendor/*.d.ts", dest: `${DIST_FOLDER}/vendor` },
-        ],
-      }),
-      injectDebugLog({ message: "PDFium CJS loaded" }),
-      resolve(),
-      typescript(),
-      commonjs({
-        strictRequires: true,
-        ignore: EXTERNAL_NODE_PACKAGES,
-      }),
-    ],
-    external: EXTERNAL_NODE_PACKAGES,
+    plugins: [injectDebugLog({ message: "PDFium CJS loaded" })],
   },
   // ES module build
   {
     input: "src/index.esm.ts",
+    platform: "neutral",
+    external: [/^node:/],
+    transform: { target: TARGET },
     output: {
-      name: "@hyzyla/pdfium",
       file: `${DIST_FOLDER}/index.esm.js`,
       format: "es",
       exports: "named",
     },
-    plugins: [injectDebugLog({ message: "PDFium ESM loaded" }), patchEsmPath(), resolve(), typescript()],
+    plugins: [injectDebugLog({ message: "PDFium ESM loaded" }), patchEsmPath()],
   },
   // ES (browser) build
   {
     input: "src/index.esm.ts",
+    platform: "browser",
+    transform: { target: TARGET },
     output: {
-      name: "@hyzyla/pdfium",
       file: `${DIST_FOLDER}/index.esm.browser.js`,
       format: "es",
       exports: "named",
     },
-    plugins: [
-      injectDebugLog({ message: "PDFium ESM browser loaded" }),
-      patchEsmPath(),
-      setNotNodeEnvironment(),
-      resolve(),
-      typescript(),
-    ],
+    plugins: [injectDebugLog({ message: "PDFium ESM browser loaded" }), patchEsmPath(), setNotNodeEnvironment()],
   },
   // ES (browser) + CDN build
   {
     input: "src/index.esm.cdn.ts",
+    platform: "browser",
+    transform: { target: TARGET },
     output: {
-      name: "PDFium",
       file: `${DIST_FOLDER}/index.esm.cdn.js`,
       format: "es",
     },
@@ -159,16 +137,15 @@ export default [
       injectDebugLog({ message: "PDFium with CDN loaded" }),
       patchEsmPath(),
       setNotNodeEnvironment(),
-      await injectCdnVars(),
-      resolve(),
-      typescript(),
+      injectCdnVars(),
     ],
   },
   // ES (browser) + Base64 build
   {
     input: "src/index.esm.base64.ts",
+    platform: "browser",
+    transform: { target: TARGET },
     output: {
-      name: "PDFium",
       dir: DIST_FOLDER,
       format: "es",
     },
@@ -176,14 +153,10 @@ export default [
       injectDebugLog({ message: "PDFium with Base64 loaded" }),
       patchEsmPath(),
       setNotNodeEnvironment(),
-      rollupReplace({
-        preventAssignment: true,
-        values: {
-          __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")),
-        },
-      }),
-      resolve(),
-      typescript(),
+      replacePlugin(
+        { __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")) },
+        { preventAssignment: true },
+      ),
     ],
   },
   // Worker bundle — runs inside the spawned Web Worker. WASM is fetched from
@@ -192,29 +165,26 @@ export default [
   // BEFORE the client below so it can be inlined as a string.
   {
     input: "src/worker/worker-entry.ts",
+    platform: "browser",
+    transform: { target: TARGET },
     output: {
       file: `${DIST_FOLDER}/worker.bundle.js`,
       format: "es",
-      inlineDynamicImports: true,
+      codeSplitting: false,
     },
-    plugins: [patchEsmPath(), setNotNodeEnvironment(), resolve(), typescript()],
+    plugins: [patchEsmPath(), setNotNodeEnvironment()],
   },
   // Worker client — main-thread entrypoint. Inlines the worker bundle above so
   // users get a single-import `PDFiumWorkerClient.spawn({ wasmUrl })`.
   {
     input: "src/index.esm.worker.ts",
+    platform: "browser",
+    transform: { target: TARGET },
     output: {
-      name: "PDFium",
       file: `${DIST_FOLDER}/index.esm.worker.js`,
       format: "es",
       exports: "named",
     },
-    plugins: [
-      injectDebugLog({ message: "PDFium worker loaded" }),
-      setNotNodeEnvironment(),
-      injectWorkerBundle(),
-      resolve(),
-      typescript(),
-    ],
+    plugins: [injectDebugLog({ message: "PDFium worker loaded" }), setNotNodeEnvironment(), injectWorkerBundle()],
   },
-];
+]);
