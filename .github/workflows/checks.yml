@@ -17,4 +17,5 @@ jobs:
       - run: npm run check:types
       - run: npm run check:test
       - run: npm run build:prod
+      - run: npx playwright-core install --with-deps firefox webkit
       - run: npm run check:package

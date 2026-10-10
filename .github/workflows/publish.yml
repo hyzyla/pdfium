@@ -30,5 +30,6 @@ jobs:
             exit 1
           fi
       - run: npm ci && npm run build:prod
+      - run: npx playwright-core install --with-deps firefox webkit
       - run: npm run check:package
       - run: npm publish --provenance

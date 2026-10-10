@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { type Browser, chromium } from "playwright-core";
+import { type Browser, chromium, firefox, webkit } from "playwright-core";
 import { build, preview, type PreviewServer } from "vite";
 import { afterAll, beforeAll, describe, expect, inject, test } from "vitest";
 import webpack from "webpack";
@@ -39,62 +39,86 @@ const bundlers = {
   },
 };
 
-let browser: Browser;
+// Chrome is the one installed on the machine. Firefox and WebKit (the engine
+// behind Safari) are Playwright's builds: npx playwright-core install firefox webkit
+const browserTypes = {
+  chrome: () => chromium.launch({ channel: "chrome" }),
+  firefox: () => firefox.launch(),
+  webkit: () => webkit.launch(),
+};
+
+type BrowserName = keyof typeof browserTypes;
+
+// All of them unless TEST_BROWSERS lists a subset, e.g. TEST_BROWSERS=chrome
+const browserNames = (process.env.TEST_BROWSERS?.split(",") ?? Object.keys(browserTypes)) as BrowserName[];
+const browsers: Partial<Record<BrowserName, Browser>> = {};
 
 beforeAll(async () => {
-  browser = await chromium.launch({ channel: "chrome" });
+  for (const name of browserNames) {
+    browsers[name] = await browserTypes[name]();
+  }
 });
 
 afterAll(async () => {
-  await browser?.close();
+  await Promise.all(Object.values(browsers).map((browser) => browser.close()));
 });
 
 // Bundles the fixture page like an app depending on the package would and
-// runs it in Chrome. The CDN entry's wasm request is answered with the packed
-// pdfium.wasm, which also checks the integrity hash baked into it.
+// runs it in each browser. The CDN entry's wasm request is answered with the
+// packed pdfium.wasm, which also checks the integrity hash baked into it.
 describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler) => {
   let server: PreviewServer;
-  let results: Record<string, unknown>;
-  let failures: Record<string, string>;
-  const cdnRequests: string[] = [];
 
   beforeAll(async () => {
     const outDir = await bundlers[bundler]();
     server = await preview({ root: dir, configFile: false, logLevel: "error", build: { outDir } });
-
-    const page = await browser.newPage();
-    await page.route("https://cdn.jsdelivr.net/**", (route) => {
-      cdnRequests.push(route.request().url());
-      return route.fulfill({
-        path: path.join(dir, "node_modules/@hyzyla/pdfium/dist/pdfium.wasm"),
-        contentType: "application/wasm",
-        headers: { "access-control-allow-origin": "*" },
-      });
-    });
-    await page.goto(server.resolvedUrls!.local[0]);
-    const handle = await page.waitForFunction(() => (window as { results?: Record<string, unknown> }).results);
-    results = (await handle.jsonValue())!;
-    failures = await page.evaluate(() => (window as unknown as { failures: Record<string, string> }).failures);
-    await page.close();
   });
 
   afterAll(async () => {
     await server?.close();
   });
 
-  test.for(["@hyzyla/pdfium", "@hyzyla/pdfium/browser/cdn", "@hyzyla/pdfium/browser/base64", "@hyzyla/pdfium/worker"])(
-    "%s matches the source build",
-    (entry) => {
+  describe.for(browserNames)("%s", (browserName) => {
+    let results: Record<string, unknown>;
+    let failures: Record<string, string>;
+    const cdnRequests: string[] = [];
+
+    beforeAll(async () => {
+      const page = await browsers[browserName]!.newPage();
+      await page.route("https://cdn.jsdelivr.net/**", (route) => {
+        cdnRequests.push(route.request().url());
+        return route.fulfill({
+          path: path.join(dir, "node_modules/@hyzyla/pdfium/dist/pdfium.wasm"),
+          contentType: "application/wasm",
+          headers: { "access-control-allow-origin": "*" },
+        });
+      });
+      await page.goto(server.resolvedUrls!.local[0]);
+      const handle = await page.waitForFunction(() => (window as { results?: Record<string, unknown> }).results);
+      results = (await handle.jsonValue())!;
+      failures = await page.evaluate(() => (window as unknown as { failures: Record<string, string> }).failures);
+      await page.close();
+    });
+
+    test.for([
+      "@hyzyla/pdfium",
+      "@hyzyla/pdfium/browser/cdn",
+      "@hyzyla/pdfium/browser/base64",
+      "@hyzyla/pdfium/worker",
+    ])("%s matches the source build", (entry) => {
       expect(results[entry]).toEqual(inject("expected"));
-    },
-  );
+    });
 
-  test.for(["@hyzyla/pdfium", "@hyzyla/pdfium/worker"])("%s fails with an error when the wasm is missing", (entry) => {
-    // Not "timed out" or "resolved", but the error from compiling the wasm
-    expect(failures[entry]).toMatch(/WebAssembly/);
-  });
+    test.for(["@hyzyla/pdfium", "@hyzyla/pdfium/worker"])(
+      "%s fails with an error when the wasm is missing",
+      (entry) => {
+        // An error, not "timed out" or "resolved". The wording differs per browser.
+        expect(failures[entry]).toMatch(/^\w*Error\b/);
+      },
+    );
 
-  test("CDN entry fetches the wasm of this package version", () => {
-    expect(cdnRequests).toEqual([`https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${pkg.version}/dist/pdfium.wasm`]);
+    test("CDN entry fetches the wasm of this package version", () => {
+      expect(cdnRequests).toEqual([`https://cdn.jsdelivr.net/npm/@hyzyla/pdfium@${pkg.version}/dist/pdfium.wasm`]);
+    });
   });
 });
