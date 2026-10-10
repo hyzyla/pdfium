@@ -1,7 +1,7 @@
 import { webcrypto } from "node:crypto";
 import fs from "node:fs";
 
-import { PDFiumLibrary } from "@hyzyla/pdfium/browser/base64";
+import { PDFiumLibrary } from "@hyzyla/pdfium/inline";
 
 import { probe } from "./probe.js";
 
@@ -14,4 +14,4 @@ const library = await PDFiumLibrary.init({ disableBase64Warning: true });
 const result = await probe(library, fs.readFileSync("test.pdf"));
 library.destroy();
 
-console.log(JSON.stringify({ entry: import.meta.resolve("@hyzyla/pdfium/browser/base64"), ...result }));
+console.log(JSON.stringify({ entry: import.meta.resolve("@hyzyla/pdfium/inline"), ...result }));

@@ -109,14 +109,12 @@ describe.for(Object.keys(bundlers) as (keyof typeof bundlers)[])("%s", (bundler)
       await page.close();
     });
 
-    test.for([
-      "@hyzyla/pdfium",
-      "@hyzyla/pdfium/browser/cdn",
-      "@hyzyla/pdfium/browser/base64",
-      "@hyzyla/pdfium/worker",
-    ])("%s matches the source build", (entry) => {
-      expect(results[entry]).toEqual(inject("expected"));
-    });
+    test.for(["@hyzyla/pdfium", "@hyzyla/pdfium/browser/cdn", "@hyzyla/pdfium/inline", "@hyzyla/pdfium/worker"])(
+      "%s matches the source build",
+      (entry) => {
+        expect(results[entry]).toEqual(inject("expected"));
+      },
+    );
 
     test.for(["@hyzyla/pdfium", "@hyzyla/pdfium/worker"])(
       "%s fails with an error when the wasm is missing",

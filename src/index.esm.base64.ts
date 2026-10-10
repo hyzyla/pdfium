@@ -1,7 +1,8 @@
 /**
- * Browser entry point with pdfium.wasm embedded as base64. Exports everything from index.ts plus a
- * PDFiumLibrary that needs no options. The base64 string lives in a separate chunk that init() loads
- * with a dynamic import.
+ * Entry point with pdfium.wasm embedded as base64, published as `@hyzyla/pdfium/inline`. It runs in
+ * browsers and in Node.js, and leaves no wasm file for a bundler to lose. Exports everything from
+ * index.ts plus a PDFiumLibrary that needs no options. The base64 string lives in a separate chunk
+ * that init() loads with a dynamic import.
  */
 export * from "./index.js";
 

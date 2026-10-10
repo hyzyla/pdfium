@@ -1,4 +1,4 @@
-import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium/browser/base64";
+import { type PDFiumDocument, PDFiumLibrary } from "@hyzyla/pdfium/inline";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 

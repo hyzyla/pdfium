@@ -9,7 +9,7 @@ const dir = inject("packageDir");
 // Only the main entry may load pdfium.wasm from a URL. The others embed the
 // wasm, fetch it from a CDN or take a URL from the app, so bundling one of them
 // must not copy pdfium.wasm into the app.
-test.for(["@hyzyla/pdfium/browser/cdn", "@hyzyla/pdfium/browser/base64", "@hyzyla/pdfium/worker"])(
+test.for(["@hyzyla/pdfium/browser/cdn", "@hyzyla/pdfium/inline", "@hyzyla/pdfium/worker"])(
   "bundling %s doesn't emit pdfium.wasm",
   async (entry) => {
     const input = path.join(dir, `${entry.replaceAll("/", "-")}.js`);

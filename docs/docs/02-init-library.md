@@ -24,10 +24,10 @@ const library = await PDFiumLibrary.init();
 
 ## Node.js with a bundler
 
-The Node.js build reads `pdfium.wasm` from its own folder in `node_modules`. When a bundler moves your server code, as Next.js or esbuild can, that file may be left behind. The base64 entry point avoids this: it also runs in Node.js, and the wasm is part of its JavaScript.
+The Node.js build reads `pdfium.wasm` from its own folder in `node_modules`. When a bundler moves your server code, as Next.js or esbuild can, that file may be left behind. The `@hyzyla/pdfium/inline` entry point avoids this: it also runs in Node.js, and the wasm is embedded in its JavaScript as base64.
 
 ```typescript
-import { PDFiumLibrary } from "@hyzyla/pdfium/browser/base64";
+import { PDFiumLibrary } from "@hyzyla/pdfium/inline";
 
 const library = await PDFiumLibrary.init({ disableBase64Warning: true });
 ```
@@ -66,7 +66,7 @@ const library = await PDFiumLibrary.init();
 #### Load .wasm from base64 encoded string (bigger bundle size):
 
 ```typescript
-import { PDFiumLibrary } from "@hyzyla/pdfium/browser/base64";
+import { PDFiumLibrary } from "@hyzyla/pdfium/inline";
 
 const library = await PDFiumLibrary.init();
 ```

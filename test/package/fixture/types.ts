@@ -1,6 +1,6 @@
 import { PDFiumLibrary, type PDFiumPageRender } from "@hyzyla/pdfium";
-import { PDFiumLibrary as Base64Library } from "@hyzyla/pdfium/browser/base64";
 import { PDFiumLibrary as CdnLibrary } from "@hyzyla/pdfium/browser/cdn";
+import { PDFiumLibrary as Base64Library } from "@hyzyla/pdfium/inline";
 import { PDFiumWorkerClient, type PDFiumWorkerRenderResult } from "@hyzyla/pdfium/worker";
 
 const library = await PDFiumLibrary.init({ wasmUrl: "/pdfium.wasm" });

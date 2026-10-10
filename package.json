@@ -32,7 +32,7 @@
       "types": "./dist/index.esm.cdn.d.ts",
       "default": "./dist/index.esm.cdn.js"
     },
-    "./browser/base64": {
+    "./inline": {
       "types": "./dist/index.esm.base64.d.ts",
       "default": "./dist/index.esm.base64.js"
     },

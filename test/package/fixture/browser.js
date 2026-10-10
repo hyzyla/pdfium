@@ -1,6 +1,6 @@
 import { PDFiumLibrary } from "@hyzyla/pdfium";
-import { PDFiumLibrary as Base64Library } from "@hyzyla/pdfium/browser/base64";
 import { PDFiumLibrary as CdnLibrary } from "@hyzyla/pdfium/browser/cdn";
+import { PDFiumLibrary as Base64Library } from "@hyzyla/pdfium/inline";
 import { PDFiumWorkerClient } from "@hyzyla/pdfium/worker";
 
 import { probe } from "./probe.js";
@@ -23,7 +23,7 @@ export async function probeBrowserEntries({ wasmUrl, pdfUrl }) {
   const entries = {
     "@hyzyla/pdfium": () => PDFiumLibrary.init({ wasmUrl }),
     "@hyzyla/pdfium/browser/cdn": () => CdnLibrary.init({ disableCDNWarning: true }),
-    "@hyzyla/pdfium/browser/base64": () => Base64Library.init({ disableBase64Warning: true }),
+    "@hyzyla/pdfium/inline": () => Base64Library.init({ disableBase64Warning: true }),
     "@hyzyla/pdfium/worker": () => PDFiumWorkerClient.spawn({ wasmUrl: new URL(wasmUrl, location.href).href }),
   };
 
