@@ -129,7 +129,7 @@ const pdfium = await PDFiumWorkerClient.spawn({
 
 ## Render result handling
 
-`page.render()` returns raw bitmap bytes (BGRA in memory order, or grayscale). To turn it into something paintable:
+`page.render()` returns raw bitmap bytes (RGBA, 4 bytes per pixel, or grayscale). To turn it into something paintable:
 
 ```typescript
 const { data, width, height } = await page.render({ scale: 2 });

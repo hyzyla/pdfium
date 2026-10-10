@@ -29,15 +29,14 @@ for (const page of document.pages()) {
 Then you can render the page to an image by calling `render` method of the page instance. It accepts an optional `PDFiumPageRenderParams` object with the following properties:
 
 - `scale` - scale factor for the image (default is 1, which means 72 DPI, 3 almost always is enough for good quality)
-- `render` - render engine to use, can be either `sharp`, `bitmap` (default is `bitmap`) or custom render function. If you need to render to PNG, it's recommended to use `sharp` render function.
-- `colorSpace` - color space to render to: `'BGRA'` (default, full color) or `'Gray'` (grayscale, useful for OCR)
+- `render` - what to return: `'bitmap'` (default) returns the raw pixels. To convert them, for example to PNG, pass your own function (see below).
+- `colorSpace` - color space to render to: `'BGRA'` (default, full color, 4 bytes per pixel in RGBA order despite the name) or `'Gray'` (grayscale, useful for OCR)
 - `renderFormFields` - whether to render interactive form fields (default is `false`). Form fields are interactive elements like text boxes, checkboxes, dropdown menus, and signature fields that users can fill out in PDF documents (like tax forms, applications, or contracts).
 - `transparent` - render onto a transparent background instead of the default opaque white (default is `false`). Useful when you want to composite the rendered page over other content. Only applies to `colorSpace: 'BGRA'` (the default); ignored for `'Gray'` since grayscale bitmaps have no alpha channel.
 
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: "sharp",
 });
 ```
 
@@ -46,7 +45,6 @@ To render with form fields visible:
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: "sharp",
   renderFormFields: true,
 });
 ```
@@ -56,7 +54,6 @@ To render onto a transparent background (e.g. for compositing as a layer):
 ```typescript
 const image = await page.render({
   scale: 3,
-  render: "sharp",
   transparent: true,
 });
 ```
@@ -76,31 +73,9 @@ DPI is dots per inch, it's a measure of image resolution and commonly used for p
 Points are a typographic unit of measure, 1 point is equal to 1/72 of an inch
 :::
 
-#### render: `sharp`
-
-It's recommended to use `sharp` for rendering to PNG. `sharp` is an optional dependency, so you need to install it manually, before using it:
-
-```bash
-# yarn add sharp
-# pnpm install sharp
-npm install sharp
-
-```
-
-Example:
-
-```typescript
-const image = await page.render({
-  scale: 3,
-  render: "sharp",
-});
-
-console.log(image.data); // PNG image data as a buffer
-```
-
 #### render: `bitmap`
 
-`bitmap` is the default render engine. It renders PDF page to a bitmap image, which is a buffer of RGBA pixels (4 channels) by default, or a single-channel grayscale buffer if `colorSpace: 'Gray'` is used. You can use it to render to any image format, but you need to convert the bitmap to the desired format yourself. It's default render engine, because it doesn't require any additional dependencies.
+`bitmap` is the default. It returns the raw pixels: 4 bytes per pixel in RGBA order, or 1 byte per pixel with `colorSpace: 'Gray'`. Convert them to the image format you need yourself, or pass a render function as shown below.
 
 Example:
 
@@ -115,7 +90,11 @@ console.log(image.data); // Bitmap image data as a buffer
 
 #### render: custom render function
 
-You can also pass a custom render function as the `render` option. It should be a function that accepts a `RenderPageOptions` object and returns a `Promise<Uint8Array>` object. You can use it to render to any image format:
+To get an image file such as PNG, pass a function as the `render` option. It receives the raw pixels with their width and height and returns the encoded image as a `Promise<Uint8Array>`. The package doesn't include an image encoder, so this example uses [sharp](https://sharp.pixelplumbing.com/), which you install separately:
+
+```bash
+npm install sharp
+```
 
 ```typescript
 import { type PDFiumPageRenderOptions } from "@hyzyla/pdfium";
@@ -145,7 +124,6 @@ You can use the `width` and `height` options instead of scale to specify the exa
 const image = await page.render({
   width: 800,
   height: 600,
-  render: "sharp",
 });
 ```
 
@@ -155,7 +133,7 @@ A page stays loaded until you call `page.close()` or destroy the document. Until
 
 ```typescript
 for (const page of document.pages()) {
-  const image = await page.render({ scale: 3, render: "sharp" });
+  const image = await page.render({ scale: 3 });
   // ... save the image
   page.close();
 }
@@ -166,9 +144,10 @@ After `close()`, you can't use the page or any objects you got from it.
 ## Full example
 
 ```typescript
-import { PDFiumLibrary } from "@hyzyla/pdfium";
-import { promises as fs } from 'fs';
-import sharp from 'sharp';
+import { promises as fs } from "fs";
+
+import { PDFiumLibrary, type PDFiumPageRenderOptions } from "@hyzyla/pdfium";
+import sharp from "sharp";
 
 /**
  * For this and the following examples, we will use "sharp" library to convert
@@ -187,9 +166,8 @@ async function renderFunction(options: PDFiumPageRenderOptions) {
     .toBuffer();
 }
 
-
-async main() {
-  const buff = await fs.readFile('test2.pdf');
+async function main() {
+  const buff = await fs.readFile("test2.pdf");
 
   // Initialize the library, you can do this once for the whole application
   // and reuse the library instance.

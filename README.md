@@ -37,7 +37,7 @@ npm install @hyzyla/pdfium
 ```ts
 import { promises as fs } from "fs";
 
-import { PDFiumLibrary } from "@hyzyla/pdfium";
+import { PDFiumLibrary, type PDFiumPageRenderOptions } from "@hyzyla/pdfium";
 import sharp from "sharp";
 
 /**

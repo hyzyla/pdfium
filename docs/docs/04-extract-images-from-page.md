@@ -1,6 +1,6 @@
 # Extract images from PDF page
 
-You can extract images from the PDF page objects using the `render` method of the `PDFiumImageObject` class. The `render` method accepts the `render` option, which specifies the rendering engine to use. You can use the `sharp` rendering engine to convert the bitmap image to PNG format or you can use the `bitmap` rendering engine to get the raw bitmap image data as a buffer.
+You can extract images from the PDF page objects with the `render` method of `PDFiumImageObject`. By default it returns raw RGBA pixels. To save the image as PNG or JPEG, pass a render function, such as the sharp-based `renderFunction` from [Render PDF to image](./03-render-pdf.md).
 
 ```typescript
 const document = await library.loadDocument(buff);
@@ -13,13 +13,13 @@ for (const page of document.pages()) {
   for (const object of page.objects()) {
     // We are interested only in image objects
     if (object.type === "image") {
-      // Render the image using the sharp rendering engine
-      const { data: image } = await object.render({
+      // Render the image to PNG with the sharp-based render function
+      const { data } = await object.render({
         render: renderFunction,
       });
 
       // Save the PNG image to the output folder
-      await fs.writeFile(`output/${index}.png`, Buffer.from(image.data));
+      await fs.writeFile(`output/${index}.png`, data);
 
       index++;
     }
@@ -32,7 +32,7 @@ for (const page of document.pages()) {
 When images are extracted from the PDF page objects, they are rendered without any compression by default. You can use sharp and custom render function to compress the extracted images and reduce their size.
 
 ```typescript
-import { PDFiumPageRenderOptions } from "@hyzyla/pdfium";
+import { type PDFiumPageRenderOptions } from "@hyzyla/pdfium";
 import sharp from "sharp";
 
 const document = await library.loadDocument(buff);
@@ -64,12 +64,7 @@ const document = await library.loadDocument(buff);
 const page = document.getPage(0);
 const object = page.getObject(0);
 
-cosnt {
-  data,
-  width,
-  height,
-  filters,
-} = object.getImageDataRaw();
+const { data, width, height, filters } = await object.getImageDataRaw();
 /*
 Example output:
   {
@@ -81,4 +76,4 @@ Example output:
 */
 ```
 
-> :warning: Images in PDF documents are not stored in specific image formats like PNG or JPEG. Instead, image bitmaps are stored in compressed formats such as DCTDecode and FlateDecode. You need to decode the image data using the appropriate decoder/filter to obtain the raw uncompressed image data. Alternatively, you can use the render method with a rendering engine like sharp to convert the image into a specific format like PNG or JPEG.
+> :warning: Images in PDF documents are not stored in specific image formats like PNG or JPEG. Instead, image bitmaps are stored in compressed formats such as DCTDecode and FlateDecode. You need to decode the image data using the appropriate decoder/filter to obtain the raw uncompressed image data. You can also use the `render` method with a render function, for example one based on sharp, to convert the image to PNG or JPEG.
