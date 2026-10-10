@@ -37,6 +37,26 @@ function patchEsmPath() {
   };
 }
 
+// The CDN and base64 entries always hand the wasm bytes to the vendor code, so
+// its fallback URL for pdfium.wasm is never used. Bundlers still see the
+// `new URL(..., import.meta.url)` pattern and copy pdfium.wasm into apps that
+// never load it, so swap it for a plain string.
+function dropWasmUrl() {
+  const pattern = 'new URL("pdfium.wasm", import.meta.url).href';
+  return {
+    name: "drop-wasm-url",
+    renderChunk(code, chunk) {
+      if (!chunk.isEntry) {
+        return null;
+      }
+      if (!code.includes(pattern)) {
+        throw new Error(`Expected ${pattern} in ${chunk.fileName}, the vendor code has changed`);
+      }
+      return code.replace(pattern, '"pdfium.wasm"');
+    },
+  };
+}
+
 function injectDebugLog({ message }) {
   if (IS_PROD) {
     return null;
@@ -136,6 +156,7 @@ export default defineConfig([
     plugins: [
       injectDebugLog({ message: "PDFium with CDN loaded" }),
       patchEsmPath(),
+      dropWasmUrl(),
       setNotNodeEnvironment(),
       injectCdnVars(),
     ],
@@ -152,6 +173,7 @@ export default defineConfig([
     plugins: [
       injectDebugLog({ message: "PDFium with Base64 loaded" }),
       patchEsmPath(),
+      dropWasmUrl(),
       setNotNodeEnvironment(),
       replacePlugin(
         { __WASM_BINARY_BASE64__: JSON.stringify(wasmFile.toString("base64")) },
