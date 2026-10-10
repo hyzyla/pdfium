@@ -60,7 +60,8 @@
     "clean": "rm -rf dist",
     "check:fix": "oxlint --fix && oxfmt",
     "check:ci": "oxlint && oxfmt --check",
-    "check:test": "vitest",
+    "check:package": "vitest run --project package",
+    "check:test": "vitest --project unit",
     "check:types": "tsc --noEmit",
     "update:pdfium": "node scripts/update-pdfium.mjs"
   },
@@ -71,6 +72,7 @@
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0",
     "oxlint-tsgolint": "^7.0.2004",
+    "playwright-core": "^1.64.0",
     "rolldown": "^1.2.13",
     "sharp": "^0.35.5",
     "typescript": "^7.0.2",
