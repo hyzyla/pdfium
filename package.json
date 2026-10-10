@@ -65,16 +65,16 @@
     "update:pdfium": "node scripts/update-pdfium.mjs"
   },
   "devDependencies": {
-    "@types/jest-image-snapshot": "^6.4.0",
+    "@types/jest-image-snapshot": "^6.4.2",
     "@types/node": "^24.19.2",
-    "jest-image-snapshot": "^6.5.1",
+    "jest-image-snapshot": "^6.5.2",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0",
-    "oxlint-tsgolint": "^7.0.2003",
+    "oxlint-tsgolint": "^7.0.2004",
     "rolldown": "^1.2.13",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "typescript": "^7.0.2",
-    "unzipper": "^0.12.3",
+    "unzipper": "^0.12.5",
     "vite": "^8.3.4",
     "vitest": "^5.0.3"
   }
