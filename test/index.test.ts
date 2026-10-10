@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { promises as fs, promises } from "node:fs";
 
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from "jest-image-snapshot";
@@ -123,6 +124,24 @@ describe("PDFium", () => {
         expect(buff.originalHeight).toBe(A4_SIZE.height);
         expect(buff.originalWidth).toBe(A4_SIZE.width);
         expect(buff.data.length).toBe(A4_SIZE.height * A4_SIZE.width * 4);
+      });
+    });
+    test("should render pages concurrently with an async render function", async () => {
+      await loadDocument("test_1.pdf", async (document) => {
+        const hash = (data: Uint8Array) => crypto.createHash("sha256").update(data).digest("hex");
+        const pages = [...document.pages()];
+        const expected: string[] = [];
+        for (const page of pages) {
+          expected.push(hash((await page.render({ render: "bitmap" })).data));
+        }
+        // Reads the pixels after the other pages have rendered, like sharp does
+        const render = async (options: PDFiumPageRenderOptions) => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return options.data;
+        };
+        const results = await Promise.all(pages.map((page) => page.render({ render })));
+        expect(new Set(expected).size).toBe(pages.length);
+        expect(results.map((result) => hash(result.data))).toEqual(expected);
       });
     });
     test("should render a bitmap of a page with scale", async () => {
