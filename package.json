@@ -13,14 +13,6 @@
     "!dist/worker.bundle.js"
   ],
   "type": "module",
-  "browser": {
-    "fs": false,
-    "url": false,
-    "node": false,
-    "path": false,
-    "crypto": false,
-    "module": false
-  },
   "types": "dist/index.esm.d.ts",
   "exports": {
     ".": {
