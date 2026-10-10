@@ -29,7 +29,7 @@ export class PDFiumLibrary extends _PDFiumLibrary {
       console.warn(CDN_WARNING);
     }
     if (PDFiumLibrary._cache) {
-      return await _PDFiumLibrary.initBase({
+      return await PDFiumLibrary.initBase({
         vendor: PDFiumModule,
         wasmBinary: PDFiumLibrary._cache,
       });
@@ -37,7 +37,7 @@ export class PDFiumLibrary extends _PDFiumLibrary {
     const fetchOptions = WASM_INTEGRITY ? { integrity: WASM_INTEGRITY } : {};
     const response = await fetch(CDN_WASM_LINK, fetchOptions);
     const wasmBinary = await response.arrayBuffer();
-    return await _PDFiumLibrary.initBase({
+    return await PDFiumLibrary.initBase({
       vendor: PDFiumModule,
       wasmBinary: wasmBinary,
     });

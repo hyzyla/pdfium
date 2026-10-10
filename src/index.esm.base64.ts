@@ -32,7 +32,7 @@ export class PDFiumLibrary extends _PDFiumLibrary {
     }
     const base64 = await import("./vendor/pdfium.wasm.base64.js");
     const wasmBinary = base64ToUint8Array(base64.PDFIUM_WASM_BASE64);
-    return await _PDFiumLibrary.initBase({
+    return await PDFiumLibrary.initBase({
       wasmBinary: wasmBinary.buffer,
       vendor: PDFiumModule,
     });

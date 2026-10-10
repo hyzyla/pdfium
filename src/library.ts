@@ -38,7 +38,12 @@ type PDFiumLibraryInitOptions = {
 export class PDFiumLibrary {
   private readonly module: t.PDFium;
 
-  static async initBase(options: PDFiumLibraryInitOptions) {
+  // Entry points call this on their own subclass, so `init()` returns an
+  // instance of the class users import
+  static async initBase<T extends PDFiumLibrary>(
+    this: new (module: t.PDFium) => T,
+    options: PDFiumLibraryInitOptions,
+  ): Promise<T> {
     const { wasmUrl, wasmBinary, instantiateWasm } = options || {};
     const loadOptions: t.LoadPdfiumOptions = {};
     if (wasmUrl) {
@@ -70,7 +75,7 @@ export class PDFiumLibrary {
       m_pPlatform: null,
     });
 
-    return new PDFiumLibrary(module);
+    return new this(module);
   }
 
   constructor(module: t.PDFium) {

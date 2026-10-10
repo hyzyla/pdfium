@@ -45,6 +45,10 @@ describe("PDFium", () => {
     document.destroy();
   }
 
+  test("init should return an instance of the imported class", () => {
+    expect(library).toBeInstanceOf(PDFiumLibrary);
+  });
+
   describe("PDFiumDocument", () => {
     test("should load a document from a buffer and return the number of pages", async () => {
       await loadDocument("test_1.pdf", async (document) => {

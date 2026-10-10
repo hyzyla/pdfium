@@ -11,7 +11,7 @@ import PDFiumModule, { type InstantiateWasm } from "./vendor/pdfium.esm.js";
 
 export class PDFiumLibrary extends _PDFiumLibrary {
   static async init(options?: { wasmBinary?: ArrayBuffer; wasmUrl?: string; instantiateWasm?: InstantiateWasm }) {
-    return await _PDFiumLibrary.initBase({
+    return await PDFiumLibrary.initBase({
       vendor: PDFiumModule,
       wasmBinary: options?.wasmBinary,
       wasmUrl: options?.wasmUrl,
