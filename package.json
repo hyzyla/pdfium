@@ -9,7 +9,8 @@
     "url": "git+https://github.com/hyzyla/pdfium"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "type": "module",
   "types": "dist/index.esm.d.ts",

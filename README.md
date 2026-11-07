@@ -95,6 +95,10 @@ async function main() {
 main();
 ```
 
+## License
+
+The wrapper is MIT licensed, see [LICENSE.md](LICENSE.md). The bundled `pdfium.wasm` contains PDFium and other third-party code under their own licenses, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## Release
 
 1. Bump version in `package.json`: `npm version patch`
